@@ -30,6 +30,8 @@ export type PatientRecord = Omit<Schemas['PatientRecordDto'], 'emergencyContact'
 };
 export type PatientLinkRole = PatientRecord['linkRole'];
 export type UpdatePatientDto = Schemas['UpdatePatientDto'];
+/** UC-22 · Miembro del círculo: cuenta vinculada al paciente + rol del vínculo. */
+export type PatientCircleMember = Schemas['PatientLinkDto'];
 
 export type Specialty = Schemas['RegisterCaregiverDto']['specialties'][number];
 export type Modality = Schemas['CreateRequestDto']['modality'];

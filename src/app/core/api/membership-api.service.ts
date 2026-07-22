@@ -10,6 +10,7 @@ import {
   InvitationConfirmed,
   InvitationPreview,
   Patient,
+  PatientCircleMember,
   PatientRecord,
   RegisterCaregiverDto,
   RegisterPatientDto,
@@ -36,6 +37,11 @@ export class MembershipApi {
   /** Set parcial (mandar SOLO lo que cambia). Solo consent-holder|manager; viewer → 403. Sin operationId. */
   updatePatient(id: string, dto: UpdatePatientDto): Observable<PatientRecord> {
     return this.http.patch<PatientRecord>(`/api/v1/patients/${id}`, dto);
+  }
+
+  /** UC-22 · Círculo del paciente. Cualquier vinculado lee; 403 = sin vínculo. */
+  getPatientLinks(id: string): Observable<PatientCircleMember[]> {
+    return this.http.get<PatientCircleMember[]>(`/api/v1/patients/${id}/links`);
   }
 
   /** 404 = "todavía no tiene perfil profesional" (estado, no error) → null. */
