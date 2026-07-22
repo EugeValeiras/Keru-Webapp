@@ -60,7 +60,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           </button>
 
           <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            <kr-avatar [name]="p.displayName" [seed]="p.id" [size]="96" />
+            <kr-avatar [name]="p.displayName" [seed]="p.id" [size]="96" [photoUrl]="p.photoUrl" />
             <div class="text-center sm:text-left">
               <h1 class="text-2xl font-bold">{{ p.displayName }}</h1>
               <p class="text-ink-500">{{ p.zone }}</p>

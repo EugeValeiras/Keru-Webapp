@@ -5,10 +5,11 @@ import { MembershipApi } from '../../core/api/membership-api.service';
 import { ApiError, RegisterPatientDto } from '../../core/api/api.types';
 import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
 import { newOperationId } from '../../core/idempotency/operation-id';
+import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 
 @Component({
   selector: 'kr-patient-register-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, KrPhotoInput],
   template: `
     <div class="max-w-2xl mx-auto">
       <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
@@ -82,16 +83,10 @@ import { newOperationId } from '../../core/idempotency/operation-id';
           />
         </label>
 
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-ink-700">Foto (URL, opcional)</span>
-          <input
-            type="url"
-            name="photoUrl"
-            [(ngModel)]="photoUrl"
-            placeholder="https://…"
-            class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-          />
-        </label>
+        <div class="flex flex-col gap-1">
+          <span class="text-sm font-medium text-ink-700">Foto (opcional)</span>
+          <kr-photo-input [(url)]="photoUrl" />
+        </div>
 
         <div class="flex flex-col gap-2">
           <span class="text-sm font-medium text-ink-700">Alergias</span>
@@ -198,7 +193,7 @@ export class PatientRegisterPage {
   birthDate = '';
   mainCondition = '';
   bloodGroup = '';
-  photoUrl = '';
+  readonly photoUrl = signal<string | null>(null);
   allergyInput = '';
   contactName = '';
   contactPhone = '';
@@ -249,7 +244,7 @@ export class PatientRegisterPage {
         ...(this.contactRelationship.trim() ? { relationship: this.contactRelationship.trim() } : {}),
       },
       ...(this.bloodGroup.trim() ? { bloodGroup: this.bloodGroup.trim() } : {}),
-      ...(this.photoUrl.trim() ? { photoUrl: this.photoUrl.trim() } : {}),
+      ...(this.photoUrl() !== null ? { photoUrl: this.photoUrl()! } : {}),
     };
 
     this.loading.set(true);

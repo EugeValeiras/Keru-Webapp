@@ -13,7 +13,8 @@ const ROLE_HINTS: Record<InviteRole, string> = {
 
 /**
  * UC invitación al círculo: genera un deep link de un solo uso que vence en
- * 30 min. Keru NO envía el email: el link se comparte a mano.
+ * 30 min. El backend envía el email al invitado (mejor esfuerzo), por eso
+ * copiar/compartir el link a mano sigue siendo la acción primaria.
  */
 @Component({
   selector: 'kr-invite-modal',
@@ -64,8 +65,9 @@ const ROLE_HINTS: Record<InviteRole, string> = {
             </p>
 
             <p class="text-sm text-ink-700 bg-primary-50 rounded-lg px-3 py-2">
-              Keru no envía el email: compartí este link con la persona invitada (WhatsApp, mail,
-              etc.). Vence en 30 minutos y sirve una sola vez.
+              Le enviamos el link por email a {{ inv.invitedEmail }}. Igual podés copiarlo y
+              compartirlo por WhatsApp o el canal que quieras. Vence en 30 minutos y sirve una sola
+              vez.
             </p>
           </div>
         }

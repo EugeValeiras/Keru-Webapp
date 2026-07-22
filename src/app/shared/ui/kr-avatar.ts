@@ -2,25 +2,36 @@ import { Component, computed, input } from '@angular/core';
 
 const PALETTE = ['#7C3AED', '#8B5CF6', '#6D28D9', '#A78BFA', '#5B21B6'];
 
-/** Avatar con iniciales y fondo violeta determinístico por id (no hay fotos en la API). */
+/** Avatar con foto si hay photoUrl; si no, iniciales con fondo violeta determinístico por id. */
 @Component({
   selector: 'kr-avatar',
   template: `
-    <div
-      class="rounded-full flex items-center justify-center text-white font-semibold select-none"
-      [style.width.px]="size()"
-      [style.height.px]="size()"
-      [style.font-size.px]="size() * 0.4"
-      [style.background-color]="color()"
-    >
-      {{ initials() }}
-    </div>
+    @if (photoUrl(); as url) {
+      <img
+        [src]="url"
+        [alt]="name()"
+        class="rounded-full object-cover select-none"
+        [style.width.px]="size()"
+        [style.height.px]="size()"
+      />
+    } @else {
+      <div
+        class="rounded-full flex items-center justify-center text-white font-semibold select-none"
+        [style.width.px]="size()"
+        [style.height.px]="size()"
+        [style.font-size.px]="size() * 0.4"
+        [style.background-color]="color()"
+      >
+        {{ initials() }}
+      </div>
+    }
   `,
 })
 export class KrAvatar {
   readonly name = input.required<string>();
   readonly seed = input<string>('');
   readonly size = input(40);
+  readonly photoUrl = input<string | null | undefined>(undefined);
 
   readonly initials = computed(() =>
     this.name()

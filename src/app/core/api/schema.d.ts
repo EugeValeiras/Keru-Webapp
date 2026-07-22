@@ -283,6 +283,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/files/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Subir imagen de perfil (jpeg/png/webp, máx 5MB) → URL pública */
+        post: operations["FilesController_upload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/marketplace/caregivers": {
         parameters: {
             query?: never;
@@ -455,6 +472,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hiring-requests/{requestId}/review-caregiver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-17 · Calificar al cuidador (servicio finalizado) */
+        post: operations["ReviewController_reviewCaregiver_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hiring-requests/{requestId}/review-patient": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-21 · Calificar al paciente (servicio finalizado) */
+        post: operations["ReviewController_reviewPatient_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/caregivers/{id}/reputation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-07 · Reputación del cuidador (reseñas visibles + promedio) */
+        get: operations["ReviewController_caregiverReputation_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/reputation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-10/21 · Reputación del paciente (visible para el cuidador) */
+        get: operations["ReviewController_patientReputation_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patientId}/vitals": {
         parameters: {
             query?: never;
@@ -600,74 +685,6 @@ export interface paths {
         };
         /** UC-15 · Serie temporal de una métrica (para graficar) */
         get: operations["CareConsultController_series_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/hiring-requests/{requestId}/review-caregiver": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** UC-17 · Calificar al cuidador (servicio finalizado) */
-        post: operations["ReviewController_reviewCaregiver_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/hiring-requests/{requestId}/review-patient": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** UC-21 · Calificar al paciente (servicio finalizado) */
-        post: operations["ReviewController_reviewPatient_v1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/caregivers/{id}/reputation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** UC-07 · Reputación del cuidador (reseñas visibles + promedio) */
-        get: operations["ReviewController_caregiverReputation_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/patients/{id}/reputation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** UC-10/21 · Reputación del paciente (visible para el cuidador) */
-        get: operations["ReviewController_patientReputation_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -868,6 +885,8 @@ export interface components {
             operationId: string;
             /** @example Laura Gómez */
             displayName: string;
+            /** @example http://localhost:4566/keru-media/images/abc.jpg */
+            photoUrl?: string;
             /**
              * @example [
              *       "elder-care",
@@ -976,10 +995,16 @@ export interface components {
             /** @enum {string} */
             role: "consent-holder" | "manager" | "viewer";
         };
+        UploadedImageDto: {
+            /** @description URL pública de la imagen subida (usar como photoUrl) */
+            url: string;
+        };
         CaregiverCardDto: {
             /** Format: uuid */
             id: string;
             displayName: string;
+            /** @description Foto de perfil (UC-06) */
+            photoUrl?: string;
             specialties: string[];
             zone: string;
             modalities: string[];
@@ -988,11 +1013,17 @@ export interface components {
             badges: Record<string, never>;
             /** @description true si está en los favoritos de la cuenta */
             isFavorite?: boolean;
+            /** @description Promedio de reseñas reveladas, 0 si no tiene (UC-06 criterio 3) */
+            ratingAverage?: number;
+            /** @description Cantidad de reseñas reveladas */
+            ratingCount?: number;
         };
         CaregiverProfileDto: {
             /** Format: uuid */
             id: string;
             displayName: string;
+            /** @description Foto de perfil (UC-06) */
+            photoUrl?: string;
             specialties: string[];
             zone: string;
             modalities: string[];
@@ -1001,6 +1032,10 @@ export interface components {
             badges: Record<string, never>;
             /** @description true si está en los favoritos de la cuenta */
             isFavorite?: boolean;
+            /** @description Promedio de reseñas reveladas, 0 si no tiene (UC-06 criterio 3) */
+            ratingAverage?: number;
+            /** @description Cantidad de reseñas reveladas */
+            ratingCount?: number;
             certifications: Record<string, never>[];
             availability: Record<string, never>[];
         };
@@ -1036,11 +1071,18 @@ export interface components {
             patientId: string;
             /** Format: uuid */
             caregiverId: string;
+            /** @description Nombre del paciente (visible para el cuidador, UC-10) */
+            patientName?: string;
+            /** @description Nombre del cuidador (visible para el solicitante) */
+            caregiverName?: string;
             modality: string;
             /** Format: date-time */
             startDate: string;
             /** Format: date-time */
             endDate: string;
+            specialRequirements?: string;
+            /** @description Datos de contacto del solicitante. Para el cuidador solo con solicitud aceptada/en curso (UC-10). */
+            contactData?: Record<string, never>;
             /** @enum {string} */
             status: "pending" | "accepted" | "declined" | "in-progress" | "finished" | "expired";
             /** @description Tarifa pinneada al solicitar (NFR-03/23) */
@@ -1058,6 +1100,33 @@ export interface components {
             periodEnd: string;
             /** @enum {string} */
             status: "active" | "historical";
+        };
+        SubmitReviewDto: {
+            /** @example 5 */
+            rating: number;
+            /** @example Muy atenta y puntual */
+            comment?: string;
+        };
+        ReviewDto: {
+            /** Format: uuid */
+            id: string;
+            rating: number;
+            comment?: Record<string, never>;
+            /** @enum {string} */
+            subjectType: "caregiver" | "patient";
+            revealed: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ReputationDto: {
+            /**
+             * @example {
+             *       "average": 4.5,
+             *       "count": 2
+             *     }
+             */
+            aggregate: Record<string, never>;
+            reviews: components["schemas"]["ReviewDto"][];
         };
         MetricValueDto: {
             /**
@@ -1132,33 +1201,6 @@ export interface components {
             read: boolean;
             /** Format: date-time */
             createdAt: string;
-        };
-        SubmitReviewDto: {
-            /** @example 5 */
-            rating: number;
-            /** @example Muy atenta y puntual */
-            comment?: string;
-        };
-        ReviewDto: {
-            /** Format: uuid */
-            id: string;
-            rating: number;
-            comment?: Record<string, never>;
-            /** @enum {string} */
-            subjectType: "caregiver" | "patient";
-            revealed: boolean;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        ReputationDto: {
-            /**
-             * @example {
-             *       "average": 4.5,
-             *       "count": 2
-             *     }
-             */
-            aggregate: Record<string, never>;
-            reviews: components["schemas"]["ReviewDto"][];
         };
     };
     responses: never;
@@ -1545,6 +1587,32 @@ export interface operations {
             };
         };
     };
+    FilesController_upload_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadedImageDto"];
+                };
+            };
+        };
+    };
     MarketplaceController_search_v1: {
         parameters: {
             query?: {
@@ -1793,6 +1861,98 @@ export interface operations {
             };
         };
     };
+    ReviewController_reviewCaregiver_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitReviewDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto"];
+                };
+            };
+        };
+    };
+    ReviewController_reviewPatient_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitReviewDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDto"];
+                };
+            };
+        };
+    };
+    ReviewController_caregiverReputation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReputationDto"];
+                };
+            };
+        };
+    };
+    ReviewController_patientReputation_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReputationDto"];
+                };
+            };
+        };
+    };
     CareRecordController_vitals_v1: {
         parameters: {
             query?: never;
@@ -1981,98 +2141,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    ReviewController_reviewCaregiver_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                requestId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubmitReviewDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReviewDto"];
-                };
-            };
-        };
-    };
-    ReviewController_reviewPatient_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                requestId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubmitReviewDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReviewDto"];
-                };
-            };
-        };
-    };
-    ReviewController_caregiverReputation_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReputationDto"];
-                };
-            };
-        };
-    };
-    ReviewController_patientReputation_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReputationDto"];
-                };
             };
         };
     };

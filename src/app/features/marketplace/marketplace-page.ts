@@ -13,6 +13,7 @@ import { HiringApi, MarketplaceFilters } from '../../core/api/hiring-api.service
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrRating } from '../../shared/ui/kr-rating';
 
 const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
   ['certifications', 'Certificaciones'],
@@ -22,7 +23,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
 @Component({
   selector: 'kr-marketplace-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrRating],
   template: `
     <h1 class="text-2xl font-bold mb-4">Encontrá cuidadores</h1>
 
@@ -150,10 +151,15 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
             </button>
 
             <div class="flex items-center gap-4">
-              <kr-avatar [name]="c.displayName" [seed]="c.id" [size]="56" />
+              <kr-avatar [name]="c.displayName" [seed]="c.id" [size]="56" [photoUrl]="c.photoUrl" />
               <div class="min-w-0 pr-8">
                 <p class="font-semibold text-ink-900 truncate">{{ c.displayName }}</p>
                 <p class="text-sm text-ink-500 truncate">{{ c.zone }}</p>
+                @if (c.ratingCount) {
+                  <kr-rating [value]="c.ratingAverage ?? 0" [count]="c.ratingCount" />
+                } @else {
+                  <p class="text-xs text-ink-500">Sin reseñas todavía</p>
+                }
               </div>
             </div>
 

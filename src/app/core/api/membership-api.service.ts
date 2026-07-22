@@ -42,6 +42,13 @@ export class MembershipApi {
     return this.http.post<CaregiverProfile>('/api/v1/caregivers', dto);
   }
 
+  /** Sube una imagen (jpeg/png/webp, máx 5MB); la URL resultante sirve como photoUrl. */
+  uploadImage(file: File): Observable<{ url: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ url: string }>('/api/v1/files/images', form);
+  }
+
   /** NO es idempotente: cada POST crea una invitación nueva (no reintentar automático). */
   createInvitation(patientId: string, dto: CreateInvitationDto): Observable<Invitation> {
     return this.http.post<Invitation>(`/api/v1/patients/${patientId}/invitations`, dto);

@@ -13,6 +13,7 @@ import {
 } from '../../core/api/api.types';
 import { AuthStore } from '../../core/auth/auth-store';
 import { newOperationId } from '../../core/idempotency/operation-id';
+import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 
 interface CertRow {
   type: string;
@@ -30,7 +31,7 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
 
 @Component({
   selector: 'kr-caregiver-onboarding-page',
-  imports: [FormsModule],
+  imports: [FormsModule, KrPhotoInput],
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
@@ -83,6 +84,10 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
               />
               <span class="text-xs text-ink-500">Así te van a ver las familias en el marketplace.</span>
             </label>
+            <div class="flex flex-col gap-1">
+              <span class="text-sm font-medium text-ink-700">Foto de perfil</span>
+              <kr-photo-input [(url)]="photoUrl" />
+            </div>
           }
 
           <!-- Paso 2: Especialidades -->
@@ -350,6 +355,7 @@ export class CaregiverOnboardingPage {
 
   // Estado del formulario (ngModel)
   displayName = this.auth.displayName();
+  readonly photoUrl = signal<string | null>(null);
   specialtySel: Record<string, boolean> = {};
   certs: CertRow[] = [];
   slots: SlotRow[] = [{ dayOfWeek: 1, from: '', to: '' }];
@@ -451,6 +457,7 @@ export class CaregiverOnboardingPage {
     const dto: RegisterCaregiverDto = {
       operationId: this.operationId,
       displayName: this.displayName.trim(),
+      ...(this.photoUrl() !== null ? { photoUrl: this.photoUrl()! } : {}),
       specialties: this.selectedSpecialties(),
       certifications: this.certs.map((c) => ({
         type: c.type.trim(),

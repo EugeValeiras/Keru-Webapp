@@ -88,7 +88,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
           <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-3">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <p class="font-semibold text-ink-900">{{ nameFor(r.caregiverId) }}</p>
+                <p class="font-semibold text-ink-900">{{ r.caregiverName ?? 'Cuidador/a' }}</p>
                 <p class="text-sm text-ink-500">
                   {{ format(r.startDate) }} → {{ format(r.endDate) }} · {{ modalityLabel(r.modality) }}
                 </p>
@@ -147,10 +147,6 @@ export class HiringsPage {
   readonly completingId = signal<string | null>(null);
   readonly reviewRequestId = signal<string | null>(null);
 
-  /** Cache local id→nombre; los DTOs de request solo traen ids. */
-  private readonly names = signal(new Map<string, string>());
-  private readonly resolving = new Set<string>();
-
   readonly filtered = computed(() => {
     const status = this.statusFilter();
     const list = this.requests();
@@ -169,35 +165,12 @@ export class HiringsPage {
       next: (requests) => {
         this.loading.set(false);
         this.requests.set(requests);
-        for (const id of new Set(requests.map((r) => r.caregiverId))) {
-          this.resolveName(id);
-        }
       },
       error: (err: ApiError) => {
         this.loading.set(false);
         this.error.set(err.message);
       },
     });
-  }
-
-  private resolveName(caregiverId: string): void {
-    if (this.names().has(caregiverId) || this.resolving.has(caregiverId)) {
-      return;
-    }
-    this.resolving.add(caregiverId);
-    this.api.getCaregiverProfile(caregiverId).subscribe({
-      next: (p) => this.setName(caregiverId, p.displayName),
-      error: (err: ApiError) =>
-        this.setName(caregiverId, err.statusCode === 404 ? 'Cuidador no disponible' : 'Cuidador'),
-    });
-  }
-
-  private setName(id: string, name: string): void {
-    this.names.update((m) => new Map(m).set(id, name));
-  }
-
-  nameFor(caregiverId: string): string {
-    return this.names().get(caregiverId) ?? 'Cargando…';
   }
 
   complete(r: HiringRequest): void {

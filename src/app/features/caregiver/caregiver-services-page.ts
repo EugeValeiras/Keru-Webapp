@@ -38,9 +38,9 @@ import { ReviewModal } from '../reputation/review-modal';
           @for (r of active(); track r.id) {
             <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
               <div class="flex items-center gap-3">
-                <kr-avatar [seed]="r.patientId" name="Paciente" [size]="44" />
+                <kr-avatar [seed]="r.patientId" [name]="r.patientName ?? 'Paciente'" [size]="44" />
                 <div class="flex-1">
-                  <p class="font-semibold">Paciente</p>
+                  <p class="font-semibold">{{ r.patientName ?? 'Paciente' }}</p>
                   <p class="text-sm text-ink-500">
                     {{ formatDate(r.startDate) }} → {{ formatDate(r.endDate) }} ·
                     {{ modalityLabel(r.modality) }}
@@ -50,6 +50,15 @@ import { ReviewModal } from '../reputation/review-modal';
                   {{ statusLabels[r.status] }}
                 </kr-badge>
               </div>
+
+              @if (contactPairs(r).length > 0) {
+                <p class="text-sm text-ink-700">
+                  Contacto para coordinar:
+                  @for (pair of contactPairs(r); track pair[0]; let last = $last) {
+                    <span class="font-medium">{{ pair[1] }}</span>@if (!last) {<span> · </span>}
+                  }
+                </p>
+              }
 
               <div class="flex flex-wrap gap-2">
                 <a
@@ -92,9 +101,9 @@ import { ReviewModal } from '../reputation/review-modal';
           <h2 class="text-lg font-semibold mt-2">Finalizados</h2>
           @for (r of finished(); track r.id) {
             <div class="bg-surface rounded-card shadow-card p-6 flex items-center gap-3">
-              <kr-avatar [seed]="r.patientId" name="Paciente" [size]="44" />
+              <kr-avatar [seed]="r.patientId" [name]="r.patientName ?? 'Paciente'" [size]="44" />
               <div class="flex-1">
-                <p class="font-semibold">Paciente</p>
+                <p class="font-semibold">{{ r.patientName ?? 'Paciente' }}</p>
                 <p class="text-sm text-ink-500">
                   {{ formatDate(r.startDate) }} → {{ formatDate(r.endDate) }} ·
                   {{ modalityLabel(r.modality) }}
@@ -155,5 +164,13 @@ export class CaregiverServicesPage {
 
   modalityLabel(m: string): string {
     return MODALITY_LABELS[m as Modality] ?? m;
+  }
+
+  /** Pares clave→valor de contactData; la API solo lo manda en accepted/in-progress. */
+  contactPairs(r: HiringRequest): [string, string][] {
+    if (r.status !== 'accepted' && r.status !== 'in-progress') {
+      return [];
+    }
+    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]);
   }
 }

@@ -16,6 +16,12 @@ import { ReputationPanel } from '../reputation/reputation-panel';
 
 const STATUS_ORDER: HiringStatus[] = ['pending', 'accepted', 'in-progress', 'declined', 'finished', 'expired'];
 
+const CONTACT_LABELS: Record<string, string> = {
+  phone: 'Teléfono',
+  email: 'Email',
+  address: 'Dirección',
+};
+
 @Component({
   selector: 'kr-caregiver-inbox-page',
   imports: [KrAvatar, KrBadge, KrEmptyState, ReputationPanel],
@@ -53,9 +59,9 @@ const STATUS_ORDER: HiringStatus[] = ['pending', 'accepted', 'in-progress', 'dec
         @for (r of filtered(); track r.id) {
           <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
             <div class="flex items-center gap-3">
-              <kr-avatar [seed]="r.patientId" name="Paciente" [size]="44" />
+              <kr-avatar [seed]="r.patientId" [name]="r.patientName ?? 'Paciente'" [size]="44" />
               <div class="flex-1">
-                <p class="font-semibold">Paciente</p>
+                <p class="font-semibold">{{ r.patientName ?? 'Paciente' }}</p>
                 <p class="text-sm text-ink-500">
                   {{ formatDate(r.startDate) }} → {{ formatDate(r.endDate) }} ·
                   {{ modalityLabel(r.modality) }}
@@ -102,9 +108,31 @@ const STATUS_ORDER: HiringStatus[] = ['pending', 'accepted', 'in-progress', 'dec
             </div>
 
             @if (expanded() === r.id) {
-              <div class="border-t border-ink-300 pt-4">
-                <h3 class="text-sm font-semibold text-ink-700 mb-2">Reputación del paciente</h3>
-                <kr-reputation-panel [subjectId]="r.patientId" subjectType="patient" />
+              <div class="border-t border-ink-300 pt-4 flex flex-col gap-4">
+                @if (r.specialRequirements) {
+                  <div>
+                    <h3 class="text-sm font-semibold text-ink-700 mb-1">Requerimientos especiales</h3>
+                    <p class="text-sm text-ink-900">{{ r.specialRequirements }}</p>
+                  </div>
+                }
+                @if (contactPairs(r).length > 0) {
+                  <div>
+                    <h3 class="text-sm font-semibold text-ink-700 mb-1">Contacto para coordinar</h3>
+                    @for (pair of contactPairs(r); track pair[0]) {
+                      <p class="text-sm text-ink-900">
+                        <span class="text-ink-500">{{ contactLabel(pair[0]) }}:</span> {{ pair[1] }}
+                      </p>
+                    }
+                  </div>
+                } @else if (r.status === 'pending') {
+                  <p class="text-xs text-ink-500">
+                    Los datos de contacto se comparten recién cuando aceptás la solicitud.
+                  </p>
+                }
+                <div>
+                  <h3 class="text-sm font-semibold text-ink-700 mb-2">Reputación del paciente</h3>
+                  <kr-reputation-panel [subjectId]="r.patientId" subjectType="patient" />
+                </div>
               </div>
             }
           </div>
@@ -197,6 +225,18 @@ export class CaregiverInboxPage {
 
   rate(r: HiringRequest): number {
     return parseFloat(r.ratePerHourSnapshot);
+  }
+
+  /** Pares clave→valor de contactData; solo con solicitud aceptada/en curso (la API no lo manda en pending). */
+  contactPairs(r: HiringRequest): [string, string][] {
+    if (r.status !== 'accepted' && r.status !== 'in-progress') {
+      return [];
+    }
+    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]);
+  }
+
+  contactLabel(key: string): string {
+    return CONTACT_LABELS[key] ?? key;
   }
 
   modalityLabel(m: string): string {
