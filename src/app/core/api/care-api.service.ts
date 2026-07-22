@@ -6,6 +6,7 @@ import {
   HistoryItem,
   MetricKey,
   PatientState,
+  QuarantinedRecord,
   RecordMedicationDto,
   RecordNoteDto,
   RecordResponse,
@@ -42,6 +43,21 @@ export class CareApi {
   /** Orden ASC, listo para graficar. metricKey inválido devuelve [] silencioso. */
   getSeries(patientId: string, metricKey: MetricKey): Observable<SeriesPoint[]> {
     return this.http.get<SeriesPoint[]>(`/api/v1/patients/${patientId}/metrics/${metricKey}/series`);
+  }
+
+  /** UC-12 A3 · Cuarentena (NFR-30): visible para el círculo. receivedAt DESC; incluye resueltos. */
+  getQuarantine(patientId: string): Observable<QuarantinedRecord[]> {
+    return this.http.get<QuarantinedRecord[]>(`/api/v1/patients/${patientId}/quarantine`);
+  }
+
+  /** Resuelven consent-holder/manager (viewer: 403). Re-aplicar es no-op idempotente. */
+  approveQuarantined(patientId: string, id: string): Observable<QuarantinedRecord> {
+    return this.http.post<QuarantinedRecord>(`/api/v1/patients/${patientId}/quarantine/${id}/approve`, {});
+  }
+
+  /** Marca el item como descartado con traza — nunca se borra. */
+  discardQuarantined(patientId: string, id: string): Observable<QuarantinedRecord> {
+    return this.http.post<QuarantinedRecord>(`/api/v1/patients/${patientId}/quarantine/${id}/discard`, {});
   }
 
   getNotifications(): Observable<AppNotification[]> {
