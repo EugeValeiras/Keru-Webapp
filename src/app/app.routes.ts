@@ -108,6 +108,13 @@ export const routes: Routes = [
           import('./features/caregiver/caregiver-profile-page').then((m) => m.CaregiverProfilePage),
       },
       {
+        path: 'profile/edit',
+        loadComponent: () =>
+          import('./features/caregiver/caregiver-profile-edit-page').then(
+            (m) => m.CaregiverProfileEditPage,
+          ),
+      },
+      {
         path: 'onboarding',
         loadComponent: () =>
           import('./features/caregiver/caregiver-onboarding-page').then((m) => m.CaregiverOnboardingPage),

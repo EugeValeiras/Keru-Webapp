@@ -141,7 +141,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * UC-02 A3 · Editar el perfil aprobado
+         * @description Set parcial de foto, disponibilidad, tarifas, zona y modalidades sin re-aprobación (el perfil sigue aprobado y visible). La tarifa es efectivo-fechada (NFR-03/23): cada cambio agrega una versión al historial y las solicitudes existentes conservan su tarifa pinneada. Credenciales (nombre/especialidades/certificaciones) no se editan por esta vía.
+         */
+        patch: operations["CaregiverController_updateApproved_v1"];
         trace?: never;
     };
     "/api/v1/admin/caregivers/pending": {
@@ -1213,6 +1217,26 @@ export interface components {
             badges: Record<string, never>;
             rejectionReason?: Record<string, never>;
         };
+        UpdateCaregiverProfileDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /** @example http://localhost:4566/keru-media/images/abc.jpg */
+            photoUrl?: string;
+            availability?: components["schemas"]["AvailabilityDto"][];
+            rates?: components["schemas"]["RatesDto"];
+            /** @example Palermo, CABA */
+            zone?: string;
+            /**
+             * @example [
+             *       "home",
+             *       "hospital"
+             *     ]
+             */
+            modalities?: ("home" | "hospital")[];
+        };
         CaregiverDetailDto: {
             /** Format: uuid */
             id: string;
@@ -1801,6 +1825,29 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RegisterCaregiverDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverResponseDto"];
+                };
+            };
+        };
+    };
+    CaregiverController_updateApproved_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCaregiverProfileDto"];
             };
         };
         responses: {

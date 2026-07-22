@@ -37,6 +37,8 @@ export type Specialty = Schemas['RegisterCaregiverDto']['specialties'][number];
 export type Modality = Schemas['CreateRequestDto']['modality'];
 export type CaregiverStatus = Schemas['CaregiverResponseDto']['status'];
 export type RegisterCaregiverDto = Schemas['RegisterCaregiverDto'];
+/** UC-02 A3 · Set parcial del perfil aprobado (sin credenciales); la tarifa es efectivo-fechada. */
+export type UpdateCaregiverProfileDto = Schemas['UpdateCaregiverProfileDto'];
 export type Certification = Schemas['CertificationDto'];
 export type Availability = Schemas['AvailabilityDto'];
 export type Rates = Schemas['RatesDto'];
