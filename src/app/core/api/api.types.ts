@@ -109,6 +109,8 @@ export interface Reputation {
 
 export type CreateInvitationDto = Schemas['CreateInvitationDto'];
 export type Invitation = Schemas['InvitationResponseDto'];
+/** UC-03 · Invitación emitida (gestión: listar y revocar). */
+export type EmittedInvitation = Schemas['EmittedInvitationDto'];
 
 /** GET /invitations/:token (público, sin schema en openapi). */
 export interface InvitationPreview {

@@ -287,10 +287,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** UC-03 · Listar invitaciones emitidas (estado y vencimiento) */
+        get: operations["InvitationController_list_v1"];
         put?: never;
         /** UC-03 · Emitir invitación (30 min, un solo uso) */
         post: operations["InvitationController_issue_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/{token}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-03 · Revocar invitación (la deja inutilizable) */
+        post: operations["InvitationController_revoke_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1162,6 +1180,22 @@ export interface components {
             /** @description Deep link para compartir (abre app o web). */
             link: string;
         };
+        EmittedInvitationDto: {
+            token: string;
+            /** Format: uuid */
+            patientId: string;
+            invitedEmail: string;
+            /** @enum {string} */
+            roleToGrant: "consent-holder" | "manager" | "viewer";
+            /** @enum {string} */
+            status: "pending" | "accepted" | "revoked";
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Cuenta que emitió la invitación (habilitada a revocarla). */
+            invitedByAccountId: string;
+        };
         InvitationConfirmedDto: {
             /** Format: uuid */
             patientId: string;
@@ -1793,6 +1827,27 @@ export interface operations {
             };
         };
     };
+    InvitationController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmittedInvitationDto"][];
+                };
+            };
+        };
+    };
     InvitationController_issue_v1: {
         parameters: {
             query?: never;
@@ -1814,6 +1869,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvitationResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationController_revoke_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmittedInvitationDto"];
                 };
             };
         };
