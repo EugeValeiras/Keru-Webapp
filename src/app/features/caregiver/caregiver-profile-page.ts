@@ -35,7 +35,7 @@ const BADGE_ITEMS = [
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       }
 
       @if (profile(); as p) {
@@ -75,7 +75,9 @@ const BADGE_ITEMS = [
           }
           @case ('deactivated') {
             <div class="rounded-card bg-gray-100 border border-ink-300 p-6">
-              <p class="text-ink-900 font-semibold text-lg">Tu perfil está oculto del marketplace.</p>
+              <p class="text-ink-900 font-semibold text-lg">
+                Tu perfil está oculto del marketplace.
+              </p>
             </div>
           }
         }

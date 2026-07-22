@@ -117,7 +117,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
     </form>
 
     @if (error(); as err) {
-      <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (loading()) {
@@ -174,12 +174,16 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
             <p class="text-sm text-ink-500">
               @for (m of c.modalities; track m; let last = $last) {
-                {{ modalityLabel(m) }}@if (!last) {<span> · </span>}
+                {{ modalityLabel(m) }}
+                @if (!last) {
+                  <span> · </span>
+                }
               }
             </p>
 
             <p class="text-lg font-bold text-ink-900">
-              $ {{ c.ratePerHour }} <span class="text-sm font-medium text-ink-500">{{ c.currency }}/hora</span>
+              $ {{ c.ratePerHour }}
+              <span class="text-sm font-medium text-ink-500">{{ c.currency }}/hora</span>
             </p>
 
             @if (c.badges.certifications || c.badges.identity || c.badges.background) {

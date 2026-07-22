@@ -28,7 +28,13 @@ interface SlotRow {
   to: string;
 }
 
-const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilidad', 'Tarifa y zona'];
+const STEP_TITLES = [
+  'Datos',
+  'Especialidades',
+  'Certificaciones',
+  'Disponibilidad',
+  'Tarifa y zona',
+];
 
 @Component({
   selector: 'kr-caregiver-onboarding-page',
@@ -57,7 +63,7 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
             <span>Paso {{ step() }} de 5 — {{ stepTitles[step() - 1] }}</span>
             <span>{{ step() * 20 }}%</span>
           </div>
-          <div class="h-2 rounded-pill bg-primary-100 overflow-hidden">
+          <div class="h-2 rounded-pill bg-primary-100 overflow-hidden" aria-hidden="true">
             <div
               class="h-full bg-primary-600 rounded-pill transition-all"
               [style.width.%]="step() * 20"
@@ -65,9 +71,12 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
           </div>
         </div>
 
-        <form class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4" (ngSubmit)="next()">
+        <form
+          class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4"
+          (ngSubmit)="next()"
+        >
           @if (error(); as err) {
-            <div class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+            <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
               <p>{{ err }}</p>
               @if (fieldErrors().length > 0) {
                 <ul class="list-disc list-inside mt-1">
@@ -91,7 +100,9 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
                 placeholder="Ej: Laura Gómez"
                 class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
-              <span class="text-xs text-ink-500">Así te van a ver las familias en el marketplace.</span>
+              <span class="text-xs text-ink-500"
+                >Así te van a ver las familias en el marketplace.</span
+              >
             </label>
             <div class="flex flex-col gap-1">
               <span class="text-sm font-medium text-ink-700">Foto de perfil</span>
@@ -260,7 +271,9 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
               </label>
             </div>
             <label class="flex flex-col gap-1">
-              <span class="text-sm font-medium text-ink-700">Descripción de la tarifa (opcional)</span>
+              <span class="text-sm font-medium text-ink-700"
+                >Descripción de la tarifa (opcional)</span
+              >
               <input
                 type="text"
                 name="rateDescription"
@@ -305,12 +318,18 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
             <div class="rounded-lg bg-primary-50 p-4 text-sm flex flex-col gap-1">
               <p class="font-semibold text-primary-700 mb-1">Resumen de tu postulación</p>
               <p><span class="text-ink-500">Nombre:</span> {{ displayName }}</p>
-              <p><span class="text-ink-500">Especialidades:</span> {{ selectedSpecialtyLabels() }}</p>
+              <p>
+                <span class="text-ink-500">Especialidades:</span> {{ selectedSpecialtyLabels() }}
+              </p>
               <p><span class="text-ink-500">Certificaciones:</span> {{ certs.length }}</p>
               <p><span class="text-ink-500">Horarios:</span> {{ slots.length }}</p>
               <p>
                 <span class="text-ink-500">Tarifa:</span>
-                @if (ratePerHour) { $ {{ ratePerHour }}/hora ({{ currency }}) } @else { — }
+                @if (ratePerHour) {
+                  $ {{ ratePerHour }}/hora ({{ currency }})
+                } @else {
+                  —
+                }
               </p>
               <p><span class="text-ink-500">Zona:</span> {{ zone || '—' }}</p>
             </div>

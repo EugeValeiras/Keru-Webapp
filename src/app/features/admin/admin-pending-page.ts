@@ -22,13 +22,17 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       }
 
       @if (loading()) {
         <p class="text-ink-500">Cargando cola de revisión…</p>
       } @else if (pending().length === 0) {
-        <kr-empty-state icon="🎉" title="Sin pendientes 🎉" subtitle="No hay postulaciones esperando revisión." />
+        <kr-empty-state
+          icon="🎉"
+          title="Sin pendientes 🎉"
+          subtitle="No hay postulaciones esperando revisión."
+        />
       } @else {
         @for (c of pending(); track c.id) {
           <div class="bg-surface rounded-card shadow-card p-6 flex items-center gap-4">

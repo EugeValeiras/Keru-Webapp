@@ -19,7 +19,7 @@ import { formatDate } from '../../shared/utils/dates';
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       } @else if (!reputation()) {
         <p class="text-sm text-ink-500">Cargando reseñas…</p>
       } @else if (reputation(); as rep) {
@@ -65,7 +65,9 @@ export class ReputationPanel {
     this.reputation.set(null);
     this.error.set(null);
     const source =
-      type === 'caregiver' ? this.api.getCaregiverReputation(id) : this.api.getPatientReputation(id);
+      type === 'caregiver'
+        ? this.api.getCaregiverReputation(id)
+        : this.api.getPatientReputation(id);
     source.subscribe({
       next: (rep) => this.reputation.set(rep),
       error: (err: ApiError) => this.error.set(err.message),

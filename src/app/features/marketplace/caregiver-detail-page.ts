@@ -28,7 +28,9 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
       <div class="bg-surface rounded-card shadow-card p-12 text-center max-w-lg mx-auto">
         <p class="text-4xl mb-3">🕊️</p>
         <h1 class="text-lg font-semibold mb-1">Este cuidador ya no está disponible</h1>
-        <p class="text-ink-500 text-sm mb-4">Puede haber pausado su perfil. Hay más cuidadores esperándote.</p>
+        <p class="text-ink-500 text-sm mb-4">
+          Puede haber pausado su perfil. Hay más cuidadores esperándote.
+        </p>
         <a
           routerLink="/app/marketplace"
           class="inline-block rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
@@ -37,12 +39,15 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         </a>
       </div>
     } @else if (error(); as err) {
-      <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
     } @else if (!profile()) {
       <p class="text-ink-500 text-sm">Cargando perfil…</p>
     } @else if (profile(); as p) {
       <div class="max-w-3xl mx-auto flex flex-col gap-4 pb-24">
-        <a routerLink="/app/marketplace" class="text-sm text-primary-600 font-medium hover:underline">
+        <a
+          routerLink="/app/marketplace"
+          class="text-sm text-primary-600 font-medium hover:underline"
+        >
           ← Volver al marketplace
         </a>
 
@@ -66,7 +71,10 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
               <p class="text-ink-500">{{ p.zone }}</p>
               <p class="text-sm text-ink-500 mt-1">
                 @for (m of p.modalities; track m; let last = $last) {
-                  {{ modalityLabel(m) }}@if (!last) {<span> · </span>}
+                  {{ modalityLabel(m) }}
+                  @if (!last) {
+                    <span> · </span>
+                  }
                 }
               </p>
               <div class="flex flex-wrap justify-center sm:justify-start gap-1.5 mt-3">
@@ -152,7 +160,8 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         <div class="fixed bottom-0 inset-x-0 bg-surface border-t border-ink-300/50 p-4 z-40">
           <div class="max-w-3xl mx-auto flex items-center justify-between gap-4">
             <p class="font-semibold text-ink-900">
-              $ {{ p.ratePerHour }} <span class="text-sm font-medium text-ink-500">{{ p.currency }}/hora</span>
+              $ {{ p.ratePerHour }}
+              <span class="text-sm font-medium text-ink-500">{{ p.currency }}/hora</span>
             </p>
             <a
               [routerLink]="['/app/marketplace', p.id, 'request']"
@@ -212,7 +221,9 @@ export class CaregiverDetailPage {
   toggleFavorite(): void {
     const was = this.isFavorite();
     this.isFavorite.set(!was);
-    const call = was ? this.api.removeFavorite(this.caregiverId) : this.api.addFavorite(this.caregiverId);
+    const call = was
+      ? this.api.removeFavorite(this.caregiverId)
+      : this.api.addFavorite(this.caregiverId);
     call.subscribe({
       error: (err: ApiError) => {
         this.isFavorite.set(was);

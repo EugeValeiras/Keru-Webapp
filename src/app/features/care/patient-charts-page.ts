@@ -2,7 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CareApi } from '../../core/api/care-api.service';
-import { ApiError, CatalogMetric, Catalogs, MetricKey, SeriesPoint } from '../../core/api/api.types';
+import {
+  ApiError,
+  CatalogMetric,
+  Catalogs,
+  MetricKey,
+  SeriesPoint,
+} from '../../core/api/api.types';
 import { CatalogService } from '../../core/catalogs/catalog.service';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { ChartLine, KrLineChart } from '../../shared/ui/kr-line-chart';
@@ -79,7 +85,9 @@ const DAY_MS = 86_400_000;
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+          {{ err }}
+        </p>
       }
 
       @if (loading()) {

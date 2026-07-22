@@ -39,7 +39,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
       <div class="mb-1 flex justify-between text-xs text-ink-500">
         <span class="font-medium text-primary-700">Paso {{ step() }} de 4 · {{ stepTitle() }}</span>
       </div>
-      <div class="h-2 rounded-pill bg-primary-100 mb-6 overflow-hidden">
+      <div class="h-2 rounded-pill bg-primary-100 mb-6 overflow-hidden" aria-hidden="true">
         <div
           class="h-full bg-primary-600 rounded-pill transition-all"
           [style.width.%]="step() * 25"
@@ -48,10 +48,10 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
 
       <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
         @if (validationError(); as msg) {
-          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
+          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
         }
         @if (submitError(); as msg) {
-          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
+          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
         }
 
         <!-- Paso 1: paciente -->
@@ -150,7 +150,9 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
         <!-- Paso 3: detalles -->
         @if (step() === 3) {
           <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-ink-700">Requerimientos especiales (opcional)</span>
+            <span class="text-sm font-medium text-ink-700"
+              >Requerimientos especiales (opcional)</span
+            >
             <textarea
               name="specialRequirements"
               [(ngModel)]="specialRequirements"
@@ -184,7 +186,9 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-ink-500">Cuidador</dt>
-              <dd class="font-medium text-ink-900 text-right">{{ profile()?.displayName ?? '—' }}</dd>
+              <dd class="font-medium text-ink-900 text-right">
+                {{ profile()?.displayName ?? '—' }}
+              </dd>
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-ink-500">Modalidad</dt>

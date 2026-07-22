@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 
-const PALETTE = ['#7C3AED', '#8B5CF6', '#6D28D9', '#A78BFA', '#5B21B6'];
+// WCAG AA: iniciales blancas encima → solo violetas con ≥4.5:1 vs blanco.
+const PALETTE = ['#7C3AED', '#6D28D9', '#5B21B6', '#4C1D95'];
 
 /** Avatar con foto si hay photoUrl; si no, iniciales con fondo violeta determinístico por id. */
 @Component({

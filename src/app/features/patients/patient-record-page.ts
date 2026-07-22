@@ -54,7 +54,9 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
         <p class="text-ink-500 text-sm">Cargando ficha…</p>
       } @else if (record(); as r) {
         @if (error(); as err) {
-          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+            {{ err }}
+          </p>
         }
 
         @if (!editing()) {
@@ -89,7 +91,9 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
               @if (r.allergies.length > 0) {
                 <div class="flex flex-wrap gap-2">
                   @for (a of r.allergies; track a) {
-                    <span class="inline-flex items-center rounded-pill bg-primary-50 text-primary-700 px-3 py-1 text-sm">
+                    <span
+                      class="inline-flex items-center rounded-pill bg-primary-50 text-primary-700 px-3 py-1 text-sm"
+                    >
                       {{ a }}
                     </span>
                   }
@@ -130,7 +134,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
               Personas vinculadas a {{ r.fullName }} y el rol con el que acceden.
             </p>
             @if (circleError()) {
-              <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+              <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
                 No se pudo cargar el círculo. Probá recargar la página.
               </p>
             } @else if (circle(); as members) {
@@ -152,7 +156,10 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
           </section>
         } @else {
           <!-- Edición -->
-          <form class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4" (ngSubmit)="save()">
+          <form
+            class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
+            (ngSubmit)="save()"
+          >
             <label class="flex flex-col gap-1">
               <span class="text-sm font-medium text-ink-700">Nombre completo</span>
               <input
@@ -243,12 +250,16 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   }
                 </div>
               } @else {
-                <p class="text-xs text-ink-500">Podés dejarlo vacío si no tiene alergias conocidas.</p>
+                <p class="text-xs text-ink-500">
+                  Podés dejarlo vacío si no tiene alergias conocidas.
+                </p>
               }
             </div>
 
             <fieldset class="border-t border-ink-300/60 pt-4 flex flex-col gap-4">
-              <legend class="text-sm font-semibold text-ink-900 pr-3">Contacto de emergencia</legend>
+              <legend class="text-sm font-semibold text-ink-900 pr-3">
+                Contacto de emergencia
+              </legend>
               <div class="grid sm:grid-cols-2 gap-4">
                 <label class="flex flex-col gap-1">
                   <span class="text-sm font-medium text-ink-700">Nombre</span>

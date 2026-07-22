@@ -71,7 +71,9 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+          {{ err }}
+        </p>
       }
 
       @if (!loaded()) {
@@ -108,7 +110,9 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
                     {{ medicationOf(item).medication }} — {{ medicationOf(item).dose }}
                   </p>
                   @if (medicationOf(item).schedule) {
-                    <p class="text-sm text-ink-500 mt-1">Horario: {{ medicationOf(item).schedule }}</p>
+                    <p class="text-sm text-ink-500 mt-1">
+                      Horario: {{ medicationOf(item).schedule }}
+                    </p>
                   }
                   @if (medicationOf(item).observations) {
                     <p class="text-sm text-ink-700 mt-1">{{ medicationOf(item).observations }}</p>
@@ -214,7 +218,12 @@ export class PatientHistoryPage {
     schedule?: string;
     observations?: string;
   } {
-    return item.data as { medication: string; dose: string; schedule?: string; observations?: string };
+    return item.data as {
+      medication: string;
+      dose: string;
+      schedule?: string;
+      observations?: string;
+    };
   }
 
   protected noteOf(item: HistoryItem): { text: string } {

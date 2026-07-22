@@ -23,7 +23,7 @@ type SignupRole = SignupDto['role'];
           (ngSubmit)="submit()"
         >
           @if (error(); as err) {
-            <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
           }
           @for (fieldError of fieldErrors(); track fieldError) {
             <p class="text-xs text-danger">{{ fieldError }}</p>
