@@ -19,14 +19,17 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 
       @if (duplicateBanner()) {
         <div class="bg-amber-50 text-warning rounded-card px-4 py-3 mb-4 text-sm">
-          Registramos el perfil, pero puede existir un perfil duplicado de la misma persona.
-          Más adelante vas a poder vincularlos. Te llevamos a tus pacientes…
+          Registramos el perfil, pero puede existir un perfil duplicado de la misma persona. Más
+          adelante vas a poder vincularlos. Te llevamos a tus pacientes…
         </div>
       }
 
-      <form class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4" (ngSubmit)="submit()">
+      <form
+        class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
+        (ngSubmit)="submit()"
+      >
         @if (error(); as err) {
-          <div class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
             <p>{{ err }}</p>
             @for (f of fields(); track f) {
               <p class="mt-1">• {{ f }}</p>
@@ -241,7 +244,9 @@ export class PatientRegisterPage {
       emergencyContact: {
         name: this.contactName.trim(),
         phone: this.contactPhone.trim(),
-        ...(this.contactRelationship.trim() ? { relationship: this.contactRelationship.trim() } : {}),
+        ...(this.contactRelationship.trim()
+          ? { relationship: this.contactRelationship.trim() }
+          : {}),
       },
       ...(this.bloodGroup.trim() ? { bloodGroup: this.bloodGroup.trim() } : {}),
       ...(this.photoUrl() !== null ? { photoUrl: this.photoUrl()! } : {}),

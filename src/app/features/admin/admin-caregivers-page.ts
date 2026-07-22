@@ -2,7 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/api/admin-api.service';
-import { AdminCaregiverList, ApiError, CaregiverStatus, SPECIALTY_LABELS } from '../../core/api/api.types';
+import {
+  AdminCaregiverList,
+  ApiError,
+  CaregiverStatus,
+  SPECIALTY_LABELS,
+} from '../../core/api/api.types';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
@@ -56,14 +61,18 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
     </div>
 
     @if (error(); as err) {
-      <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (loading()) {
       <p class="text-ink-500 text-sm">Cargando…</p>
     } @else if (result(); as res) {
       @if (res.items.length === 0) {
-        <kr-empty-state icon="🔍" title="Sin resultados" subtitle="Probá con otros filtros o búsqueda." />
+        <kr-empty-state
+          icon="🔍"
+          title="Sin resultados"
+          subtitle="Probá con otros filtros o búsqueda."
+        />
       } @else {
         <div class="bg-surface rounded-card shadow-card overflow-hidden">
           <div class="overflow-x-auto">
@@ -93,7 +102,9 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                       <kr-badge [tone]="statusTone(c.status)">{{ statusLabel(c.status) }}</kr-badge>
                     </td>
                     <td class="px-4 py-3">
-                      <span [class.opacity-25]="!c.badges.certifications" title="Certificaciones">📜</span>
+                      <span [class.opacity-25]="!c.badges.certifications" title="Certificaciones"
+                        >📜</span
+                      >
                       <span [class.opacity-25]="!c.badges.identity" title="Identidad">🪪</span>
                       <span [class.opacity-25]="!c.badges.background" title="Antecedentes">🛡️</span>
                     </td>
@@ -188,14 +199,28 @@ export class AdminCaregiversPage {
     const labels = specialties.map(
       (s) => SPECIALTY_LABELS[s as keyof typeof SPECIALTY_LABELS] ?? s,
     );
-    return labels.length > 2 ? `${labels.slice(0, 2).join(', ')} +${labels.length - 2}` : labels.join(', ');
+    return labels.length > 2
+      ? `${labels.slice(0, 2).join(', ')} +${labels.length - 2}`
+      : labels.join(', ');
   }
 
   statusLabel(status: CaregiverStatus): string {
-    return { pending: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado', deactivated: 'Desactivado' }[status];
+    return {
+      pending: 'Pendiente',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      deactivated: 'Desactivado',
+    }[status];
   }
 
   statusTone(status: CaregiverStatus): 'warning' | 'success' | 'danger' | 'neutral' {
-    return ({ pending: 'warning', approved: 'success', rejected: 'danger', deactivated: 'neutral' } as const)[status];
+    return (
+      {
+        pending: 'warning',
+        approved: 'success',
+        rejected: 'danger',
+        deactivated: 'neutral',
+      } as const
+    )[status];
   }
 }

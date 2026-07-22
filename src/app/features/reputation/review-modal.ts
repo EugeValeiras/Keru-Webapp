@@ -37,7 +37,7 @@ import { KrRating } from '../../shared/ui/kr-rating';
       } @else {
         <form class="flex flex-col gap-4" (ngSubmit)="submit()">
           @if (error(); as err) {
-            <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
           }
 
           <div class="flex flex-col gap-1">

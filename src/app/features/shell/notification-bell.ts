@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppNotification } from '../../core/api/api.types';
 import { NotificationStore } from '../../core/notifications/notification.store';
@@ -6,18 +6,24 @@ import { timeAgo } from '../../shared/utils/dates';
 
 @Component({
   selector: 'kr-notification-bell',
-  host: { class: 'relative inline-block' },
+  host: { class: 'relative inline-block', '(keydown.escape)': 'closePanel()' },
   template: `
     <button
+      #trigger
       type="button"
       (click)="toggle()"
       class="relative p-2 rounded-full hover:bg-primary-50 transition-colors"
-      aria-label="Notificaciones"
+      [attr.aria-label]="
+        store.unread() > 0 ? 'Notificaciones, ' + store.unread() + ' sin leer' : 'Notificaciones'
+      "
+      aria-haspopup="true"
+      [attr.aria-expanded]="open()"
     >
       <span class="text-xl" aria-hidden="true">🔔</span>
       @if (store.unread() > 0) {
         <span
           class="absolute -top-0.5 -right-0.5 rounded-pill bg-primary-600 text-white text-xs font-semibold px-1.5 py-0.5 leading-none"
+          aria-hidden="true"
         >
           {{ store.unread() }}
         </span>
@@ -26,7 +32,7 @@ import { timeAgo } from '../../shared/utils/dates';
 
     @if (open()) {
       <!-- Overlay transparente para cerrar al click afuera -->
-      <div class="fixed inset-0 z-10" (click)="open.set(false)"></div>
+      <div class="fixed inset-0 z-10" (click)="open.set(false)" aria-hidden="true"></div>
 
       <div
         class="absolute right-0 top-full mt-2 w-96 max-h-[70vh] overflow-y-auto bg-surface rounded-card shadow-card z-20"
@@ -127,11 +133,21 @@ export class NotificationBell {
     this.showCount.set(NotificationBell.PAGE);
   }
 
+  private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
+
   toggle(): void {
     this.open.update((o) => !o);
     if (this.open()) {
       this.showCount.set(NotificationBell.PAGE);
       this.store.loadList();
+    }
+  }
+
+  /** Escape: cierra el panel y devuelve el foco a la campana. */
+  closePanel(): void {
+    if (this.open()) {
+      this.open.set(false);
+      this.trigger().nativeElement.focus();
     }
   }
 

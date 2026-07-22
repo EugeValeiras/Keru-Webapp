@@ -22,7 +22,7 @@ import { ReviewModal } from '../reputation/review-modal';
       <h1 class="text-2xl font-bold">Mis servicios</h1>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       }
 
       @if (loading()) {
@@ -55,7 +55,10 @@ import { ReviewModal } from '../reputation/review-modal';
                 <p class="text-sm text-ink-700">
                   Contacto para coordinar:
                   @for (pair of contactPairs(r); track pair[0]; let last = $last) {
-                    <span class="font-medium">{{ pair[1] }}</span>@if (!last) {<span> · </span>}
+                    <span class="font-medium">{{ pair[1] }}</span>
+                    @if (!last) {
+                      <span> · </span>
+                    }
                   }
                 </p>
               }
@@ -171,6 +174,9 @@ export class CaregiverServicesPage {
     if (r.status !== 'accepted' && r.status !== 'in-progress') {
       return [];
     }
-    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]);
+    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [
+      k,
+      String(v),
+    ]);
   }
 }

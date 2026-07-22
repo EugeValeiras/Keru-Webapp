@@ -18,11 +18,16 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
         ← Volver al estado actual
       </a>
       <h1 class="text-2xl font-bold mt-2 mb-1">Registrar vitales</h1>
-      <p class="text-sm text-ink-500 mb-6">Cargá al menos una medición; el resto puede quedar vacío.</p>
+      <p class="text-sm text-ink-500 mb-6">
+        Cargá al menos una medición; el resto puede quedar vacío.
+      </p>
 
-      <form class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-5" (ngSubmit)="submit()">
+      <form
+        class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-5"
+        (ngSubmit)="submit()"
+      >
         @if (error(); as err) {
-          <div class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
             <p>{{ err }}</p>
             @for (f of fields(); track f) {
               <p class="mt-1">• {{ f }}</p>

@@ -3,6 +3,7 @@ import {
   DestroyRef,
   ElementRef,
   afterNextRender,
+  computed,
   effect,
   inject,
   input,
@@ -32,7 +33,7 @@ const BAND_LABEL = '__band__';
   selector: 'kr-line-chart',
   template: `
     <div class="relative h-72">
-      <canvas #canvas></canvas>
+      <canvas #canvas role="img" [attr.aria-label]="ariaLabel()"></canvas>
     </div>
   `,
 })
@@ -40,6 +41,15 @@ export class KrLineChart {
   readonly datasets = input.required<ChartLine[]>();
   readonly band = input<{ min: number; max: number } | null>(null);
   readonly unit = input('');
+
+  /** Nombre accesible del canvas (WCAG 1.1.1: contenido no textual). */
+  protected readonly ariaLabel = computed(() => {
+    const series = this.datasets()
+      .map((l) => l.label)
+      .join(', ');
+    const unit = this.unit() ? ` en ${this.unit()}` : '';
+    return `Gráfico de líneas de ${series}${unit}`;
+  });
 
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly ready = signal(false);
@@ -121,8 +131,7 @@ export class KrLineChart {
           tooltip: {
             filter: (item) => item.dataset.label !== BAND_LABEL,
             callbacks: {
-              label: (ctx) =>
-                `${ctx.dataset.label}: ${ctx.parsed.y}${unit ? ' ' + unit : ''}`,
+              label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}${unit ? ' ' + unit : ''}`,
             },
           },
         },
