@@ -106,6 +106,11 @@ export type AppNotification = Omit<Schemas['NotificationDto'], 'type'> & {
   type: 'alert' | 'note' | 'quarantine';
 };
 
+/** UC-18 · Web Push (adicional a la campana). */
+export type PushConfig = Schemas['PushConfigDto'];
+export type SubscribePushDto = Schemas['SubscribePushDto'];
+export type PushSubscriptionInfo = Schemas['PushSubscriptionDto'];
+
 export type SubmitReviewDto = Schemas['SubmitReviewDto'];
 export type Review = Omit<Schemas['ReviewDto'], 'comment'> & { comment?: string | null };
 export interface Reputation {

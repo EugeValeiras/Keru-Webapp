@@ -2,7 +2,9 @@ import { Component, computed, effect, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../../core/auth/auth-store';
 import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
+import { PushStore } from '../../core/notifications/push.store';
 import { NotificationBell } from './notification-bell';
+import { PushPromptBanner } from './push-prompt-banner';
 
 interface NavItem {
   label: string;
@@ -32,8 +34,12 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner],
   template: `
+    @if (isFamily()) {
+      <!-- UC-18 flujo 1: oferta de push en el primer inicio; A1 degrada a solo campana. -->
+      <kr-push-prompt-banner />
+    }
     <header class="bg-surface border-b border-ink-300/40 sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center gap-6">
         <span class="text-xl font-bold text-primary-600">Keru</span>
@@ -86,6 +92,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 export class AppShell {
   protected readonly store = inject(AuthStore);
   protected readonly patients = inject(ActivePatientStore);
+  private readonly push = inject(PushStore);
   private readonly router = inject(Router);
 
   protected readonly navItems = computed(() => NAV_BY_ROLE[this.store.role() ?? ''] ?? []);
@@ -98,6 +105,12 @@ export class AppShell {
     effect(() => {
       if (this.isFamily() && !this.patients.loaded()) {
         this.patients.load();
+      }
+    });
+    effect(() => {
+      // El push acompaña a la campana: solo cuentas de familia/paciente (UC-18).
+      if (this.isFamily()) {
+        void this.push.init();
       }
     });
   }

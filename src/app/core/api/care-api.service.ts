@@ -6,12 +6,15 @@ import {
   HistoryItem,
   MetricKey,
   PatientState,
+  PushConfig,
+  PushSubscriptionInfo,
   QuarantinedRecord,
   RecordMedicationDto,
   RecordNoteDto,
   RecordResponse,
   RecordVitalsDto,
   SeriesPoint,
+  SubscribePushDto,
 } from './api.types';
 
 /** care-record (escritura + campana) y care-consult (lectura). */
@@ -76,5 +79,28 @@ export class CareApi {
   /** Idempotente: updated = cuántas pasaron a leídas (0 si se repite). */
   markAllRead(): Observable<{ ok: boolean; updated: number }> {
     return this.http.post<{ ok: boolean; updated: number }>('/api/v1/notifications/read-all', {});
+  }
+
+  // --- UC-18 · Web Push (adicional a la campana, constitution §2.7) ---
+
+  /** enabled=false: el server no tiene claves VAPID; no ofrecer push (solo campana). */
+  getPushConfig(): Observable<PushConfig> {
+    return this.http.get<PushConfig>('/api/v1/notifications/push/config');
+  }
+
+  /** Idempotente por endpoint único: re-suscribir renueva, nunca duplica. */
+  subscribePush(dto: SubscribePushDto): Observable<PushSubscriptionInfo> {
+    return this.http.post<PushSubscriptionInfo>('/api/v1/notifications/push/subscriptions', dto);
+  }
+
+  listPushSubscriptions(): Observable<PushSubscriptionInfo[]> {
+    return this.http.get<PushSubscriptionInfo[]>('/api/v1/notifications/push/subscriptions');
+  }
+
+  /** Revoca este navegador; idempotente (removed=0 si ya no estaba). La campana sigue. */
+  unsubscribePush(endpoint: string): Observable<{ ok: boolean; removed: number }> {
+    return this.http.delete<{ ok: boolean; removed: number }>('/api/v1/notifications/push/subscriptions', {
+      params: { endpoint },
+    });
   }
 }

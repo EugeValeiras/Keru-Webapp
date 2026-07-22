@@ -735,6 +735,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications/push/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * UC-18 · Config del canal push
+         * @description Clave pública VAPID para suscribirse. enabled=false: el cliente no ofrece push, la campana sigue sola.
+         */
+        get: operations["NotificationController_pushConfig_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/push/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-18 · Mis suscripciones push (por cuenta, revocables) */
+        get: operations["NotificationController_listPushSubscriptions_v1"];
+        put?: never;
+        /**
+         * UC-18 flujo 1 · Suscribir este navegador al push
+         * @description Idempotente por endpoint único: re-suscribir renueva claves/dueño, nunca duplica.
+         */
+        post: operations["NotificationController_subscribePush_v1"];
+        /**
+         * UC-18 · Revocar la suscripción push de un endpoint
+         * @description A1: el usuario apaga el push; las alertas siguen en la campana. Idempotente: repetir devuelve removed=0.
+         */
+        delete: operations["NotificationController_unsubscribePush_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -1497,6 +1542,39 @@ export interface components {
              * @example 3
              */
             updated: number;
+        };
+        PushConfigDto: {
+            /** @description false si el servidor no tiene claves VAPID: solo campana. */
+            enabled: boolean;
+            /** @description Clave pública VAPID (applicationServerKey). */
+            publicKey: string | null;
+        };
+        PushSubscriptionDto: {
+            /** Format: uuid */
+            id: string;
+            endpoint: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PushKeysDto: {
+            /** @description Clave pública ECDH del navegador. */
+            p256dh: string;
+            /** @description Secreto de autenticación del navegador. */
+            auth: string;
+        };
+        SubscribePushDto: {
+            /** @description URL del push service del navegador. */
+            endpoint: string;
+            keys: components["schemas"]["PushKeysDto"];
+        };
+        UnsubscribePushResponseDto: {
+            /** @example true */
+            ok: boolean;
+            /**
+             * @description 0 si el endpoint ya no estaba suscripto.
+             * @example 1
+             */
+            removed: number;
         };
         QuarantinedRecordDto: {
             /** Format: uuid */
@@ -2584,6 +2662,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarkAllReadResponseDto"];
+                };
+            };
+        };
+    };
+    NotificationController_pushConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushConfigDto"];
+                };
+            };
+        };
+    };
+    NotificationController_listPushSubscriptions_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionDto"][];
+                };
+            };
+        };
+    };
+    NotificationController_subscribePush_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscribePushDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionDto"];
+                };
+            };
+        };
+    };
+    NotificationController_unsubscribePush_v1: {
+        parameters: {
+            query: {
+                /** @description Endpoint (URL) de la suscripción a revocar. */
+                endpoint: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnsubscribePushResponseDto"];
                 };
             };
         };
