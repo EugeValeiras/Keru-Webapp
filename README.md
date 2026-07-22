@@ -26,6 +26,23 @@ npm run build      # build de producción
 
 Usuarios seed: `familiar@test.com`, `cuidador@test.com`, `admin@test.com` (password `S3gura!123`).
 
+## Modo producción local (Docker)
+
+El `Dockerfile` compila la SPA (`npm run build`) y la sirve con **nginx** (`nginx.conf`), que además proxya `/api` → `api:3000` y `/media` → floci — el mismo contrato que `proxy.conf.json` en dev, pero dentro de la red del compose de `../Keru-API`.
+
+No se levanta desde este repo: el servicio `webapp` vive en el `docker-compose.yml` de **Keru-API** bajo el profile `app` (ver su README, "Modo producción local"):
+
+```bash
+cd ../Keru-API
+docker compose --profile app up -d --build   # webapp en http://localhost:8080
+```
+
+Para correr la suite E2E contra ese contenedor (en lugar del dev server):
+
+```bash
+E2E_BASE_URL=http://localhost:8080 npm run e2e
+```
+
 ## Arquitectura
 
 ```

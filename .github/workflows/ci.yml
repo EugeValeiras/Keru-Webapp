@@ -44,11 +44,13 @@ jobs:
             package-lock.json
             keru-api/package-lock.json
 
-      # Igual que el quickstart del README de la API: compose con profile app
-      # levanta api + postgres + redis + floci, todo dockerizado.
+      # Como el modo producción del README de la API, pero solo el servicio api
+      # (arrastra postgres + redis + floci por depends_on). El servicio webapp del
+      # profile no se buildea acá: su contexto (../Keru-Webapp) no existe en el
+      # runner, y esta suite corre contra ng serve.
       - name: Levantar API dockerizada
         working-directory: keru-api
-        run: docker compose --profile app up -d --build
+        run: docker compose --profile app up -d --build api
 
       - name: Esperar la API
         run: |
