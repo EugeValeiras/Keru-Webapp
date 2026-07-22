@@ -15,6 +15,7 @@ import {
   PatientRecord,
   RegisterCaregiverDto,
   RegisterPatientDto,
+  UpdateCaregiverProfileDto,
   UpdatePatientDto,
 } from './api.types';
 
@@ -64,6 +65,15 @@ export class MembershipApi {
   /** Re-postulación tras rechazo: solo desde 'rejected', vuelve a 'pending'. Exige operationId como el alta. */
   resubmitCaregiver(dto: RegisterCaregiverDto): Observable<CaregiverProfile> {
     return this.http.put<CaregiverProfile>('/api/v1/caregivers/me', dto);
+  }
+
+  /**
+   * UC-02 A3 · Edición del perfil aprobado (solo status approved, sin re-aprobación). Set parcial
+   * de foto/disponibilidad/tarifas/zona/modalidades; la tarifa es efectivo-fechada (NFR-03/23),
+   * por eso exige operationId. Credenciales (nombre/especialidades/certificaciones) no van acá.
+   */
+  updateCaregiverProfile(dto: UpdateCaregiverProfileDto): Observable<CaregiverProfile> {
+    return this.http.patch<CaregiverProfile>('/api/v1/caregivers/me', dto);
   }
 
   /** Sube una imagen (jpeg/png/webp, máx 5MB); la URL resultante sirve como photoUrl. */
