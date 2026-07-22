@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -134,7 +134,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
       />
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (c of cards(); track c.id) {
+        @for (c of visible(); track c.id) {
           <a
             [routerLink]="['/app/marketplace', c.id]"
             class="relative bg-surface rounded-card shadow-card p-6 flex flex-col gap-3 hover:shadow-card-hover transition-shadow"
@@ -194,6 +194,17 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           </a>
         }
       </div>
+      @if (cards().length > showCount()) {
+        <div class="text-center mt-6">
+          <button
+            type="button"
+            (click)="showMore()"
+            class="rounded-pill border border-primary-600 text-primary-600 font-semibold py-2 px-6 hover:bg-primary-50 transition-colors"
+          >
+            Mostrar más ({{ cards().length - showCount() }} restantes)
+          </button>
+        </div>
+      }
     }
   `,
 })
@@ -214,6 +225,16 @@ export class MarketplacePage {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly onlyFavorites = signal(false);
+
+  /* La API no pagina la búsqueda: render incremental de a 50 para que un
+     resultado con cientos de cuidadores no cuelgue el DOM. Cada búsqueda resetea. */
+  private static readonly PAGE = 50;
+  readonly showCount = signal(MarketplacePage.PAGE);
+  readonly visible = computed(() => this.cards().slice(0, this.showCount()));
+
+  showMore(): void {
+    this.showCount.update((n) => n + MarketplacePage.PAGE);
+  }
 
   constructor() {
     this.search();
@@ -247,6 +268,7 @@ export class MarketplacePage {
     source.subscribe({
       next: (cards) => {
         this.loading.set(false);
+        this.showCount.set(MarketplacePage.PAGE);
         this.cards.set(markFavorites ? cards.map((c) => ({ ...c, isFavorite: true })) : cards);
       },
       error: (err: ApiError) => {

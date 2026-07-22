@@ -37,7 +37,7 @@ import { timeAgo } from '../../shared/utils/dates';
             <input
               type="checkbox"
               [checked]="onlyUnread()"
-              (change)="onlyUnread.set(!onlyUnread())"
+              (change)="toggleOnlyUnread()"
               class="accent-primary-600"
             />
             Solo no leídas
@@ -68,6 +68,18 @@ import { timeAgo } from '../../shared/utils/dates';
           }
         }
 
+        @if (filtered().length > showCount()) {
+          <div class="px-4 py-3 text-center border-t border-ink-300">
+            <button
+              type="button"
+              (click)="showMore()"
+              class="text-primary-600 text-sm font-medium hover:underline"
+            >
+              Mostrar más ({{ filtered().length - showCount() }} restantes)
+            </button>
+          </div>
+        }
+
         @if (store.unread() > 0) {
           <div class="px-4 py-3 border-t border-ink-300">
             <button
@@ -91,17 +103,34 @@ export class NotificationBell {
   readonly onlyUnread = signal(false);
   readonly timeAgo = timeAgo;
 
-  readonly visible = computed(() =>
+  readonly filtered = computed(() =>
     this.onlyUnread() ? this.store.items().filter((n) => !n.read) : this.store.items(),
   );
+
+  /* La API no pagina las notificaciones: render incremental de a 50 para que
+     una campana con cientos de entradas no cuelgue el DOM. Abrir el panel o
+     cambiar el filtro resetea. */
+  private static readonly PAGE = 50;
+  readonly showCount = signal(NotificationBell.PAGE);
+  readonly visible = computed(() => this.filtered().slice(0, this.showCount()));
 
   constructor() {
     this.store.startPolling();
   }
 
+  showMore(): void {
+    this.showCount.update((n) => n + NotificationBell.PAGE);
+  }
+
+  toggleOnlyUnread(): void {
+    this.onlyUnread.update((v) => !v);
+    this.showCount.set(NotificationBell.PAGE);
+  }
+
   toggle(): void {
     this.open.update((o) => !o);
     if (this.open()) {
+      this.showCount.set(NotificationBell.PAGE);
       this.store.loadList();
     }
   }
