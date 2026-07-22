@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test';
+import { existsSync, readFileSync } from 'node:fs';
 
 /**
  * E2E contra el entorno local YA levantado:
@@ -6,9 +7,14 @@ import { defineConfig } from '@playwright/test';
  * - API:    http://localhost:3000/api/v1 (con seed admin@test.com)
  * Por eso NO hay webServer acá.
  *
- * E2E_BASE_URL permite apuntar a otro serve (p. ej. un worktree en :4201)
- * sin tocar el default que usa CI.
+ * Para apuntar a otro serve (p. ej. un worktree en :4201) sin tocar el default
+ * que usa CI: la env E2E_BASE_URL, o un archivo local `.e2e-base-url`
+ * (gitignoreado) con la URL — útil cuando quien corre `npm run e2e` no hereda
+ * el entorno de la shell (p. ej. el gate de verify del kanban).
  */
+const baseUrlFile = '.e2e-base-url';
+const fileBaseUrl = existsSync(baseUrlFile) ? readFileSync(baseUrlFile, 'utf8').trim() : '';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -16,7 +22,7 @@ export default defineConfig({
   reporter: 'list',
   expect: { timeout: 10_000 },
   use: {
-    baseURL: process.env['E2E_BASE_URL'] || 'http://127.0.0.1:4200',
+    baseURL: process.env['E2E_BASE_URL'] || fileBaseUrl || 'http://127.0.0.1:4200',
     headless: true,
   },
 });
