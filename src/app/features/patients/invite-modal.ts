@@ -1,6 +1,6 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApiError, CreateInvitationDto, Invitation } from '../../core/api/api.types';
+import { ApiError, CreateInvitationDto, EmittedInvitation, Invitation } from '../../core/api/api.types';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import { KrModal } from '../../shared/ui/kr-modal';
 
@@ -9,6 +9,12 @@ type InviteRole = CreateInvitationDto['role'];
 const ROLE_HINTS: Record<InviteRole, string> = {
   viewer: 'Puede ver el estado y la historia clínica del paciente.',
   manager: 'Además de ver, puede registrar datos y gestionar el cuidado.',
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  viewer: 'Solo ver',
+  manager: 'Gestionar',
+  'consent-holder': 'Titular',
 };
 
 /**
@@ -110,10 +116,74 @@ const ROLE_HINTS: Record<InviteRole, string> = {
           </button>
         </form>
       }
+
+      <!-- UC-03 A4/A5 · Invitaciones vigentes: countdown por invitación y revocar con confirmación -->
+      <section class="mt-6 border-t border-ink-300/60 pt-4">
+        <h3 class="text-sm font-semibold text-ink-900 mb-2">Invitaciones vigentes</h3>
+        @if (listError()) {
+          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+            No se pudieron cargar las invitaciones. Probá cerrar y volver a abrir.
+          </p>
+        } @else if (!listLoaded()) {
+          <p class="text-sm text-ink-500">Cargando invitaciones…</p>
+        } @else if (active().length === 0) {
+          <p class="text-sm text-ink-500">No hay invitaciones pendientes.</p>
+        } @else {
+          <ul class="flex flex-col divide-y divide-ink-300/60">
+            @for (inv of active(); track inv.token) {
+              <li class="py-3 flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-ink-900 truncate">{{ inv.invitedEmail }}</p>
+                    <p class="text-xs text-ink-500">
+                      {{ roleLabel(inv.roleToGrant) }} · vence en
+                      <span class="font-semibold tabular-nums text-primary-700">{{ remainingFor(inv) }}</span>
+                    </p>
+                  </div>
+                  @if (revokeCandidate() !== inv.token) {
+                    <button
+                      type="button"
+                      (click)="askRevoke(inv.token)"
+                      [disabled]="revoking() !== null"
+                      class="rounded-pill border border-danger text-danger text-sm font-semibold py-1 px-3 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                    >
+                      Revocar
+                    </button>
+                  }
+                </div>
+                @if (revokeCandidate() === inv.token) {
+                  <div class="flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2">
+                    <p class="text-sm text-ink-700 flex-1">¿Revocar? El link deja de servir.</p>
+                    <button
+                      type="button"
+                      (click)="confirmRevoke(inv.token)"
+                      [disabled]="revoking() !== null"
+                      class="rounded-pill bg-danger text-white text-sm font-semibold py-1 px-3 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    >
+                      {{ revoking() === inv.token ? 'Revocando…' : 'Sí, revocar' }}
+                    </button>
+                    <button
+                      type="button"
+                      (click)="revokeCandidate.set(null)"
+                      [disabled]="revoking() !== null"
+                      class="rounded-pill border border-ink-300 text-ink-700 text-sm font-medium py-1 px-3 hover:bg-primary-50 disabled:opacity-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
+        @if (revokeError(); as err) {
+          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mt-2">{{ err }}</p>
+        }
+      </section>
     </kr-modal>
   `,
 })
-export class InviteModal {
+export class InviteModal implements OnInit {
   private readonly api = inject(MembershipApi);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -130,7 +200,24 @@ export class InviteModal {
   readonly copied = signal(false);
   readonly remaining = signal(0);
 
+  // UC-03 A4/A5 · Gestión de las invitaciones emitidas del paciente.
+  readonly invitations = signal<EmittedInvitation[]>([]);
+  readonly listLoaded = signal(false);
+  readonly listError = signal(false);
+  readonly revokeCandidate = signal<string | null>(null);
+  readonly revoking = signal<string | null>(null);
+  readonly revokeError = signal<string | null>(null);
+  private readonly now = signal(Date.now());
+
+  /** Vigentes = pendientes y no vencidas (el tick va sacando las que expiran). */
+  readonly active = computed(() =>
+    this.invitations().filter(
+      (inv) => inv.status === 'pending' && new Date(inv.expiresAt).getTime() > this.now(),
+    ),
+  );
+
   private intervalId: ReturnType<typeof setInterval> | null = null;
+  private tickId: ReturnType<typeof setInterval> | null = null;
 
   readonly localLink = computed(() => {
     const inv = this.invitation();
@@ -146,11 +233,75 @@ export class InviteModal {
   });
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.stopCountdown());
+    this.tickId = setInterval(() => this.now.set(Date.now()), 1000);
+    this.destroyRef.onDestroy(() => {
+      this.stopCountdown();
+      if (this.tickId !== null) {
+        clearInterval(this.tickId);
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadInvitations();
   }
 
   roleHint(): string {
     return ROLE_HINTS[this.role];
+  }
+
+  roleLabel(role: string): string {
+    return ROLE_LABELS[role] ?? role;
+  }
+
+  /** mm:ss restantes de una invitación listada (comparte el tick de 1 s). */
+  remainingFor(inv: EmittedInvitation): string {
+    const secs = Math.max(0, Math.floor((new Date(inv.expiresAt).getTime() - this.now()) / 1000));
+    const mm = String(Math.floor(secs / 60)).padStart(2, '0');
+    const ss = String(secs % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  }
+
+  private loadInvitations(): void {
+    this.api.listInvitations(this.patientId()).subscribe({
+      next: (list) => {
+        this.listLoaded.set(true);
+        this.listError.set(false);
+        this.invitations.set(list);
+      },
+      error: () => {
+        this.listLoaded.set(true);
+        this.listError.set(true);
+      },
+    });
+  }
+
+  askRevoke(token: string): void {
+    this.revokeError.set(null);
+    this.revokeCandidate.set(token);
+  }
+
+  confirmRevoke(token: string): void {
+    if (this.revoking() !== null) {
+      return;
+    }
+    this.revoking.set(token);
+    this.revokeError.set(null);
+    this.api.revokeInvitation(token).subscribe({
+      next: () => {
+        this.revoking.set(null);
+        this.revokeCandidate.set(null);
+        // Si revocó la que acaba de generar, sacar el link de la vista superior.
+        if (this.invitation()?.token === token) {
+          this.reset();
+        }
+        this.loadInvitations();
+      },
+      error: (err: ApiError) => {
+        this.revoking.set(null);
+        this.revokeError.set(err.message);
+      },
+    });
   }
 
   /** NO reintenta ante error: cada POST crea un token nuevo (no es idempotente). */
@@ -167,6 +318,7 @@ export class InviteModal {
           this.loading.set(false);
           this.invitation.set(inv);
           this.startCountdown(inv.expiresAt);
+          this.loadInvitations();
         },
         error: (err: ApiError) => {
           this.loading.set(false);

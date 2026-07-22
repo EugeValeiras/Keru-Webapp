@@ -6,6 +6,7 @@ import {
   ApiError,
   CaregiverProfile,
   CreateInvitationDto,
+  EmittedInvitation,
   Invitation,
   InvitationConfirmed,
   InvitationPreview,
@@ -75,6 +76,16 @@ export class MembershipApi {
   /** NO es idempotente: cada POST crea una invitación nueva (no reintentar automático). */
   createInvitation(patientId: string, dto: CreateInvitationDto): Observable<Invitation> {
     return this.http.post<Invitation>(`/api/v1/patients/${patientId}/invitations`, dto);
+  }
+
+  /** UC-03 · Invitaciones emitidas del paciente. Cualquier vinculado lee; 403 = sin vínculo. */
+  listInvitations(patientId: string): Observable<EmittedInvitation[]> {
+    return this.http.get<EmittedInvitation[]>(`/api/v1/patients/${patientId}/invitations`);
+  }
+
+  /** Solo emisor o consent-holder (403 otro vinculado). 400 = ya aceptada; re-revocar es no-op. */
+  revokeInvitation(token: string): Observable<EmittedInvitation> {
+    return this.http.post<EmittedInvitation>(`/api/v1/invitations/${token}/revoke`, {});
   }
 
   /** Público (sin sesión). 404 = token inexistente. */
