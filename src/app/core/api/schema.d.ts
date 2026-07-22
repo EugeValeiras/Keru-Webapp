@@ -141,7 +141,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * UC-02 A3 · Editar el perfil aprobado
+         * @description Set parcial de foto, disponibilidad, tarifas, zona y modalidades sin re-aprobación (el perfil sigue aprobado y visible). La tarifa es efectivo-fechada (NFR-03/23): cada cambio agrega una versión al historial y las solicitudes existentes conservan su tarifa pinneada. Credenciales (nombre/especialidades/certificaciones) no se editan por esta vía.
+         */
+        patch: operations["CaregiverController_updateApproved_v1"];
         trace?: never;
     };
     "/api/v1/admin/caregivers/pending": {
@@ -748,6 +752,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patientId}/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-12 A3 · Items en cuarentena del paciente (NFR-30, visibles al círculo) */
+        get: operations["QuarantineController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/quarantine/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-12 A3 · Aprobar: entra al historial con su measuredAt original (NFR-36) */
+        post: operations["QuarantineController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/quarantine/{id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-12 A3 · Descartar: queda marcado con traza, nunca se borra */
+        post: operations["QuarantineController_discard_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patientId}/state": {
         parameters: {
             query?: never;
@@ -1117,6 +1172,26 @@ export interface components {
             badges: Record<string, never>;
             rejectionReason?: Record<string, never>;
         };
+        UpdateCaregiverProfileDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /** @example http://localhost:4566/keru-media/images/abc.jpg */
+            photoUrl?: string;
+            availability?: components["schemas"]["AvailabilityDto"][];
+            rates?: components["schemas"]["RatesDto"];
+            /** @example Palermo, CABA */
+            zone?: string;
+            /**
+             * @example [
+             *       "home",
+             *       "hospital"
+             *     ]
+             */
+            modalities?: ("home" | "hospital")[];
+        };
         CaregiverDetailDto: {
             /** Format: uuid */
             id: string;
@@ -1367,6 +1442,11 @@ export interface components {
             /** Format: date-time */
             measuredAt: string;
             authorRole: string;
+            /**
+             * @description recorded: entró al historial. quarantined: llegada tardía no autorizada en cuarentena (NFR-30), pendiente de resolución del círculo — nunca se descarta en silencio.
+             * @enum {string}
+             */
+            status: "recorded" | "quarantined";
         };
         RecordMedicationDto: {
             /**
@@ -1417,6 +1497,39 @@ export interface components {
              * @example 3
              */
             updated: number;
+        };
+        QuarantinedRecordDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            patientId: string;
+            /** @enum {string} */
+            type: "vitals" | "medication" | "note";
+            /**
+             * Format: date-time
+             * @description Tiempo de medición original (NFR-36).
+             */
+            measuredAt: string;
+            /**
+             * Format: date-time
+             * @description Tiempo de llegada.
+             */
+            receivedAt: string;
+            authorAccountId: string;
+            authorRole: string;
+            /** @example no-authority-at-measurement */
+            reason: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "discarded";
+            /** @description Contenido del registro según type. */
+            data: Record<string, never>;
+            resolvedByAccountId?: Record<string, never> | null;
+            resolvedAt?: Record<string, never> | null;
+            /**
+             * Format: uuid
+             * @description Si se aprobó: registro promovido al historial.
+             */
+            approvedRecordId?: Record<string, never> | null;
         };
     };
     responses: never;
@@ -1634,6 +1747,29 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RegisterCaregiverDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverResponseDto"];
+                };
+            };
+        };
+    };
+    CaregiverController_updateApproved_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCaregiverProfileDto"];
             };
         };
         responses: {
@@ -2468,6 +2604,71 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    QuarantineController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"][];
+                };
+            };
+        };
+    };
+    QuarantineController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"];
+                };
+            };
+        };
+    };
+    QuarantineController_discard_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"];
+                };
             };
         };
     };

@@ -51,6 +51,13 @@ const BADGE_ITEMS = [
             <div class="rounded-card bg-emerald-50 border border-emerald-200 p-6">
               <p class="text-success font-semibold text-lg">✅ ¡Perfil aprobado!</p>
               <p class="text-ink-700 mt-1">Ya sos visible en el marketplace.</p>
+              <!-- UC-02 A3: editar sin re-aprobación (tarifa efectivo-fechada) -->
+              <a
+                routerLink="/caregiver/profile/edit"
+                class="inline-block mt-3 rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
+              >
+                Editar perfil
+              </a>
             </div>
           }
           @case ('rejected') {
