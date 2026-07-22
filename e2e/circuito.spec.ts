@@ -1,0 +1,263 @@
+import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
+
+/**
+ * Circuito completo del MVP por UI, con tres actores en contextos separados:
+ *   familia (signup nuevo) → alta paciente → cuidador (signup + onboarding) →
+ *   admin aprueba → familia contrata → cuidador acepta → familia registra
+ *   vitales (alerta) → campana → cierre (finalizar + reseña).
+ *
+ * Los emails son únicos por corrida para no chocar con datos previos.
+ */
+const run = Date.now();
+
+const FAMILY_EMAIL = `familia+${run}@e2e.com`;
+const CAREGIVER_EMAIL = `cuidador+${run}@e2e.com`;
+const PASSWORD = 'S3gura!123';
+const CAREGIVER_NAME = `Cuidador E2E ${run}`;
+const PATIENT_NAME = 'Elena Test';
+const ZONE = 'Belgrano E2E';
+
+/** datetime-local: 'YYYY-MM-DDTHH:mm' en hora local. */
+function toLocalDateTime(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+test.describe.serial('Circuito MVP Keru', () => {
+  let browser: Browser;
+  let familyCtx: BrowserContext;
+  let caregiverCtx: BrowserContext;
+  let adminCtx: BrowserContext;
+  let family: Page;
+  let caregiver: Page;
+  let admin: Page;
+
+  test.beforeAll(async ({ browser: b }) => {
+    browser = b;
+    familyCtx = await browser.newContext();
+    family = await familyCtx.newPage();
+  });
+
+  test.afterAll(async () => {
+    await familyCtx?.close();
+    await caregiverCtx?.close();
+    await adminCtx?.close();
+  });
+
+  test('a. signup de familia aterriza en marketplace', async () => {
+    await family.goto('/signup');
+    await family.getByRole('button', { name: /^Familiar/ }).click();
+    await family.getByLabel('Nombre y apellido').fill('Familia E2E');
+    await family.getByLabel('Email').fill(FAMILY_EMAIL);
+    await family.getByLabel('Contraseña').fill(PASSWORD);
+    await family.getByRole('button', { name: 'Crear cuenta' }).click();
+    await expect(family).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
+  });
+
+  test('b. alta de paciente y card visible', async () => {
+    await family.goto('/app/patients');
+    // Sin pacientes hay dos links "Registrar paciente" (header + empty state).
+    await family.getByRole('link', { name: 'Registrar paciente' }).first().click();
+    await expect(family).toHaveURL(/\/app\/patients\/new$/);
+
+    await family.getByLabel('Nombre completo').fill(PATIENT_NAME);
+    await family.getByLabel('Fecha de nacimiento').fill('1950-05-10');
+    await family.getByLabel('Condición principal').fill('Hipertensión');
+    await family.getByLabel('Nombre', { exact: true }).fill('María Test');
+    await family.getByLabel('Teléfono', { exact: true }).fill('+54 11 5555-0001');
+    await family.getByRole('button', { name: 'Registrar paciente' }).click();
+
+    await expect(family).toHaveURL(/\/app\/patients$/, { timeout: 15_000 });
+    await expect(family.getByText(PATIENT_NAME)).toBeVisible();
+  });
+
+  test('c. signup de cuidador y onboarding completo', async () => {
+    caregiverCtx = await browser.newContext();
+    caregiver = await caregiverCtx.newPage();
+
+    await caregiver.goto('/signup');
+    await caregiver.getByRole('button', { name: /^Cuidador\/a/ }).click();
+    await caregiver.getByLabel('Nombre y apellido').fill(CAREGIVER_NAME);
+    await caregiver.getByLabel('Email').fill(CAREGIVER_EMAIL);
+    await caregiver.getByLabel('Contraseña').fill(PASSWORD);
+    await caregiver.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    // Sin perfil, el shell del cuidador termina en el onboarding.
+    await expect(caregiver).toHaveURL(/\/caregiver\/onboarding$/, { timeout: 15_000 });
+
+    // Paso 1: datos
+    const nameInput = caregiver.getByLabel('Nombre a mostrar');
+    await expect(nameInput).toBeVisible({ timeout: 15_000 });
+    await nameInput.fill(CAREGIVER_NAME);
+    await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+
+    // Paso 2: especialidades (>= 1)
+    await caregiver.getByLabel('Adultos mayores').check();
+    await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+
+    // Paso 3: certificaciones (ninguna)
+    await expect(caregiver.getByText('Sumá tus certificaciones')).toBeVisible();
+    await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+
+    // Paso 4: disponibilidad (>= 1)
+    await caregiver.getByLabel('Desde').fill('09:00');
+    await caregiver.getByLabel('Hasta').fill('17:00');
+    await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+
+    // Paso 5: tarifa, zona y modalidad
+    await caregiver.getByLabel('Tarifa por hora').fill('4000');
+    await caregiver.getByLabel('Zona', { exact: true }).fill(ZONE);
+    await caregiver.getByLabel('A domicilio').check();
+    await caregiver.getByRole('button', { name: 'Enviar postulación' }).click();
+
+    await expect(caregiver).toHaveURL(/\/caregiver\/profile$/, { timeout: 15_000 });
+    await expect(caregiver.getByText('Tu perfil está en revisión.')).toBeVisible();
+  });
+
+  test('d. admin aprueba la postulación', async () => {
+    adminCtx = await browser.newContext();
+    admin = await adminCtx.newPage();
+
+    await admin.goto('/login');
+    await admin.getByLabel('Email').fill('admin@test.com');
+    await admin.getByLabel('Contraseña').fill('S3gura!123');
+    await admin.getByRole('button', { name: 'Ingresar' }).click();
+    await expect(admin).toHaveURL(/\/admin\/pending$/, { timeout: 15_000 });
+
+    const card = admin
+      .locator('div.bg-surface')
+      .filter({ hasText: CAREGIVER_NAME })
+      .filter({ has: admin.getByRole('link', { name: 'Revisar' }) });
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    await card.getByRole('link', { name: 'Revisar' }).click();
+
+    await expect(admin).toHaveURL(/\/admin\/caregivers\//);
+    await admin.getByRole('button', { name: 'Aprobar' }).click();
+    await expect(
+      admin.getByText('Perfil aprobado: ya es visible en el marketplace.'),
+    ).toBeVisible();
+  });
+
+  test('e. familia busca por zona y envía la solicitud', async () => {
+    await family.goto('/app/marketplace');
+    await family.getByLabel('Zona').fill(ZONE);
+    await family.getByRole('button', { name: 'Buscar' }).click();
+
+    const card = family.getByRole('link', { name: new RegExp(CAREGIVER_NAME) });
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    await card.click();
+
+    await family.getByRole('link', { name: 'Solicitar cuidado' }).click();
+    await expect(family).toHaveURL(/\/request$/);
+
+    // Paso 1: paciente
+    const patientOption = family.locator('label').filter({ hasText: PATIENT_NAME });
+    await expect(patientOption).toBeVisible({ timeout: 15_000 });
+    await patientOption.locator('input[type="radio"]').check();
+    await family.getByRole('button', { name: 'Continuar' }).click();
+
+    // Paso 2: modalidad y fechas (mañana → +10 días)
+    await family
+      .locator('label')
+      .filter({ hasText: 'A domicilio' })
+      .locator('input[type="radio"]')
+      .check();
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 10);
+    await family.getByLabel('Desde').fill(toLocalDateTime(start));
+    await family.getByLabel('Hasta').fill(toLocalDateTime(end));
+    await family.getByRole('button', { name: 'Continuar' }).click();
+
+    // Paso 3: teléfono
+    await family.getByLabel('Teléfono de contacto').fill('+54 11 5555-0002');
+    await family.getByRole('button', { name: 'Continuar' }).click();
+
+    // Paso 4: resumen + envío
+    await family.getByRole('button', { name: 'Enviar solicitud' }).click();
+    await expect(family).toHaveURL(/\/app\/hiring$/, { timeout: 15_000 });
+    await expect(family.locator('kr-badge', { hasText: 'Pendiente' })).toBeVisible();
+  });
+
+  test('f. cuidador acepta la solicitud', async () => {
+    await caregiver.goto('/caregiver/requests');
+    const acceptBtn = caregiver.getByRole('button', { name: 'Aceptar' });
+    await expect(acceptBtn).toBeVisible({ timeout: 15_000 });
+    await acceptBtn.click();
+
+    // El filtro queda en "Pendiente"; pasar a "Aceptada" y verificar el estado.
+    await expect(caregiver.getByText('Sin solicitudes por ahora')).toBeVisible({
+      timeout: 15_000,
+    });
+    await caregiver.getByRole('button', { name: 'Aceptada', exact: true }).click();
+    await expect(caregiver.locator('kr-badge', { hasText: 'Aceptada' })).toBeVisible();
+  });
+
+  test('g. familia registra vitales con alerta', async () => {
+    await family.goto('/app/patients');
+    await family.getByRole('link', { name: new RegExp(PATIENT_NAME) }).click();
+    await expect(family).toHaveURL(/\/dashboard$/, { timeout: 15_000 });
+
+    // Con el dashboard vacío hay dos links "Registrar vitales" (acción + empty state).
+    await family.getByRole('link', { name: 'Registrar vitales' }).first().click();
+    await expect(family).toHaveURL(/\/record\/vitals$/);
+
+    await family.getByLabel('Presión sistólica').fill('170');
+    await expect(family.getByText('Este valor va a generar una alerta.')).toBeVisible();
+    await family.getByLabel('Frecuencia cardíaca').fill('70');
+    await family.getByRole('button', { name: 'Guardar vitales' }).click();
+
+    await expect(family).toHaveURL(/\/dashboard$/, { timeout: 15_000 });
+    const systolicCard = family.locator('div.bg-surface').filter({ hasText: 'Presión sistólica' });
+    await expect(systolicCard).toContainText('170');
+    const heartCard = family.locator('div.bg-surface').filter({ hasText: 'Frecuencia cardíaca' });
+    await expect(heartCard).toContainText('70');
+  });
+
+  test('h. campana: badge, notificación de alerta y marcado como leída', async () => {
+    // Recargar remonta el NotificationStore y refresca el contador ya.
+    await family.goto('/app/patients');
+
+    const bell = family.getByRole('button', { name: 'Notificaciones' });
+    const badge = bell.locator('span.absolute');
+    await expect(badge).toBeVisible({ timeout: 20_000 });
+    const before = parseInt((await badge.innerText()).trim(), 10);
+    expect(before).toBeGreaterThanOrEqual(1);
+
+    await bell.click();
+    // Ítem con punto rojo = notificación de alerta.
+    const alertItem = family.locator('button:has(span.bg-red-500)').first();
+    await expect(alertItem).toBeVisible({ timeout: 15_000 });
+    await alertItem.click();
+
+    // Marcarla leída decrementa el badge (o lo oculta si era la única).
+    if (before === 1) {
+      await expect(badge).toBeHidden();
+    } else {
+      await expect(badge).toHaveText(String(before - 1));
+    }
+  });
+
+  test('i. cierre: finalizar contratación y calificar', async () => {
+    await family.goto('/app/hiring');
+
+    family.on('dialog', (dialog) => void dialog.accept());
+    const finishBtn = family.getByRole('button', { name: 'Finalizar y marcar pagada' });
+    await expect(finishBtn).toBeVisible({ timeout: 15_000 });
+    await finishBtn.click();
+
+    await expect(family.locator('kr-badge', { hasText: 'Finalizada' })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await family.getByRole('button', { name: 'Calificar cuidador' }).click();
+    await family.getByRole('button', { name: 'Calificar 5 de 5' }).click();
+    await family.locator('textarea[name="comment"]').fill('Excelente trato con Elena. ¡Gracias!');
+    await family.getByRole('button', { name: 'Enviar calificación' }).click();
+
+    // Reseña doble-ciega: queda sellada hasta que la otra parte califique.
+    await expect(family.getByText(/sellada|publicadas/)).toBeVisible({ timeout: 15_000 });
+  });
+});
