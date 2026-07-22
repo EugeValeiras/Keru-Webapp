@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: build Angular
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de producción
+        run: npm run build
+
+  e2e:
+    name: Playwright contra API dockerizada
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout Keru-API
+        uses: actions/checkout@v4
+        with:
+          repository: EugeValeiras/Keru-API
+          path: keru-api
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            keru-api/package-lock.json
+
+      # Igual que el quickstart del README de la API: compose con profile app
+      # levanta api + postgres + redis + floci, todo dockerizado.
+      - name: Levantar API dockerizada
+        working-directory: keru-api
+        run: docker compose --profile app up -d --build
+
+      - name: Esperar la API
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:3000/api/v1/catalogs >/dev/null && exit 0
+            sleep 2
+          done
+          echo 'La API no respondió en http://localhost:3000/api/v1/catalogs' >&2
+          exit 1
+
+      # El seed corre con ts-node desde el repo de la API contra la infra
+      # ya publicada en localhost (5432/6379/4566), como indica su README.
+      - name: Seed de datos de demo
+        working-directory: keru-api
+        run: |
+          npm ci
+          cp .env.example .env
+          npm run seed
+
+      - name: Instalar dependencias de la webapp
+        run: npm ci
+
+      - name: Instalar Chromium de Playwright
+        run: npx playwright install --with-deps chromium
+
+      # La suite espera el entorno ya levantado (no hay webServer en
+      # playwright.config.ts): ng serve con proxy /api -> localhost:3000.
+      - name: ng serve + suite Playwright
+        run: |
+          npm start &
+          for i in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:4200 >/dev/null && break
+            sleep 2
+          done
+          npm run e2e
+
+      - name: Logs de la API (solo si falló)
+        if: failure()
+        working-directory: keru-api
+        run: docker compose --profile app logs --tail=200
