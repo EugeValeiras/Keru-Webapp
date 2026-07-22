@@ -73,6 +73,15 @@ jobs:
             package-lock.json
             keru-api/package-lock.json
 
+      # El compose de la API no trae claves VAPID por default (rotación post-GitGuardian):
+      # sin claves, /push/config deshabilita el push y los tests UC-18 nunca ven el banner.
+      # Se genera un par descartable que solo vive en este job.
+      - name: Generar claves VAPID efímeras
+        run: |
+          npx --yes web-push generate-vapid-keys --json \
+            | node -e "const k=JSON.parse(require('fs').readFileSync(0,'utf8')); console.log('VAPID_PUBLIC_KEY='+k.publicKey); console.log('VAPID_PRIVATE_KEY='+k.privateKey)" \
+            >> "$GITHUB_ENV"
+
       # Como el modo producción del README de la API, pero solo el servicio api
       # (arrastra postgres + redis + floci por depends_on). El servicio webapp del
       # profile no se buildea acá: su contexto (../Keru-Webapp) no existe en el
@@ -113,10 +122,15 @@ jobs:
       - name: ng serve + suite Playwright
         run: |
           npm start &
+          ok=0
           for i in $(seq 1 90); do
-            curl -fsS http://127.0.0.1:4200 >/dev/null && break
+            if curl -fsS http://127.0.0.1:4200 >/dev/null 2>&1; then ok=1; break; fi
             sleep 2
           done
+          if [ "$ok" != 1 ]; then
+            echo 'ng serve no atendió en http://127.0.0.1:4200' >&2
+            exit 1
+          fi
           npm run e2e
 
       - name: Logs de la API (solo si falló)
