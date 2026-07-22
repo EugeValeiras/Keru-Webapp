@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/* Design tokens Keru — estética Airbnb con paleta violeta.
+   El violeta es el único color de marca fuerte (CTAs, favoritos, badge de campana,
+   filtros activos); los estados clínicos usan los semánticos, nunca el violeta. */
+@theme {
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+
+  --color-ink-900: #1f2937;
+  --color-ink-700: #374151;
+  --color-ink-500: #6b7280;
+  --color-ink-300: #d1d5db;
+
+  --color-surface: #ffffff;
+  --color-canvas: #fafafb;
+
+  --color-danger: #dc2626;
+  --color-success: #059669;
+  --color-warning: #d97706;
+
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.08), 0 12px 32px rgb(0 0 0 / 0.12);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  @apply bg-canvas text-ink-900 font-sans antialiased;
+}
+
+/* A11y: foco visible consistente en toda la app (WCAG 2.4.7). */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
