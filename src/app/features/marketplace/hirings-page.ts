@@ -20,6 +20,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
   'in-progress': 'primary',
   finished: 'success',
   declined: 'danger',
+  cancelled: 'neutral',
   expired: 'neutral',
 };
 
@@ -101,6 +102,18 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
               <span class="text-ink-500 font-normal">(tarifa congelada)</span>
             </p>
 
+            @if (r.status === 'pending') {
+              <div>
+                <button
+                  type="button"
+                  (click)="cancel(r)"
+                  [disabled]="cancellingId() === r.id"
+                  class="rounded-pill border border-danger text-danger font-semibold py-2.5 px-6 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                >
+                  {{ cancellingId() === r.id ? 'Cancelando…' : 'Cancelar solicitud' }}
+                </button>
+              </div>
+            }
             @if (r.status === 'accepted' || r.status === 'in-progress') {
               <div>
                 <button
@@ -145,6 +158,7 @@ export class HiringsPage {
   readonly error = signal<string | null>(null);
   readonly statusFilter = signal<HiringStatus | null>(null);
   readonly completingId = signal<string | null>(null);
+  readonly cancellingId = signal<string | null>(null);
   readonly reviewRequestId = signal<string | null>(null);
 
   readonly filtered = computed(() => {
@@ -189,6 +203,27 @@ export class HiringsPage {
       },
       error: (err: ApiError) => {
         this.completingId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  cancel(r: HiringRequest): void {
+    if (this.cancellingId()) {
+      return;
+    }
+    if (!confirm('¿Cancelar esta solicitud? El cuidador dejará de verla.')) {
+      return;
+    }
+    this.cancellingId.set(r.id);
+    this.error.set(null);
+    this.api.cancelRequest(r.id).subscribe({
+      next: () => {
+        this.cancellingId.set(null);
+        this.fetch();
+      },
+      error: (err: ApiError) => {
+        this.cancellingId.set(null);
         this.error.set(err.message);
       },
     });

@@ -24,6 +24,13 @@ export type Patient = Schemas['PatientResponseDto'];
 export type RegisterPatientDto = Schemas['RegisterPatientDto'];
 export type EmergencyContact = Schemas['EmergencyContactDto'];
 
+/** `emergencyContact` viene como objeto {name, phone, relationship?}; el schema lo declara vacío. */
+export type PatientRecord = Omit<Schemas['PatientRecordDto'], 'emergencyContact'> & {
+  emergencyContact: EmergencyContact;
+};
+export type PatientLinkRole = PatientRecord['linkRole'];
+export type UpdatePatientDto = Schemas['UpdatePatientDto'];
+
 export type Specialty = Schemas['RegisterCaregiverDto']['specialties'][number];
 export type Modality = Schemas['CreateRequestDto']['modality'];
 export type CaregiverStatus = Schemas['CaregiverResponseDto']['status'];
@@ -32,10 +39,16 @@ export type Certification = Schemas['CertificationDto'];
 export type Availability = Schemas['AvailabilityDto'];
 export type Rates = Schemas['RatesDto'];
 
-/** `badges` viene como objeto plano; el schema lo declara vacío. */
-export type CaregiverProfile = Omit<Schemas['CaregiverResponseDto'], 'badges' | 'rejectionReason'> & {
+/** `badges`/`certifications`/`availability`/`rates` vienen tipados; el schema los declara vacíos. */
+export type CaregiverProfile = Omit<
+  Schemas['CaregiverResponseDto'],
+  'badges' | 'rejectionReason' | 'certifications' | 'availability' | 'rates'
+> & {
   badges: Badges;
   rejectionReason?: string | null;
+  certifications: (Certification & { verified?: boolean })[];
+  availability: Availability[];
+  rates: Rates;
 };
 
 export type CaregiverCard = Omit<Schemas['CaregiverCardDto'], 'badges'> & { badges: Badges };
@@ -164,12 +177,28 @@ export interface ApiError {
   fields: string[];
 }
 
+/** Mensajes para respuestas que NO traen el envelope de la API (proxy caído, 413 del server, red). */
+function fallbackMessage(status: number): string {
+  switch (status) {
+    case 0:
+      return 'No se pudo conectar con el servidor. Revisá tu conexión y probá de nuevo.';
+    case 413:
+      return 'El archivo es demasiado grande para el servidor.';
+    case 502:
+    case 503:
+    case 504:
+      return 'El servidor no está respondiendo. Probá de nuevo en unos segundos.';
+    default:
+      return `Ocurrió un error inesperado (HTTP ${status}). Probá de nuevo.`;
+  }
+}
+
 export function toApiError(status: number, body: unknown): ApiError {
   const raw = (body ?? {}) as Partial<ApiError> & { details?: { fields?: string[] } };
   return {
     statusCode: raw.statusCode ?? status,
     code: raw.code ?? 'ERROR',
-    message: raw.message ?? 'Ocurrió un error inesperado. Probá de nuevo.',
+    message: raw.message ?? fallbackMessage(status),
     details: raw.details,
     path: raw.path,
     timestamp: raw.timestamp,
@@ -210,6 +239,7 @@ export const HIRING_STATUS_LABELS: Record<HiringStatus, string> = {
   accepted: 'Aceptada',
   'in-progress': 'En curso',
   declined: 'Rechazada',
+  cancelled: 'Cancelada',
   finished: 'Finalizada',
   expired: 'Vencida',
 };

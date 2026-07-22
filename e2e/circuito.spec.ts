@@ -197,7 +197,8 @@ test.describe.serial('Circuito MVP Keru', () => {
 
   test('g. familia registra vitales con alerta', async () => {
     await family.goto('/app/patients');
-    await family.getByRole('link', { name: new RegExp(PATIENT_NAME) }).click();
+    // Click sobre el NOMBRE (no el centro de la card: ahí vive la fila de botones Ficha/Cuidadores).
+    await family.getByText(PATIENT_NAME, { exact: true }).first().click();
     await expect(family).toHaveURL(/\/dashboard$/, { timeout: 15_000 });
 
     // Con el dashboard vacío hay dos links "Registrar vitales" (acción + empty state).

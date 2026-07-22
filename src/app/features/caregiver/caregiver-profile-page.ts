@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
@@ -19,7 +19,7 @@ const BADGE_ITEMS = [
 
 @Component({
   selector: 'kr-caregiver-profile-page',
-  imports: [KrBadge],
+  imports: [KrBadge, RouterLink],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       <div class="flex items-center justify-between">
@@ -62,13 +62,14 @@ const BADGE_ITEMS = [
                 </p>
               }
               <p class="text-ink-700 mt-2">
-                Por ahora no es posible re-enviar la postulación desde la app.
+                Podés corregir los datos observados y volver a postularte cuando quieras.
               </p>
               <a
-                href="mailto:soporte@keru.app"
+                routerLink="/caregiver/onboarding"
+                [queryParams]="{ mode: 'resubmit' }"
                 class="inline-block mt-3 rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
               >
-                Escribir a soporte
+                Corregir y re-enviar postulación
               </a>
             </div>
           }

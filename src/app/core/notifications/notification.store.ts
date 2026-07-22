@@ -66,10 +66,16 @@ export class NotificationStore {
     this.api.markRead(id).subscribe({ error: () => this.refreshCount() });
   }
 
+  /** Un solo POST idempotente; optimista y re-sincroniza el badge al confirmar. */
   markAllRead(): void {
-    const unreadItems = this.items().filter((n) => !n.read);
-    for (const n of unreadItems) {
-      this.markRead(n.id);
+    if (this.unread() === 0 && this.items().every((n) => n.read)) {
+      return;
     }
+    this.items.update((list) => list.map((n) => (n.read ? n : { ...n, read: true })));
+    this.unread.set(0);
+    this.api.markAllRead().subscribe({
+      next: () => this.refreshCount(),
+      error: () => this.refreshCount(), // revierte el optimismo si el server no acompañó
+    });
   }
 }

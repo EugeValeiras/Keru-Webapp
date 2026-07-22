@@ -64,6 +64,11 @@ export class HiringApi {
     return this.http.post<HiringRequest>(`/api/v1/hiring-requests/${id}/complete`, {});
   }
 
+  /** Solo el solicitante y solo 'pending'; estado terminal 'cancelled' (el cuidador deja de verla). */
+  cancelRequest(id: string): Observable<HiringRequest> {
+    return this.http.post<HiringRequest>(`/api/v1/hiring-requests/${id}/cancel`, {});
+  }
+
   /** Bandeja del cuidador. El DTO no incluye contactData ni specialRequirements. */
   getCaregiverInbox(): Observable<HiringRequest[]> {
     return this.http.get<HiringRequest[]>('/api/v1/caregiver/requests');

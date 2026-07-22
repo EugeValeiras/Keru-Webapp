@@ -56,4 +56,9 @@ export class CareApi {
   markRead(id: string): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(`/api/v1/notifications/${id}/read`, {});
   }
+
+  /** Idempotente: updated = cuántas pasaron a leídas (0 si se repite). */
+  markAllRead(): Observable<{ ok: boolean; updated: number }> {
+    return this.http.post<{ ok: boolean; updated: number }>('/api/v1/notifications/read-all', {});
+  }
 }

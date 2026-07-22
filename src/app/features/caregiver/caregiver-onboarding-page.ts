@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
+  CaregiverProfile,
   DAY_LABELS,
   MODALITY_LABELS,
   Modality,
@@ -35,8 +36,16 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
-        <h1 class="text-2xl font-bold">Convertite en cuidador/a</h1>
-        <p class="text-ink-500 mt-1">Completá tu postulación y la revisamos a la brevedad.</p>
+        <h1 class="text-2xl font-bold">
+          {{ resubmitMode() ? 'Corregí tu postulación' : 'Convertite en cuidador/a' }}
+        </h1>
+        <p class="text-ink-500 mt-1">
+          {{
+            resubmitMode()
+              ? 'Actualizá los datos observados y re-enviá: tu perfil vuelve a revisión.'
+              : 'Completá tu postulación y la revisamos a la brevedad.'
+          }}
+        </p>
       </div>
 
       @if (checking()) {
@@ -325,7 +334,13 @@ const STEP_TITLES = ['Datos', 'Especialidades', 'Certificaciones', 'Disponibilid
               @if (step() < 5) {
                 Siguiente
               } @else {
-                {{ submitting() ? 'Enviando…' : 'Enviar postulación' }}
+                {{
+                  submitting()
+                    ? 'Enviando…'
+                    : resubmitMode()
+                      ? 'Re-enviar postulación'
+                      : 'Enviar postulación'
+                }}
               }
             </button>
           </div>
@@ -338,9 +353,14 @@ export class CaregiverOnboardingPage {
   private readonly api = inject(MembershipApi);
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  /** Un solo operationId por alta: los reintentos del submit no duplican el efecto. */
+  /** Un solo operationId por alta/re-envío: los reintentos del submit no duplican el efecto. */
   private readonly operationId = newOperationId();
+
+  /** ?mode=resubmit: corregir y re-enviar una postulación rechazada (PUT /caregivers/me). */
+  private readonly resubmitRequested = this.route.snapshot.queryParamMap.get('mode') === 'resubmit';
+  readonly resubmitMode = signal(false);
 
   readonly step = signal(1);
   readonly checking = signal(true);
@@ -366,17 +386,52 @@ export class CaregiverOnboardingPage {
   modalitySel: Record<string, boolean> = {};
 
   constructor() {
-    // Si ya tiene perfil, no corresponde el onboarding.
+    // Sin perfil → alta normal. Con perfil: solo se admite quedarse si es un
+    // re-envío pedido explícitamente (?mode=resubmit) sobre un perfil rechazado.
     this.api.getMyCaregiverProfile().subscribe({
       next: (profile) => {
-        if (profile !== null) {
-          void this.router.navigate(['/caregiver/profile']);
+        if (profile === null) {
+          this.checking.set(false);
           return;
         }
-        this.checking.set(false);
+        if (this.resubmitRequested && profile.status === 'rejected') {
+          this.prefill(profile);
+          this.resubmitMode.set(true);
+          this.checking.set(false);
+          return;
+        }
+        void this.router.navigate(['/caregiver/profile']);
       },
       error: () => this.checking.set(false),
     });
+  }
+
+  /** Prellena el wizard completo con la ficha que devuelve GET /caregivers/me. */
+  private prefill(profile: CaregiverProfile): void {
+    this.displayName = profile.displayName;
+    this.photoUrl.set(profile.photoUrl ?? null);
+    for (const s of profile.specialties) {
+      this.specialtySel[s] = true;
+    }
+    this.certs = profile.certifications.map((c) => ({
+      type: c.type,
+      institution: c.institution,
+      year: c.year,
+    }));
+    if (profile.availability.length > 0) {
+      this.slots = profile.availability.map((a) => ({
+        dayOfWeek: a.dayOfWeek,
+        from: a.from,
+        to: a.to,
+      }));
+    }
+    this.ratePerHour = profile.rates?.ratePerHour ?? null;
+    this.currency = profile.rates?.currency ?? 'ARS';
+    this.rateDescription = profile.rates?.description ?? '';
+    this.zone = profile.zone;
+    for (const m of profile.modalities) {
+      this.modalitySel[m] = true;
+    }
   }
 
   private selectedSpecialties(): Specialty[] {
@@ -481,7 +536,10 @@ export class CaregiverOnboardingPage {
     this.submitting.set(true);
     this.error.set(null);
     this.fieldErrors.set([]);
-    this.api.registerCaregiver(dto).subscribe({
+    const request = this.resubmitMode()
+      ? this.api.resubmitCaregiver(dto)
+      : this.api.registerCaregiver(dto);
+    request.subscribe({
       next: () => void this.router.navigate(['/caregiver/profile']),
       error: (err: ApiError) => {
         this.submitting.set(false);

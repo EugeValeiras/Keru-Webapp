@@ -62,6 +62,13 @@ import { InviteModal } from './invite-modal';
                 >
                   Cuidadores
                 </button>
+                <button
+                  type="button"
+                  (click)="goToRecord($event, p)"
+                  class="rounded-pill border border-ink-300 text-ink-700 text-sm font-semibold py-1 px-3 hover:bg-primary-50 transition-colors"
+                >
+                  Ficha
+                </button>
               </div>
             </div>
           </a>
@@ -101,5 +108,12 @@ export class PatientsPage {
     event.stopPropagation();
     this.store.setActive(patient.id);
     void this.router.navigate(['/app/patients', patient.id, 'caregivers']);
+  }
+
+  goToRecord(event: Event, patient: Patient): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.store.setActive(patient.id);
+    void this.router.navigate(['/app/patients', patient.id, 'record']);
   }
 }

@@ -81,6 +81,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/patients/patient-caregivers-page').then((m) => m.PatientCaregiversPage),
       },
+      {
+        path: 'patients/:patientId/record',
+        loadComponent: () =>
+          import('./features/patients/patient-record-page').then((m) => m.PatientRecordPage),
+      },
       ...careChildren,
       { path: 'patients/:patientId', pathMatch: 'full', redirectTo: 'patients/:patientId/dashboard' },
     ],

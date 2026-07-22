@@ -59,6 +59,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * UC-22 · Ver la ficha del paciente
+         * @description Ficha completa. Requiere vínculo con el paciente (cualquier rol); linkRole indica el rol de quien consulta.
+         */
+        get: operations["MembershipController_patientRecord_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * UC-22 · Editar la ficha del paciente
+         * @description Set parcial de la ficha (naturalmente idempotente, sin operationId). Solo vínculos consent-holder o manager; queda auditado (quién, cuándo, qué campos).
+         */
+        patch: operations["MembershipController_updatePatient_v1"];
+        trace?: never;
+    };
     "/api/v1/caregivers": {
         parameters: {
             query?: never;
@@ -88,7 +112,11 @@ export interface paths {
         };
         /** UC-02 · Ver mi perfil y estado de aprobación */
         get: operations["CaregiverController_myProfile_v1"];
-        put?: never;
+        /**
+         * UC-02 A2 · Re-enviar postulación tras rechazo
+         * @description Corrige los datos y re-envía. Solo desde estado rejected: el perfil vuelve a pending, se limpia el motivo de rechazo y las certificaciones vuelven a "no verificada". Naturalmente idempotente.
+         */
+        put: operations["CaregiverController_resubmit_v1"];
         post?: never;
         delete?: never;
         options?: never;
@@ -387,6 +415,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hiring-requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 A2 · Cancelar solicitud pendiente (solo el solicitante)
+         * @description Cancela una solicitud mientras está pendiente; queda en estado terminal `cancelled` y el cuidador deja de verla como pendiente.
+         */
+        post: operations["MarketplaceController_cancel_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hiring-requests/{id}/complete": {
         parameters: {
             query?: never;
@@ -625,6 +673,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-18 · Marcar todas las notificaciones como leídas
+         * @description Marca todas las no leídas del destinatario. Idempotente: repetir devuelve updated=0.
+         */
+        post: operations["NotificationController_readAll_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -847,6 +915,69 @@ export interface components {
              */
             duplicateCandidateId?: string;
         };
+        PatientRecordDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example Rosa Díaz */
+            fullName: string;
+            /**
+             * @description Fecha de nacimiento ISO (YYYY-MM-DD).
+             * @example 1948-03-10
+             */
+            birthDate: string;
+            /**
+             * @description Edad derivada de la fecha de nacimiento.
+             * @example 78
+             */
+            age: number;
+            /** @example https://cdn.keru.app/p/rosa.jpg */
+            photoUrl?: string;
+            /** @example Hipertensión */
+            mainCondition: string;
+            /** @example 0+ */
+            bloodGroup?: string;
+            /**
+             * @example [
+             *       "Penicilina"
+             *     ]
+             */
+            allergies: string[];
+            /**
+             * @example {
+             *       "name": "María Díaz",
+             *       "phone": "+54 11 5555-5555",
+             *       "relationship": "hija"
+             *     }
+             */
+            emergencyContact: Record<string, never>;
+            /**
+             * @description Rol del vínculo de la cuenta que consulta.
+             * @enum {string}
+             */
+            linkRole: "consent-holder" | "manager" | "viewer";
+        };
+        UpdatePatientDto: {
+            /** @example Rosa Díaz */
+            fullName?: string;
+            /**
+             * @description Fecha de nacimiento ISO (YYYY-MM-DD). No puede ser futura.
+             * @example 1948-03-10
+             */
+            birthDate?: string;
+            /** @example https://cdn.keru.app/p/rosa.jpg */
+            photoUrl?: string;
+            /** @example Hipertensión */
+            mainCondition?: string;
+            /** @example 0+ */
+            bloodGroup?: string;
+            /**
+             * @example [
+             *       "Penicilina"
+             *     ]
+             */
+            allergies?: string[];
+            emergencyContact?: components["schemas"]["EmergencyContactDto"];
+        };
         CertificationDto: {
             /** @example Enfermería */
             type: string;
@@ -911,6 +1042,10 @@ export interface components {
             /** Format: uuid */
             id: string;
             displayName: string;
+            photoUrl?: string | null;
+            certifications: Record<string, never>[];
+            availability: Record<string, never>[];
+            rates: Record<string, never>;
             /** @enum {string} */
             status: "pending" | "approved" | "rejected" | "deactivated";
             specialties: string[];
@@ -1084,7 +1219,7 @@ export interface components {
             /** @description Datos de contacto del solicitante. Para el cuidador solo con solicitud aceptada/en curso (UC-10). */
             contactData?: Record<string, never>;
             /** @enum {string} */
-            status: "pending" | "accepted" | "declined" | "in-progress" | "finished" | "expired";
+            status: "pending" | "accepted" | "declined" | "cancelled" | "in-progress" | "finished" | "expired";
             /** @description Tarifa pinneada al solicitar (NFR-03/23) */
             ratePerHourSnapshot: string;
         };
@@ -1202,6 +1337,15 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        MarkAllReadResponseDto: {
+            /** @example true */
+            ok: boolean;
+            /**
+             * @description Cantidad de notificaciones que pasaron de no leída a leída (0 si se repite: idempotente).
+             * @example 3
+             */
+            updated: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -1299,6 +1443,52 @@ export interface operations {
             };
         };
     };
+    MembershipController_patientRecord_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientRecordDto"];
+                };
+            };
+        };
+    };
+    MembershipController_updatePatient_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePatientDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientRecordDto"];
+                };
+            };
+        };
+    };
     CaregiverController_register_v1: {
         parameters: {
             query?: never;
@@ -1330,6 +1520,29 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverResponseDto"];
+                };
+            };
+        };
+    };
+    CaregiverController_resubmit_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterCaregiverDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1758,6 +1971,27 @@ export interface operations {
             };
         };
     };
+    MarketplaceController_cancel_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
     MarketplaceController_complete_v1: {
         parameters: {
             query?: never;
@@ -2061,6 +2295,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    NotificationController_readAll_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkAllReadResponseDto"];
+                };
             };
         };
     };

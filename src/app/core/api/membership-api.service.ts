@@ -10,8 +10,10 @@ import {
   InvitationConfirmed,
   InvitationPreview,
   Patient,
+  PatientRecord,
   RegisterCaregiverDto,
   RegisterPatientDto,
+  UpdatePatientDto,
 } from './api.types';
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +26,16 @@ export class MembershipApi {
 
   registerPatient(dto: RegisterPatientDto): Observable<Patient> {
     return this.http.post<Patient>('/api/v1/patients', dto);
+  }
+
+  /** Ficha completa. Cualquier vinculado lee; 403 = sin vínculo con el paciente. */
+  getPatientRecord(id: string): Observable<PatientRecord> {
+    return this.http.get<PatientRecord>(`/api/v1/patients/${id}`);
+  }
+
+  /** Set parcial (mandar SOLO lo que cambia). Solo consent-holder|manager; viewer → 403. Sin operationId. */
+  updatePatient(id: string, dto: UpdatePatientDto): Observable<PatientRecord> {
+    return this.http.patch<PatientRecord>(`/api/v1/patients/${id}`, dto);
   }
 
   /** 404 = "todavía no tiene perfil profesional" (estado, no error) → null. */
@@ -40,6 +52,11 @@ export class MembershipApi {
 
   registerCaregiver(dto: RegisterCaregiverDto): Observable<CaregiverProfile> {
     return this.http.post<CaregiverProfile>('/api/v1/caregivers', dto);
+  }
+
+  /** Re-postulación tras rechazo: solo desde 'rejected', vuelve a 'pending'. Exige operationId como el alta. */
+  resubmitCaregiver(dto: RegisterCaregiverDto): Observable<CaregiverProfile> {
+    return this.http.put<CaregiverProfile>('/api/v1/caregivers/me', dto);
   }
 
   /** Sube una imagen (jpeg/png/webp, máx 5MB); la URL resultante sirve como photoUrl. */
