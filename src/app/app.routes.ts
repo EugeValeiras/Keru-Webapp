@@ -86,6 +86,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/patients/patient-record-page').then((m) => m.PatientRecordPage),
       },
+      {
+        // UC-12 A3 (NFR-30): solo el círculo (familia) gestiona la cuarentena — no va en careChildren.
+        path: 'patients/:patientId/quarantine',
+        loadComponent: () =>
+          import('./features/care/patient-quarantine-page').then((m) => m.PatientQuarantinePage),
+      },
       ...careChildren,
       { path: 'patients/:patientId', pathMatch: 'full', redirectTo: 'patients/:patientId/dashboard' },
     ],

@@ -96,9 +96,13 @@ export type MetricValue = Schemas['MetricValueDto'];
 export type RecordVitalsDto = Schemas['RecordVitalsDto'];
 export type RecordMedicationDto = Schemas['RecordMedicationDto'];
 export type RecordNoteDto = Schemas['RecordNoteDto'];
-export type RecordResponse = Schemas['RecordResponseDto'];
+/** `status` aún no está en el schema generado: quarantined = llegada tardía en cuarentena (NFR-30). */
+export type RecordResponse = Schemas['RecordResponseDto'] & { status: 'recorded' | 'quarantined' };
 
-export type AppNotification = Schemas['NotificationDto'];
+/** `type` incluye 'quarantine' (UC-12 A3); el schema generado aún declara solo alert|note. */
+export type AppNotification = Omit<Schemas['NotificationDto'], 'type'> & {
+  type: 'alert' | 'note' | 'quarantine';
+};
 
 export type SubmitReviewDto = Schemas['SubmitReviewDto'];
 export type Review = Omit<Schemas['ReviewDto'], 'comment'> & { comment?: string | null };
@@ -159,6 +163,29 @@ export interface HistoryItem {
 export interface SeriesPoint {
   measuredAt: string;
   value: number;
+}
+
+/**
+ * UC-12 A3 · Registro tardío no autorizado en cuarentena (NFR-30) — GET
+ * /patients/:id/quarantine (sin schema en openapi). Lo ve todo el círculo;
+ * resuelven consent-holder/manager. Nunca se borra: los resueltos quedan con traza.
+ */
+export interface QuarantinedRecord {
+  id: string;
+  patientId: string;
+  type: HistoryItem['type'];
+  /** Tiempo de medición original (NFR-36): si se aprueba, el historial ordena por acá. */
+  measuredAt: string;
+  /** Tiempo de llegada. */
+  receivedAt: string;
+  authorAccountId: string;
+  authorRole: HistoryItem['authorRole'];
+  reason: string;
+  status: 'pending' | 'approved' | 'discarded';
+  data: HistoryItem['data'];
+  resolvedByAccountId?: string | null;
+  resolvedAt?: string | null;
+  approvedRecordId?: string | null;
 }
 
 export interface SweepResult {

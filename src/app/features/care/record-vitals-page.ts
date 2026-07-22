@@ -22,6 +22,15 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
         Cargá al menos una medición; el resto puede quedar vacío.
       </p>
 
+      @if (quarantined()) {
+        <div role="status" class="bg-amber-50 border border-amber-300 rounded-card p-6 text-sm text-ink-700">
+          <p class="font-semibold mb-1">⏳ El registro quedó en cuarentena</p>
+          <p>
+            Llegó sin una asignación vigente que cubriera su momento de medición. No se descartó
+            (NFR-30): el círculo del paciente lo va a revisar para aprobarlo o descartarlo.
+          </p>
+        </div>
+      } @else {
       <form
         class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-5"
         (ngSubmit)="submit()"
@@ -95,6 +104,7 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
           {{ loading() ? 'Guardando…' : 'Guardar vitales' }}
         </button>
       </form>
+      }
     </div>
   `,
 })
@@ -116,6 +126,8 @@ export class RecordVitalsPage {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly fields = signal<string[]>([]);
+  /** UC-12 A3 (NFR-30): llegada tardía no autorizada — quedó en cuarentena, no en el historial. */
+  protected readonly quarantined = signal(false);
 
   protected readonly canSubmit = computed(() => {
     const vals = this.values();
@@ -172,7 +184,12 @@ export class RecordVitalsPage {
     this.fields.set([]);
 
     this.api.recordVitals(this.patientId, dto).subscribe({
-      next: () => {
+      next: (res) => {
+        if (res.status === 'quarantined') {
+          this.loading.set(false);
+          this.quarantined.set(true);
+          return;
+        }
         void this.router.navigate(['../../dashboard'], { relativeTo: this.route });
       },
       error: (err: ApiError) => {

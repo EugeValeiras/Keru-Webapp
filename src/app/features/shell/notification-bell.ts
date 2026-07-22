@@ -64,6 +64,7 @@ import { timeAgo } from '../../shared/utils/dates';
                 class="mt-1.5 w-2 h-2 rounded-full shrink-0"
                 [class.bg-red-500]="n.type === 'alert'"
                 [class.bg-primary-600]="n.type === 'note'"
+                [class.bg-amber-500]="n.type === 'quarantine'"
               ></span>
               <span class="min-w-0">
                 <span class="block font-semibold text-sm">{{ n.title }}</span>
@@ -154,6 +155,8 @@ export class NotificationBell {
   openItem(n: AppNotification): void {
     this.store.markRead(n.id);
     this.open.set(false);
-    void this.router.navigate(['/app/patients', n.patientId, 'dashboard']);
+    // Una notificación de cuarentena lleva directo a resolverla (UC-12 A3).
+    const page = n.type === 'quarantine' ? 'quarantine' : 'dashboard';
+    void this.router.navigate(['/app/patients', n.patientId, page]);
   }
 }

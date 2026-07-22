@@ -16,6 +16,15 @@ import { newOperationId } from '../../core/idempotency/operation-id';
       </a>
       <h1 class="text-2xl font-bold mt-2 mb-6">Registrar medicación</h1>
 
+      @if (quarantined()) {
+        <div role="status" class="bg-amber-50 border border-amber-300 rounded-card p-6 text-sm text-ink-700">
+          <p class="font-semibold mb-1">⏳ El registro quedó en cuarentena</p>
+          <p>
+            Llegó sin una asignación vigente que cubriera su momento de medición. No se descartó
+            (NFR-30): el círculo del paciente lo va a revisar para aprobarlo o descartarlo.
+          </p>
+        </div>
+      } @else {
       <form
         class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
         (ngSubmit)="submit()"
@@ -94,6 +103,7 @@ import { newOperationId } from '../../core/idempotency/operation-id';
           {{ loading() ? 'Guardando…' : 'Guardar medicación' }}
         </button>
       </form>
+      }
     </div>
   `,
 })
@@ -116,6 +126,8 @@ export class RecordMedicationPage {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly fields = signal<string[]>([]);
+  /** UC-12 A3 (NFR-30): llegada tardía no autorizada — quedó en cuarentena, no en el historial. */
+  protected readonly quarantined = signal(false);
 
   submit(): void {
     if (this.loading()) {
@@ -141,7 +153,12 @@ export class RecordMedicationPage {
     this.fields.set([]);
 
     this.api.recordMedication(this.patientId, dto).subscribe({
-      next: () => {
+      next: (res) => {
+        if (res.status === 'quarantined') {
+          this.loading.set(false);
+          this.quarantined.set(true);
+          return;
+        }
         void this.router.navigate(['../../dashboard'], { relativeTo: this.route });
       },
       error: (err: ApiError) => {

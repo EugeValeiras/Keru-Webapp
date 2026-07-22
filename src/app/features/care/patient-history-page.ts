@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, Catalogs, HistoryItem, MetricValue } from '../../core/api/api.types';
+import { AuthStore } from '../../core/auth/auth-store';
 import { CatalogService } from '../../core/catalogs/catalog.service';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
@@ -52,6 +53,21 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
         ← Volver al estado actual
       </a>
       <h1 class="text-2xl font-bold mt-2 mb-6">Historial clínico</h1>
+
+      @if (quarantinePending() > 0) {
+        <a
+          routerLink="../quarantine"
+          class="flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-card px-4 py-3 mb-6 text-sm text-ink-700 hover:bg-amber-100 transition-colors"
+        >
+          <span>⏳</span>
+          <span>
+            <span class="font-semibold">{{ quarantinePending() }}</span>
+            {{ quarantinePending() === 1 ? 'registro tardío espera' : 'registros tardíos esperan' }}
+            revisión del círculo (cuarentena).
+          </span>
+          <span class="ml-auto font-medium text-primary-600">Revisar →</span>
+        </a>
+      }
 
       <div class="flex flex-wrap gap-2 mb-6">
         @for (f of filters; track f.key) {
@@ -143,6 +159,7 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
 export class PatientHistoryPage {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(CareApi);
+  private readonly auth = inject(AuthStore);
   private readonly catalogService = inject(CatalogService);
 
   private readonly patientId = this.route.snapshot.paramMap.get('patientId')!;
@@ -155,6 +172,8 @@ export class PatientHistoryPage {
   protected readonly loaded = signal(false);
   protected readonly forbidden = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** UC-12 A3: items en cuarentena pendientes (solo familia; el cuidador no la gestiona). */
+  protected readonly quarantinePending = signal(0);
   private readonly catalogs = signal<Catalogs | null>(null);
 
   protected readonly filtered = computed(() => {
@@ -194,6 +213,14 @@ export class PatientHistoryPage {
         }
       },
     });
+    // La cuarentena es del círculo: bajo /caregiver ni se consulta (la API devolvería 403).
+    const role = this.auth.role();
+    if (role === 'family' || role === 'patient') {
+      this.api.getQuarantine(this.patientId).subscribe({
+        next: (items) => this.quarantinePending.set(items.filter((i) => i.status === 'pending').length),
+        error: () => this.quarantinePending.set(0),
+      });
+    }
   }
 
   protected roleLabel(item: HistoryItem): string {
