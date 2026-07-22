@@ -7,7 +7,8 @@ import { existsSync, readFileSync } from 'node:fs';
  * - API:    http://localhost:3000/api/v1 (con seed admin@test.com)
  * Por eso NO hay webServer acá.
  *
- * Para apuntar a otro serve (p. ej. un worktree en :4201) sin tocar el default
+ * Para apuntar a otro origen (p. ej. el nginx del modo producción local en
+ * http://localhost:8080, o un serve de worktree en :4201) sin tocar el default
  * que usa CI: la env E2E_BASE_URL, o un archivo local `.e2e-base-url`
  * (gitignoreado) con la URL — útil cuando quien corre `npm run e2e` no hereda
  * el entorno de la shell (p. ej. el gate de verify del kanban).

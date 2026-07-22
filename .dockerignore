@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.kanban
+.angular
+.vscode
+e2e
+test-results
+playwright-report
+keru-api
+Dockerfile
+README.md
+docs
