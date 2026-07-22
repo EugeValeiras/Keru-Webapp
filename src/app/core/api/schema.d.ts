@@ -83,6 +83,26 @@ export interface paths {
         patch: operations["MembershipController_updatePatient_v1"];
         trace?: never;
     };
+    "/api/v1/patients/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * UC-22 · Círculo del paciente
+         * @description Cuentas vinculadas al paciente (displayName/email) con el rol de su vínculo. Visible para cualquier vinculado; una cuenta sin vínculo recibe 403.
+         */
+        get: operations["MembershipController_patientCircle_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/caregivers": {
         parameters: {
             query?: never;
@@ -956,6 +976,24 @@ export interface components {
              */
             linkRole: "consent-holder" | "manager" | "viewer";
         };
+        PatientLinkDto: {
+            /** Format: uuid */
+            accountId: string;
+            /** @example María Díaz */
+            displayName: string;
+            /** @example maria@example.com */
+            email: string;
+            /**
+             * @description Rol del vínculo con el paciente.
+             * @enum {string}
+             */
+            role: "consent-holder" | "manager" | "viewer";
+            /**
+             * Format: date-time
+             * @description Cuándo se creó el vínculo.
+             */
+            since: string;
+        };
         UpdatePatientDto: {
             /** @example Rosa Díaz */
             fullName?: string;
@@ -1485,6 +1523,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientRecordDto"];
+                };
+            };
+        };
+    };
+    MembershipController_patientCircle_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientLinkDto"][];
                 };
             };
         };

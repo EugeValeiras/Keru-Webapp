@@ -2,7 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MembershipApi } from '../../core/api/membership-api.service';
-import { ApiError, PatientLinkRole, PatientRecord, UpdatePatientDto } from '../../core/api/api.types';
+import {
+  ApiError,
+  PatientCircleMember,
+  PatientLinkRole,
+  PatientRecord,
+  UpdatePatientDto,
+} from '../../core/api/api.types';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
@@ -116,6 +122,34 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
               </div>
             }
           </div>
+
+          <!-- UC-22 · Círculo: quiénes están vinculados al paciente y con qué rol -->
+          <section class="bg-surface rounded-card shadow-card p-8 mt-6">
+            <h2 class="text-lg font-bold text-ink-900">Círculo</h2>
+            <p class="text-sm text-ink-500 mt-0.5 mb-4">
+              Personas vinculadas a {{ r.fullName }} y el rol con el que acceden.
+            </p>
+            @if (circleError()) {
+              <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+                No se pudo cargar el círculo. Probá recargar la página.
+              </p>
+            } @else if (circle(); as members) {
+              <ul class="flex flex-col divide-y divide-ink-300/60">
+                @for (m of members; track m.accountId) {
+                  <li class="flex items-center gap-4 py-3">
+                    <kr-avatar [name]="m.displayName" [seed]="m.accountId" [size]="44" />
+                    <div class="min-w-0 flex-1">
+                      <p class="font-medium text-ink-900 truncate">{{ m.displayName }}</p>
+                      <p class="text-sm text-ink-500 truncate">{{ m.email }}</p>
+                    </div>
+                    <kr-badge [tone]="roleTone(m.role)">{{ roleLabel(m.role) }}</kr-badge>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="text-ink-500 text-sm">Cargando círculo…</p>
+            }
+          </section>
         } @else {
           <!-- Edición -->
           <form class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4" (ngSubmit)="save()">
@@ -280,6 +314,8 @@ export class PatientRecordPage {
   protected readonly today = new Date().toISOString().slice(0, 10);
 
   readonly record = signal<PatientRecord | null>(null);
+  readonly circle = signal<PatientCircleMember[] | null>(null);
+  readonly circleError = signal(false);
   readonly loading = signal(true);
   readonly forbidden = signal(false);
   readonly editing = signal(false);
@@ -313,6 +349,11 @@ export class PatientRecordPage {
           this.error.set(err.message);
         }
       },
+    });
+    this.api.getPatientLinks(this.patientId).subscribe({
+      next: (members) => this.circle.set(members),
+      // El 403 sin vínculo ya lo cubre la ficha; acá solo señalamos el fallo de carga.
+      error: () => this.circleError.set(true),
     });
   }
 
