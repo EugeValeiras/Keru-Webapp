@@ -731,6 +731,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications/push/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * UC-18 · Config del canal push
+         * @description Clave pública VAPID para suscribirse. enabled=false: el cliente no ofrece push, la campana sigue sola.
+         */
+        get: operations["NotificationController_pushConfig_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/push/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-18 · Mis suscripciones push (por cuenta, revocables) */
+        get: operations["NotificationController_listPushSubscriptions_v1"];
+        put?: never;
+        /**
+         * UC-18 flujo 1 · Suscribir este navegador al push
+         * @description Idempotente por endpoint único: re-suscribir renueva claves/dueño, nunca duplica.
+         */
+        post: operations["NotificationController_subscribePush_v1"];
+        /**
+         * UC-18 · Revocar la suscripción push de un endpoint
+         * @description A1: el usuario apaga el push; las alertas siguen en la campana. Idempotente: repetir devuelve removed=0.
+         */
+        delete: operations["NotificationController_unsubscribePush_v1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -742,6 +787,57 @@ export interface paths {
         put?: never;
         /** UC-18 · Marcar notificación como leída */
         post: operations["NotificationController_markRead_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-12 A3 · Items en cuarentena del paciente (NFR-30, visibles al círculo) */
+        get: operations["QuarantineController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/quarantine/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-12 A3 · Aprobar: entra al historial con su measuredAt original (NFR-36) */
+        post: operations["QuarantineController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/quarantine/{id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-12 A3 · Descartar: queda marcado con traza, nunca se borra */
+        post: operations["QuarantineController_discard_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1367,6 +1463,11 @@ export interface components {
             /** Format: date-time */
             measuredAt: string;
             authorRole: string;
+            /**
+             * @description recorded: entró al historial. quarantined: llegada tardía no autorizada en cuarentena (NFR-30), pendiente de resolución del círculo — nunca se descarta en silencio.
+             * @enum {string}
+             */
+            status: "recorded" | "quarantined";
         };
         RecordMedicationDto: {
             /**
@@ -1417,6 +1518,72 @@ export interface components {
              * @example 3
              */
             updated: number;
+        };
+        PushConfigDto: {
+            /** @description false si el servidor no tiene claves VAPID: solo campana. */
+            enabled: boolean;
+            /** @description Clave pública VAPID (applicationServerKey). */
+            publicKey: string | null;
+        };
+        PushSubscriptionDto: {
+            /** Format: uuid */
+            id: string;
+            endpoint: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PushKeysDto: {
+            /** @description Clave pública ECDH del navegador. */
+            p256dh: string;
+            /** @description Secreto de autenticación del navegador. */
+            auth: string;
+        };
+        SubscribePushDto: {
+            /** @description URL del push service del navegador. */
+            endpoint: string;
+            keys: components["schemas"]["PushKeysDto"];
+        };
+        UnsubscribePushResponseDto: {
+            /** @example true */
+            ok: boolean;
+            /**
+             * @description 0 si el endpoint ya no estaba suscripto.
+             * @example 1
+             */
+            removed: number;
+        };
+        QuarantinedRecordDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            patientId: string;
+            /** @enum {string} */
+            type: "vitals" | "medication" | "note";
+            /**
+             * Format: date-time
+             * @description Tiempo de medición original (NFR-36).
+             */
+            measuredAt: string;
+            /**
+             * Format: date-time
+             * @description Tiempo de llegada.
+             */
+            receivedAt: string;
+            authorAccountId: string;
+            authorRole: string;
+            /** @example no-authority-at-measurement */
+            reason: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "discarded";
+            /** @description Contenido del registro según type. */
+            data: Record<string, never>;
+            resolvedByAccountId?: Record<string, never> | null;
+            resolvedAt?: Record<string, never> | null;
+            /**
+             * Format: uuid
+             * @description Si se aprobó: registro promovido al historial.
+             */
+            approvedRecordId?: Record<string, never> | null;
         };
     };
     responses: never;
@@ -2452,6 +2619,89 @@ export interface operations {
             };
         };
     };
+    NotificationController_pushConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushConfigDto"];
+                };
+            };
+        };
+    };
+    NotificationController_listPushSubscriptions_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionDto"][];
+                };
+            };
+        };
+    };
+    NotificationController_subscribePush_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscribePushDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionDto"];
+                };
+            };
+        };
+    };
+    NotificationController_unsubscribePush_v1: {
+        parameters: {
+            query: {
+                /** @description Endpoint (URL) de la suscripción a revocar. */
+                endpoint: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnsubscribePushResponseDto"];
+                };
+            };
+        };
+    };
     NotificationController_markRead_v1: {
         parameters: {
             query?: never;
@@ -2468,6 +2718,71 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    QuarantineController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"][];
+                };
+            };
+        };
+    };
+    QuarantineController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"];
+                };
+            };
+        };
+    };
+    QuarantineController_discard_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinedRecordDto"];
+                };
             };
         };
     };

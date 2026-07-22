@@ -2,6 +2,7 @@ import { Component, ElementRef, computed, inject, signal, viewChild } from '@ang
 import { Router } from '@angular/router';
 import { AppNotification } from '../../core/api/api.types';
 import { NotificationStore } from '../../core/notifications/notification.store';
+import { PushStore } from '../../core/notifications/push.store';
 import { timeAgo } from '../../shared/utils/dates';
 
 @Component({
@@ -98,12 +99,41 @@ import { timeAgo } from '../../shared/utils/dates';
             </button>
           </div>
         }
+
+        <!-- UC-18 · Ajuste del push de ESTE navegador (A1: activable más tarde; revocable). -->
+        @if (push.supported && push.serverEnabled()) {
+          <div class="px-4 py-3 border-t border-ink-300 flex items-center justify-between gap-3">
+            <span class="text-sm text-ink-700">Push en este navegador</span>
+            @if (push.subscribed()) {
+              <button
+                type="button"
+                (click)="push.disable()"
+                [disabled]="push.busy()"
+                class="text-sm font-medium text-danger hover:underline disabled:opacity-50"
+              >
+                Desactivar push
+              </button>
+            } @else if (push.permission() === 'denied') {
+              <span class="text-xs text-ink-500">Bloqueado por el navegador</span>
+            } @else {
+              <button
+                type="button"
+                (click)="push.enable()"
+                [disabled]="push.busy()"
+                class="text-sm font-medium text-primary-600 hover:underline disabled:opacity-50"
+              >
+                Activar push
+              </button>
+            }
+          </div>
+        }
       </div>
     }
   `,
 })
 export class NotificationBell {
   readonly store = inject(NotificationStore);
+  readonly push = inject(PushStore);
   private readonly router = inject(Router);
 
   readonly open = signal(false);
