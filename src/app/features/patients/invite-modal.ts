@@ -80,7 +80,7 @@ const ROLE_LABELS: Record<string, string> = {
       } @else {
         <form class="flex flex-col gap-4" (ngSubmit)="generate()">
           @if (error(); as err) {
-            <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
           }
 
           <label class="flex flex-col gap-1">

@@ -82,7 +82,9 @@ const POLL_MS = 45_000;
       </div>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+          {{ err }}
+        </p>
       }
 
       @if (state(); as st) {

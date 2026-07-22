@@ -16,9 +16,12 @@ import { newOperationId } from '../../core/idempotency/operation-id';
       </a>
       <h1 class="text-2xl font-bold mt-2 mb-6">Registrar novedad</h1>
 
-      <form class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4" (ngSubmit)="submit()">
+      <form
+        class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
+        (ngSubmit)="submit()"
+      >
         @if (error(); as err) {
-          <div class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
             <p>{{ err }}</p>
             @for (f of fields(); track f) {
               <p class="mt-1">• {{ f }}</p>

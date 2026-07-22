@@ -5,7 +5,7 @@ import { Component, computed, input, model } from '@angular/core';
   selector: 'kr-rating',
   template: `
     @if (interactive()) {
-      <div class="flex gap-1">
+      <div class="flex gap-1" role="group" aria-label="Calificación">
         @for (star of stars; track star) {
           <button
             type="button"
@@ -13,6 +13,7 @@ import { Component, computed, input, model } from '@angular/core';
             class="text-2xl leading-none transition-transform hover:scale-110"
             [class.opacity-30]="star > value()"
             aria-label="Calificar {{ star }} de 5"
+            [attr.aria-pressed]="star <= value()"
           >
             ⭐
           </button>

@@ -14,7 +14,14 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { formatDate } from '../../shared/utils/dates';
 import { ReputationPanel } from '../reputation/reputation-panel';
 
-const STATUS_ORDER: HiringStatus[] = ['pending', 'accepted', 'in-progress', 'declined', 'finished', 'expired'];
+const STATUS_ORDER: HiringStatus[] = [
+  'pending',
+  'accepted',
+  'in-progress',
+  'declined',
+  'finished',
+  'expired',
+];
 
 const CONTACT_LABELS: Record<string, string> = {
   phone: 'Teléfono',
@@ -30,7 +37,7 @@ const CONTACT_LABELS: Record<string, string> = {
       <h1 class="text-2xl font-bold">Solicitudes</h1>
 
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       }
 
       <!-- Chips de filtro -->
@@ -111,7 +118,9 @@ const CONTACT_LABELS: Record<string, string> = {
               <div class="border-t border-ink-300 pt-4 flex flex-col gap-4">
                 @if (r.specialRequirements) {
                   <div>
-                    <h3 class="text-sm font-semibold text-ink-700 mb-1">Requerimientos especiales</h3>
+                    <h3 class="text-sm font-semibold text-ink-700 mb-1">
+                      Requerimientos especiales
+                    </h3>
                     <p class="text-sm text-ink-900">{{ r.specialRequirements }}</p>
                   </div>
                 }
@@ -232,7 +241,10 @@ export class CaregiverInboxPage {
     if (r.status !== 'accepted' && r.status !== 'in-progress') {
       return [];
     }
-    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]);
+    return Object.entries((r.contactData ?? {}) as Record<string, unknown>).map(([k, v]) => [
+      k,
+      String(v),
+    ]);
   }
 
   contactLabel(key: string): string {

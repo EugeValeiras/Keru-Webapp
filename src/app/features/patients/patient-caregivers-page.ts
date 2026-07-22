@@ -42,7 +42,7 @@ const TABS: { key: Tab; label: string }[] = [
     </div>
 
     @if (error(); as err) {
-      <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (!loaded()) {
@@ -50,7 +50,9 @@ const TABS: { key: Tab; label: string }[] = [
     } @else if (filtered().length === 0) {
       <kr-empty-state
         icon="🤝"
-        title="{{ tab() === 'active' ? 'No hay cuidadores vigentes' : 'No hay cuidadores históricos' }}"
+        title="{{
+          tab() === 'active' ? 'No hay cuidadores vigentes' : 'No hay cuidadores históricos'
+        }}"
         subtitle="Cuando contrates a alguien desde el marketplace, va a aparecer acá."
       >
         <a

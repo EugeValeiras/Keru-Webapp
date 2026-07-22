@@ -31,7 +31,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
     <h1 class="text-2xl font-bold mb-4">Mis contrataciones</h1>
 
     @if (error(); as err) {
-      <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
     }
 
     <!-- Chips de filtro -->
@@ -91,7 +91,8 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
               <div>
                 <p class="font-semibold text-ink-900">{{ r.caregiverName ?? 'Cuidador/a' }}</p>
                 <p class="text-sm text-ink-500">
-                  {{ format(r.startDate) }} → {{ format(r.endDate) }} · {{ modalityLabel(r.modality) }}
+                  {{ format(r.startDate) }} → {{ format(r.endDate) }} ·
+                  {{ modalityLabel(r.modality) }}
                 </p>
               </div>
               <kr-badge [tone]="toneFor(r.status)">{{ statusLabels[r.status] }}</kr-badge>
@@ -143,14 +144,21 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
     }
 
     @if (reviewRequestId(); as requestId) {
-      <kr-review-modal [requestId]="requestId" mode="caregiver" (closed)="reviewRequestId.set(null)" />
+      <kr-review-modal
+        [requestId]="requestId"
+        mode="caregiver"
+        (closed)="reviewRequestId.set(null)"
+      />
     }
   `,
 })
 export class HiringsPage {
   private readonly api = inject(HiringApi);
 
-  protected readonly statusOptions = Object.entries(HIRING_STATUS_LABELS) as [HiringStatus, string][];
+  protected readonly statusOptions = Object.entries(HIRING_STATUS_LABELS) as [
+    HiringStatus,
+    string,
+  ][];
   protected readonly statusLabels = HIRING_STATUS_LABELS;
 
   readonly requests = signal<HiringRequest[]>([]);

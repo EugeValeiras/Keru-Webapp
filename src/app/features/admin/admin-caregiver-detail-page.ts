@@ -37,7 +37,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       @if (error(); as err) {
-        <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
       }
       @if (success(); as msg) {
         <p class="text-sm text-success bg-emerald-50 rounded-lg px-3 py-2">{{ msg }}</p>
@@ -142,15 +142,30 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
           <h2 class="text-lg font-semibold mb-3">Insignias</h2>
           <div class="flex flex-col gap-3">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="badge-cert" [(ngModel)]="badgeCertifications" class="accent-primary-600" />
+              <input
+                type="checkbox"
+                name="badge-cert"
+                [(ngModel)]="badgeCertifications"
+                class="accent-primary-600"
+              />
               <span class="text-ink-700">Certificaciones verificadas</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="badge-identity" [(ngModel)]="badgeIdentity" class="accent-primary-600" />
+              <input
+                type="checkbox"
+                name="badge-identity"
+                [(ngModel)]="badgeIdentity"
+                class="accent-primary-600"
+              />
               <span class="text-ink-700">Identidad verificada</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="badge-background" [(ngModel)]="badgeBackground" class="accent-primary-600" />
+              <input
+                type="checkbox"
+                name="badge-background"
+                [(ngModel)]="badgeBackground"
+                class="accent-primary-600"
+              />
               <span class="text-ink-700">Antecedentes verificados</span>
             </label>
           </div>
@@ -354,10 +369,14 @@ export class AdminCaregiverDetailPage {
     if (!reason || reason.length > 400) {
       return;
     }
-    this.run(() => this.api.reject(this.id, reason), 'Postulación rechazada.', () => {
-      this.rejectOpen.set(false);
-      this.rejectReason = '';
-    });
+    this.run(
+      () => this.api.reject(this.id, reason),
+      'Postulación rechazada.',
+      () => {
+        this.rejectOpen.set(false);
+        this.rejectReason = '';
+      },
+    );
   }
 
   deactivate(): void {

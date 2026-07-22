@@ -71,7 +71,10 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
                 </p>
 
                 @if (error(); as err) {
-                  <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 text-left">
+                  <p
+                    role="alert"
+                    class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 text-left"
+                  >
                     {{ err }}
                   </p>
                 }
