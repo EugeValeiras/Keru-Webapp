@@ -51,6 +51,9 @@ jobs:
       - name: Levantar API dockerizada
         working-directory: keru-api
         run: docker compose --profile app up -d --build api
+        env:
+          # Las suites E2E agotan la cuota de auth (KER-14): bypass solo en CI.
+          THROTTLE_SKIP: "true"
 
       - name: Esperar la API
         run: |
