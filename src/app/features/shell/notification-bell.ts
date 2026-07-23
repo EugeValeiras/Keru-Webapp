@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppNotification } from '../../core/api/api.types';
 import { NotificationStore } from '../../core/notifications/notification.store';
@@ -39,6 +39,8 @@ import { timeAgo } from '../../shared/utils/dates';
       @if (store.unread() > 0) {
         <span
           class="absolute -top-0.5 -right-0.5 rounded-pill bg-primary-600 text-white text-xs font-semibold px-1.5 py-0.5 leading-none"
+          [class.kr-pulse]="badgePulse()"
+          (animationend)="badgePulse.set(false)"
           aria-hidden="true"
         >
           {{ store.unread() }}
@@ -69,26 +71,28 @@ import { timeAgo } from '../../shared/utils/dates';
         @if (visible().length === 0) {
           <p class="text-ink-500 text-sm text-center py-8">Sin notificaciones</p>
         } @else {
-          @for (n of visible(); track n.id) {
-            <button
-              type="button"
-              (click)="openItem(n)"
-              class="w-full text-left px-4 py-3 flex gap-3 hover:bg-primary-50 transition-colors border-b border-ink-300 last:border-b-0"
-              [class.bg-primary-50]="!n.read"
-            >
-              <span
-                class="mt-1.5 w-2 h-2 rounded-full shrink-0"
-                [class.bg-danger-600]="n.type === 'alert'"
-                [class.bg-primary-600]="n.type === 'note'"
-                [class.bg-warning-600]="n.type === 'quarantine'"
-              ></span>
-              <span class="min-w-0">
-                <span class="block font-semibold text-sm">{{ n.title }}</span>
-                <span class="block text-sm text-ink-500">{{ n.body }}</span>
-                <span class="block text-xs text-ink-500 mt-1">{{ timeAgo(n.createdAt) }}</span>
-              </span>
-            </button>
-          }
+          <div class="kr-stagger">
+            @for (n of visible(); track n.id) {
+              <button
+                type="button"
+                (click)="openItem(n)"
+                class="w-full text-left px-4 py-3 flex gap-3 hover:bg-primary-50 transition-colors border-b border-ink-300 last:border-b-0"
+                [class.bg-primary-50]="!n.read"
+              >
+                <span
+                  class="mt-1.5 w-2 h-2 rounded-full shrink-0"
+                  [class.bg-danger-600]="n.type === 'alert'"
+                  [class.bg-primary-600]="n.type === 'note'"
+                  [class.bg-warning-600]="n.type === 'quarantine'"
+                ></span>
+                <span class="min-w-0">
+                  <span class="block font-semibold text-sm">{{ n.title }}</span>
+                  <span class="block text-sm text-ink-500">{{ n.body }}</span>
+                  <span class="block text-xs text-ink-500 mt-1">{{ timeAgo(n.createdAt) }}</span>
+                </span>
+              </button>
+            }
+          </div>
         }
 
         @if (filtered().length > showCount()) {
@@ -153,6 +157,8 @@ export class NotificationBell {
 
   readonly open = signal(false);
   readonly onlyUnread = signal(false);
+  /** Pulso del badge: se enciende cuando el contador SUBE (llegó algo nuevo). */
+  readonly badgePulse = signal(false);
   readonly timeAgo = timeAgo;
 
   readonly filtered = computed(() =>
@@ -168,6 +174,15 @@ export class NotificationBell {
 
   constructor() {
     this.store.startPolling();
+    // Aumentó el contador → pulso; leer/marcar leídas lo baja sin animar.
+    let prevUnread = 0;
+    effect(() => {
+      const unread = this.store.unread();
+      if (unread > prevUnread) {
+        this.badgePulse.set(true);
+      }
+      prevUnread = unread;
+    });
   }
 
   showMore(): void {

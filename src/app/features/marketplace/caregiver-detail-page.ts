@@ -12,6 +12,7 @@ import {
 import { HiringApi } from '../../core/api/hiring-api.service';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { ReputationPanel } from '../reputation/reputation-panel';
 
 const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
@@ -22,7 +23,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
 @Component({
   selector: 'kr-caregiver-detail-page',
-  imports: [RouterLink, KrAvatar, KrBadge, ReputationPanel],
+  imports: [RouterLink, KrAvatar, KrBadge, KrSkeleton, ReputationPanel],
   template: `
     @if (notFound()) {
       <div class="bg-surface rounded-card shadow-card p-12 text-center max-w-lg mx-auto">
@@ -41,7 +42,9 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
     } @else if (error(); as err) {
       <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
     } @else if (!profile()) {
-      <p class="text-ink-500 text-sm">Cargando perfil…</p>
+      <div class="max-w-3xl mx-auto">
+        <kr-skeleton variant="detail" />
+      </div>
     } @else if (profile(); as p) {
       <div class="max-w-3xl mx-auto flex flex-col gap-4 pb-24">
         <a
@@ -61,7 +64,12 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
             [class.text-ink-300]="!isFavorite()"
             [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Agregar a favoritos'"
           >
-            {{ isFavorite() ? '♥' : '♡' }}
+            <!-- El ♥ se re-crea al favoritear: el pop corre solo al entrar. -->
+            @if (isFavorite()) {
+              <span class="inline-block kr-pop">♥</span>
+            } @else {
+              <span class="inline-block">♡</span>
+            }
           </button>
 
           <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">

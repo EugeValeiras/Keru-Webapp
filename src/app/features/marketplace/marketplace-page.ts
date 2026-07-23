@@ -14,6 +14,7 @@ import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrRating } from '../../shared/ui/kr-rating';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 
 const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
   ['certifications', 'Certificaciones'],
@@ -23,7 +24,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
 @Component({
   selector: 'kr-marketplace-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrRating],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrRating, KrSkeleton],
   template: `
     <h1 class="mb-4">Encontrá cuidadores</h1>
 
@@ -121,7 +122,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
     }
 
     @if (loading()) {
-      <p class="text-ink-500 text-sm">Buscando cuidadores…</p>
+      <kr-skeleton variant="cards" [count]="6" />
     } @else if (cards().length === 0) {
       <kr-empty-state
         icon="🔍"
@@ -133,7 +134,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         "
       />
     } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="kr-stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (c of visible(); track c.id) {
           <a
             [routerLink]="['/app/marketplace', c.id]"
@@ -147,7 +148,12 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
               [class.text-ink-300]="!c.isFavorite"
               [attr.aria-label]="c.isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'"
             >
-              {{ c.isFavorite ? '♥' : '♡' }}
+              <!-- El ♥ se re-crea al favoritear: el pop corre solo al entrar. -->
+              @if (c.isFavorite) {
+                <span class="inline-block kr-pop">♥</span>
+              } @else {
+                <span class="inline-block">♡</span>
+              }
             </button>
 
             <div class="flex items-center gap-4">

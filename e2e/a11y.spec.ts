@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, Browser, BrowserContext, Locator, Page } from '@playwright/test';
+import { E2E_CONTEXT } from './context-options';
 
 /**
  * Pasada de accesibilidad WCAG AA (KER-8) sobre el circuito principal:
@@ -74,7 +75,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
 
   test.beforeAll(async ({ browser: b }) => {
     browser = b;
-    familyCtx = await browser.newContext();
+    familyCtx = await browser.newContext(E2E_CONTEXT);
     family = await familyCtx.newPage();
   });
 
@@ -120,7 +121,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
   });
 
   test('setup cuidador + axe: onboarding', async () => {
-    caregiverCtx = await browser.newContext();
+    caregiverCtx = await browser.newContext(E2E_CONTEXT);
     caregiver = await caregiverCtx.newPage();
 
     await caregiver.goto('/signup');
@@ -152,7 +153,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
   });
 
   test('admin aprueba + axe: bandeja de pendientes', async () => {
-    adminCtx = await browser.newContext();
+    adminCtx = await browser.newContext(E2E_CONTEXT);
     admin = await adminCtx.newPage();
 
     await admin.goto('/login');
