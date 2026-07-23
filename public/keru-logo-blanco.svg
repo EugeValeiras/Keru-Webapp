@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 64" width="158" height="64" role="img" aria-label="keru">
+  <title>keru — logotipo (versión para fondos oscuros o violeta)</title>
+  <g fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round">
+    <!-- k -->
+    <path d="M14 13v37"/>
+    <path d="M19.5 35 35.5 50"/>
+    <!-- e -->
+    <path d="M50 35h26a13 13 0 1 0-3.3 8.7"/>
+    <!-- r -->
+    <path d="M90 24v26"/>
+    <path d="M90 38q0-14 13.5-14"/>
+    <!-- u -->
+    <path d="M117 24v13a12.75 12.75 0 0 0 25.5 0v-13"/>
+  </g>
+  <circle cx="37" cy="20" r="7" fill="#EDA57F"/>
+</svg>

@@ -4,69 +4,68 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthApi } from '../../core/api/auth-api.service';
 import { ApiError, homeForRole } from '../../core/api/api.types';
 import { AuthStore } from '../../core/auth/auth-store';
+import { AuthShell } from './auth-shell';
 
 @Component({
   selector: 'kr-login-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AuthShell],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4">
-      <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-          <h1 class="text-3xl text-primary-600">Keru</h1>
-          <p class="text-ink-500 mt-2">Cuidado de confianza para los tuyos</p>
+    <kr-auth-shell>
+      <form
+        class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
+        (ngSubmit)="submit()"
+      >
+        <div>
+          <h1 class="text-[1.375rem]">Qué bueno verte de nuevo</h1>
+          <p class="text-sm text-ink-500 mt-1">Entrá para seguir acompañando a los tuyos.</p>
         </div>
 
-        <form
-          class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
-          (ngSubmit)="submit()"
-        >
-          <h2 class="text-xl font-semibold">Iniciar sesión</h2>
-
-          @if (error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
-          }
-
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-ink-700">Email</span>
-            <input
-              type="email"
-              name="email"
-              required
-              autocomplete="email"
-              [(ngModel)]="email"
-              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-            />
-          </label>
-
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-ink-700">Contraseña</span>
-            <input
-              type="password"
-              name="password"
-              required
-              autocomplete="current-password"
-              [(ngModel)]="password"
-              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-            />
-          </label>
-
-          <button
-            type="submit"
-            [disabled]="loading()"
-            class="mt-2 rounded-pill bg-primary-600 text-white font-semibold py-2.5 hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
-            {{ loading() ? 'Ingresando…' : 'Ingresar' }}
-          </button>
-
-          <p class="text-sm text-ink-500 text-center">
-            ¿No tenés cuenta?
-            <a routerLink="/signup" class="text-primary-600 font-medium hover:underline">
-              Registrate
-            </a>
+        @if (error(); as err) {
+          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
+            {{ err }}
           </p>
-        </form>
-      </div>
-    </div>
+        }
+
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium text-ink-700">Email</span>
+          <input
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            [(ngModel)]="email"
+            class="rounded-control border border-ink-300 bg-surface px-3 py-2 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium text-ink-700">Contraseña</span>
+          <input
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            [(ngModel)]="password"
+            class="rounded-control border border-ink-300 bg-surface px-3 py-2 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
+          />
+        </label>
+
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="mt-2 rounded-pill bg-primary-600 text-white font-semibold py-2.5 hover:bg-primary-700 disabled:opacity-50 transition-colors"
+        >
+          {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+        </button>
+
+        <p class="text-sm text-ink-500 text-center">
+          ¿No tenés cuenta?
+          <a routerLink="/signup" class="text-primary-600 font-medium hover:underline">
+            Registrate
+          </a>
+        </p>
+      </form>
+    </kr-auth-shell>
   `,
 })
 export class LoginPage {
@@ -102,8 +101,20 @@ export class LoginPage {
       },
       error: (err: ApiError) => {
         this.loading.set(false);
-        this.error.set(err.statusCode === 401 ? 'Credenciales inválidas' : err.message);
+        this.error.set(loginErrorMessage(err));
       },
     });
+  }
+}
+
+/** Errores en tono de marca: el hecho + el siguiente paso, sin culpar. */
+function loginErrorMessage(err: ApiError): string {
+  switch (err.statusCode) {
+    case 401:
+      return 'No encontramos esa combinación de email y contraseña. Revisala y probá de nuevo.';
+    case 429:
+      return 'Demasiados intentos. Esperá un minuto y volvé a probar.';
+    default:
+      return err.message;
   }
 }

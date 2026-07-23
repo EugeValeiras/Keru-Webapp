@@ -197,6 +197,16 @@ body {
   .kr-pulse {
     animation: kr-pulse 0.45s ease-out;
   }
+  /* Primera impresión (KER-22): la card de las pantallas de auth entra con
+     el mismo rise de las listas, y el punto terracota del panel de marca
+     respira despacio (la persona cuidada, viva, arriba del abrazo). */
+  .kr-auth-enter {
+    animation: kr-rise 0.4s cubic-bezier(0, 0, 0.2, 1) both;
+  }
+  .kr-auth-dot {
+    animation: kr-breathe 4s ease-in-out infinite;
+  }
+
   /* Press effect: botones y CTAs tipo píldora se hunden apenas al click.
      La transición de transform ya existe en la base de estados suaves. */
   button:not(:disabled):active,
@@ -248,6 +258,15 @@ body {
   }
   100% {
     transform: scale(1);
+  }
+}
+@keyframes kr-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
   }
 }
 @keyframes kr-pulse {
