@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, roleGuard } from './core/auth/auth.guards';
+import { authGuard, roleGuard, setPasswordGuard } from './core/auth/auth.guards';
 import { AppShell } from './features/shell/app-shell';
 
 /** Rutas de registro/consulta clínica compartidas entre familia y cuidador. */
@@ -53,6 +53,13 @@ export const routes: Routes = [
   {
     path: 'invite/:token',
     loadComponent: () => import('./features/auth/invite-landing-page').then((m) => m.InviteLandingPage),
+  },
+  {
+    // UC-04 A5 · Primer acceso: definir la contraseña. Sesión limitada (mustSetPassword) requerida.
+    path: 'set-password',
+    canActivate: [setPasswordGuard],
+    loadComponent: () =>
+      import('./features/auth/set-password-page').then((m) => m.SetPasswordPage),
   },
   {
     // UC-23 · "Mi perfil" de la cuenta: accesible a cualquier rol autenticado (usa el shell).

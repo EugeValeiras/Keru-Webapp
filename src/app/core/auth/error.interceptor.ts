@@ -8,11 +8,13 @@ import { AuthStore } from './auth-store';
 
 // KER-38: el 401 de step-up (password incorrecto) o de logout (token ya revocado) NO es
 // "sesión vencida" — esas llamadas no limpian la sesión ni redirigen.
+// KER-47: set-password corre con la sesión limitada de first-login; sus errores tampoco la limpian.
 const AUTH_ENDPOINTS = [
   '/api/v1/auth/login',
   '/api/v1/auth/signup',
   '/api/v1/auth/step-up',
   '/api/v1/auth/logout',
+  '/api/v1/auth/set-password',
 ];
 
 /**
@@ -31,7 +33,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
       const apiError = toApiError(err.status, err.error);
       const isAuthCall = AUTH_ENDPOINTS.some((url) => req.url.startsWith(url));
-      if (apiError.statusCode === 401 && !isAuthCall) {
+      // UC-04 A5: la sesión limitada golpeó un endpoint de negocio → a definir la contraseña
+      // (no se limpia la sesión: sigue siendo válida, solo restringida).
+      if (apiError.code === 'MUST_SET_PASSWORD' && store.isAuthenticated()) {
+        void router.navigate(['/set-password']);
+      } else if (apiError.statusCode === 401 && !isAuthCall) {
         store.clear();
         void router.navigate(['/login'], {
           queryParams: { returnUrl: router.url === '/login' ? undefined : router.url },

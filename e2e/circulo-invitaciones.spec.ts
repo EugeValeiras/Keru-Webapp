@@ -18,7 +18,6 @@ const GUEST_EMAIL = `circulo-viewer+${run}@e2e.com`;
 const REVOKED_EMAIL = `circulo-revocado+${run}@e2e.com`;
 const PASSWORD = 'S3gura!123';
 const FAMILY_NAME = `Familia Círculo ${run}`;
-const GUEST_NAME = `Viewer Círculo ${run}`;
 const PATIENT_NAME = 'Elena Círculo';
 const NEW_CONDITION = 'Hipertensión controlada E2E';
 
@@ -98,7 +97,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await expect(item).toContainText('Solo ver');
   });
 
-  test('c. el invitado confirma en un contexto nuevo y ve al paciente', async () => {
+  test('c. el invitado sin cuenta acepta, define su contraseña (primer acceso) y ve al paciente', async () => {
     guestCtx = await browser.newContext(E2E_CONTEXT);
     guest = await guestCtx.newPage();
 
@@ -107,23 +106,21 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
       guest.getByText(`Te invitaron a acompañar a ${PATIENT_NAME} en Keru`),
     ).toBeVisible({ timeout: 15_000 });
 
-    // Sin sesión: crear cuenta con el email invitado (viene precargado).
-    await guest.getByRole('button', { name: 'Crear cuenta' }).click();
-    await expect(guest).toHaveURL(/\/signup/);
-    await expect(guest.getByLabel('Email')).toHaveValue(GUEST_EMAIL);
-    await guest.getByRole('button', { name: /^Familiar/ }).click();
-    await guest.getByLabel('Nombre y apellido').fill(GUEST_NAME);
-    await guest.locator('input[type="password"]').fill(PASSWORD);
-    await guest.getByRole('button', { name: 'Crear cuenta' }).click();
+    // UC-03 A1 + UC-04 A5: sin cuenta, aceptar crea la cuenta (sin contraseña) y lleva a
+    // "Definí tu contraseña" (primer acceso). La app queda bloqueada hasta setearla.
+    await guest.getByRole('button', { name: 'Aceptar invitación' }).click();
+    await expect(guest).toHaveURL(/\/set-password$/, { timeout: 15_000 });
+    await expect(guest.getByRole('heading', { name: 'Definí tu contraseña' })).toBeVisible();
 
-    // El returnUrl vuelve a la landing, ya autenticado y con el email correcto.
-    const accept = guest.getByRole('button', { name: 'Aceptar invitación' });
-    await expect(accept).toBeVisible({ timeout: 15_000 });
-    await accept.click();
+    await guest.getByLabel('Tu contraseña').and(guest.locator('input')).fill(PASSWORD);
+    await guest.getByLabel('Repetí la contraseña').and(guest.locator('input')).fill(PASSWORD);
+    await guest.getByRole('button', { name: 'Guardar y entrar' }).click();
 
-    await expect(guest.getByText('¡Bienvenido/a al círculo!')).toBeVisible({ timeout: 15_000 });
-    await expect(guest).toHaveURL(/\/app\/patients$/, { timeout: 15_000 });
-    await expect(guest.getByText(PATIENT_NAME)).toBeVisible();
+    // Contraseña definida → sesión completa → home del rol (familia).
+    await expect(guest).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
+
+    await guest.goto('/app/patients');
+    await expect(guest.getByText(PATIENT_NAME)).toBeVisible({ timeout: 15_000 });
   });
 
   test('d. el círculo muestra los miembros con sus roles', async () => {
@@ -136,9 +133,9 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await expect(owner).toBeVisible({ timeout: 15_000 });
     await expect(owner).toContainText('Titular');
 
-    const viewer = circle.locator('li').filter({ hasText: GUEST_NAME });
+    // El nombre visible se deriva del email (la persona lo edita luego en "Mi perfil", UC-23).
+    const viewer = circle.locator('li').filter({ hasText: GUEST_EMAIL });
     await expect(viewer).toBeVisible();
-    await expect(viewer).toContainText(GUEST_EMAIL);
     await expect(viewer).toContainText('Solo lectura');
   });
 

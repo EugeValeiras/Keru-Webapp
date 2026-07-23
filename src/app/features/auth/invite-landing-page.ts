@@ -144,21 +144,25 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
 
               @if (!auth.isAuthenticated()) {
                 <div class="flex flex-col gap-2 mt-2">
+                  <!-- UC-03 A1 + UC-04 A5: aceptar crea la cuenta y define la contraseña en el primer acceso. -->
+                  <button
+                    type="button"
+                    (click)="acceptAsNewAccount()"
+                    [disabled]="confirming()"
+                    class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                  >
+                    {{ confirming() ? 'Aceptando…' : 'Aceptar invitación' }}
+                  </button>
                   <button
                     type="button"
                     (click)="goToLogin()"
-                    class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
-                  >
-                    Iniciar sesión
-                  </button>
-                  <button
-                    type="button"
-                    (click)="goToSignup()"
                     class="rounded-pill border border-primary-600 text-primary-600 font-semibold py-2.5 px-6 hover:bg-primary-50 transition-colors"
                   >
-                    Crear cuenta
+                    Ya tengo una cuenta
                   </button>
-                  <p class="text-xs text-ink-500 mt-1">Ingresá con {{ p.invitedEmail }}</p>
+                  <p class="text-xs text-ink-500 mt-1">
+                    Al aceptar creamos tu cuenta para {{ p.invitedEmail }} y definís tu contraseña.
+                  </p>
                 </div>
               } @else if (emailMatches()) {
                 <button
@@ -252,13 +256,41 @@ export class InviteLandingPage {
     void this.router.navigate(['/login'], { queryParams: this.inviteQueryParams() });
   }
 
-  goToSignup(): void {
-    void this.router.navigate(['/signup'], { queryParams: this.inviteQueryParams() });
-  }
-
   switchAccount(): void {
     this.auth.clear();
     this.goToLogin();
+  }
+
+  /**
+   * UC-03 A1 + UC-04 A5 · Invitado sin cuenta: aceptar crea la cuenta (sin contraseña) desde la
+   * invitación y la vincula; la API devuelve una sesión limitada (mustSetPassword) → guardamos la
+   * sesión y vamos a "Definí tu contraseña". Si el email ya tiene cuenta (409), lo mandamos a login.
+   */
+  acceptAsNewAccount(): void {
+    if (this.confirming()) {
+      return;
+    }
+    this.confirming.set(true);
+    this.error.set(null);
+    this.api.acceptInvitationAsNewAccount(this.token).subscribe({
+      next: (auth) => {
+        this.stopCountdown();
+        this.auth.setSession(auth);
+        void this.router.navigateByUrl('/set-password');
+      },
+      error: (err: ApiError) => {
+        this.confirming.set(false);
+        if (err.statusCode === 400) {
+          this.stopCountdown();
+          this.state.set('expired');
+        } else if (err.statusCode === 409) {
+          // El email ya tiene cuenta: que inicie sesión y confirme con el flujo normal.
+          this.goToLogin();
+        } else {
+          this.error.set(err.message);
+        }
+      },
+    });
   }
 
   accept(): void {

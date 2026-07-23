@@ -7,6 +7,7 @@ import {
   LogoutResponse,
   PasswordResetConfirmDto,
   PasswordResetRequestResponse,
+  SetPasswordDto,
   SignupDto,
   StepUpResponse,
 } from './api.types';
@@ -44,5 +45,13 @@ export class AuthApi {
   /** KER-46 (UC-04 A4): confirma el reset con el token del email y la contraseña nueva. */
   confirmPasswordReset(dto: PasswordResetConfirmDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/v1/auth/password-reset/confirm', dto);
+  }
+
+  /**
+   * KER-47 (UC-04 A5): primer acceso — define la contraseña con la sesión limitada
+   * (mustSetPassword). Devuelve una sesión completa (auto-login) sin el claim de first-login.
+   */
+  setPassword(dto: SetPasswordDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/v1/auth/set-password', dto);
   }
 }
