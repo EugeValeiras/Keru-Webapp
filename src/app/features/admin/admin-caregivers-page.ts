@@ -102,11 +102,67 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                       <kr-badge [tone]="statusTone(c.status)">{{ statusLabel(c.status) }}</kr-badge>
                     </td>
                     <td class="px-4 py-3">
-                      <span [class.opacity-25]="!c.badges.certifications" title="Certificaciones"
-                        >📜</span
-                      >
-                      <span [class.opacity-25]="!c.badges.identity" title="Identidad">🪪</span>
-                      <span [class.opacity-25]="!c.badges.background" title="Antecedentes">🛡️</span>
+                      <!-- Iconografía de línea del brand book (§5), no emoji: heredan
+                           currentColor y se atenúan cuando la insignia falta. -->
+                      <span class="inline-flex items-center gap-1.5 text-ink-700 align-middle">
+                        <svg
+                          [class.opacity-25]="!c.badges.certifications"
+                          role="img"
+                          aria-label="Certificaciones"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <title>Certificaciones</title>
+                          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                          <path d="m9 15 2 2 4-4" />
+                        </svg>
+                        <svg
+                          [class.opacity-25]="!c.badges.identity"
+                          role="img"
+                          aria-label="Identidad"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <title>Identidad</title>
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <path d="M16 10h2" />
+                          <path d="M16 14h2" />
+                          <circle cx="9" cy="10.5" r="2" />
+                          <path d="M6.2 15.5a3 3 0 0 1 5.6 0" />
+                        </svg>
+                        <svg
+                          [class.opacity-25]="!c.badges.background"
+                          role="img"
+                          aria-label="Antecedentes"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <title>Antecedentes</title>
+                          <path
+                            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"
+                          />
+                          <path d="m9 12 2 2 4-4" />
+                        </svg>
+                      </span>
                     </td>
                     <td class="px-4 py-3 text-right">
                       <a
