@@ -15,6 +15,11 @@ export type UpdateAccountDto = Schemas['UpdateAccountDto'];
 export type LogoutResponse = Schemas['LogoutResponseDto'];
 export type StepUpResponse = Schemas['StepUpResponseDto'];
 
+// KER-46 · UC-04 A4 · recuperación de contraseña (forgot/reset)
+export type PasswordResetRequestDto = Schemas['PasswordResetRequestDto'];
+export type PasswordResetRequestResponse = Schemas['PasswordResetRequestResponseDto'];
+export type PasswordResetConfirmDto = Schemas['PasswordResetConfirmDto'];
+
 export type Role = AuthResponse['role'];
 
 // ---------------------------------------------------------------------------

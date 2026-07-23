@@ -40,6 +40,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/signup-page').then((m) => m.SignupPage),
   },
   {
+    // UC-04 A4 · Recuperación de contraseña (KER-46): pedir el reset (email) y confirmarlo (token).
+    path: 'password-reset/request',
+    loadComponent: () =>
+      import('./features/auth/password-reset-request-page').then((m) => m.PasswordResetRequestPage),
+  },
+  {
+    path: 'password-reset/confirm',
+    loadComponent: () =>
+      import('./features/auth/password-reset-confirm-page').then((m) => m.PasswordResetConfirmPage),
+  },
+  {
     path: 'invite/:token',
     loadComponent: () => import('./features/auth/invite-landing-page').then((m) => m.InviteLandingPage),
   },
