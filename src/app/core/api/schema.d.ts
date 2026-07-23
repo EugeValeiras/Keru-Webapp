@@ -1640,6 +1640,10 @@ export interface components {
              */
             contactData: Record<string, never>;
         };
+        MyReviewDto: {
+            rating: number;
+            comment?: string | null;
+        };
         RequestResponseDto: {
             /** Format: uuid */
             id: string;
@@ -1678,6 +1682,8 @@ export interface components {
             noShowReportedAt?: string;
             /** @description Tarifa pinneada al solicitar (NFR-03/23) */
             ratePerHourSnapshot: string;
+            /** @description La reseña que el viewer ya dejó sobre este servicio, si existe (UC-16: una por parte, KER-39). Siempre visible para su autor, incluso sellada (NFR-21). */
+            myReview?: components["schemas"]["MyReviewDto"];
         };
         RehireRequestDto: {
             /**
@@ -1751,6 +1757,8 @@ export interface components {
             noShowReportedAt?: string;
             /** @description Tarifa pinneada al solicitar (NFR-03/23) */
             ratePerHourSnapshot: string;
+            /** @description La reseña que el viewer ya dejó sobre este servicio, si existe (UC-16: una por parte, KER-39). Siempre visible para su autor, incluso sellada (NFR-21). */
+            myReview?: components["schemas"]["MyReviewDto"];
             rateDiff: components["schemas"]["RehireRateDiffDto"];
         };
         CancelActiveDto: {

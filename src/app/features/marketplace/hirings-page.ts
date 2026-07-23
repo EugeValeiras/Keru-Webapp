@@ -11,6 +11,7 @@ import {
 import { HiringApi } from '../../core/api/hiring-api.service';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrRating } from '../../shared/ui/kr-rating';
 import { formatDate } from '../../shared/utils/dates';
 import { ReviewModal } from '../reputation/review-modal';
 
@@ -26,7 +27,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
 
 @Component({
   selector: 'kr-hirings-page',
-  imports: [RouterLink, KrBadge, KrEmptyState, ReviewModal],
+  imports: [RouterLink, KrBadge, KrEmptyState, KrRating, ReviewModal],
   template: `
     <h1 class="mb-4">Mis contrataciones</h1>
 
@@ -128,15 +129,26 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
               </div>
             }
             @if (r.status === 'completed') {
-              <div>
-                <button
-                  type="button"
-                  (click)="reviewRequestId.set(r.id)"
-                  class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
-                >
-                  Calificar cuidador
-                </button>
-              </div>
+              @if (r.myReview; as review) {
+                <!-- Ya calificaste: tu reseña en lugar del botón (UC-16: una por parte, KER-39). -->
+                <div class="flex flex-col gap-1" data-testid="my-review">
+                  <p class="text-sm text-ink-500">Tu calificación</p>
+                  <kr-rating [value]="review.rating" />
+                  @if (review.comment) {
+                    <p class="text-sm text-ink-700 truncate">“{{ review.comment }}”</p>
+                  }
+                </div>
+              } @else {
+                <div>
+                  <button
+                    type="button"
+                    (click)="reviewRequestId.set(r.id)"
+                    class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"
+                  >
+                    Calificar cuidador
+                  </button>
+                </div>
+              }
             }
           </div>
         }
@@ -147,7 +159,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
       <kr-review-modal
         [requestId]="requestId"
         mode="caregiver"
-        (closed)="reviewRequestId.set(null)"
+        (closed)="closeReview()"
       />
     }
   `,
@@ -214,6 +226,12 @@ export class HiringsPage {
         this.error.set(err.message);
       },
     });
+  }
+
+  closeReview(): void {
+    this.reviewRequestId.set(null);
+    // Refetch: si acaba de calificar, la card pasa a mostrar su reseña en vez del botón (KER-39).
+    this.fetch();
   }
 
   cancel(r: HiringRequest): void {

@@ -271,4 +271,21 @@ test.describe.serial('Circuito MVP Keru', () => {
     // Reseña doble-ciega: queda sellada hasta que la otra parte califique.
     await expect(family.getByText(/sellada|publicadas/)).toBeVisible({ timeout: 15_000 });
   });
+
+  test('j. reseña ya enviada: la card muestra mi calificación y no el botón (KER-39)', async () => {
+    // Al cerrar el modal, la card pasa a mostrar la reseña dejada en el paso i.
+    await family.getByRole('button', { name: 'Listo' }).click();
+
+    const myReview = family.getByTestId('my-review');
+    await expect(myReview).toBeVisible({ timeout: 15_000 });
+    await expect(myReview).toContainText('Tu calificación');
+    await expect(myReview).toContainText('5.0');
+    await expect(myReview).toContainText('Excelente trato con Elena');
+    await expect(family.getByRole('button', { name: 'Calificar cuidador' })).toBeHidden();
+
+    // Persiste tras recargar: el estado viene del contrato (myReview), no de la sesión de UI.
+    await family.reload();
+    await expect(family.getByTestId('my-review')).toBeVisible({ timeout: 15_000 });
+    await expect(family.getByRole('button', { name: 'Calificar cuidador' })).toBeHidden();
+  });
 });
