@@ -56,7 +56,7 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024;
       }
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
     </div>
   `,

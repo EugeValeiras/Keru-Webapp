@@ -11,7 +11,7 @@ import { InviteModal } from './invite-modal';
   imports: [RouterLink, KrAvatar, KrEmptyState, InviteModal],
   template: `
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Mis pacientes</h1>
+      <h1>Mis pacientes</h1>
       <a
         routerLink="/app/patients/new"
         class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 transition-colors"

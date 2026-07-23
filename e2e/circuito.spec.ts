@@ -229,7 +229,7 @@ test.describe.serial('Circuito MVP Keru', () => {
 
     await bell.click();
     // Ítem con punto rojo = notificación de alerta.
-    const alertItem = family.locator('button:has(span.bg-red-500)').first();
+    const alertItem = family.locator('button:has(span.bg-danger-600)').first();
     await expect(alertItem).toBeVisible({ timeout: 15_000 });
     await alertItem.click();
 

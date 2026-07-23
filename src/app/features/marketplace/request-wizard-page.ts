@@ -28,7 +28,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
         ← Volver al perfil
       </a>
 
-      <h1 class="text-2xl font-bold mt-2 mb-1">Solicitar cuidado</h1>
+      <h1 class="mt-2 mb-1">Solicitar cuidado</h1>
       @if (profile(); as p) {
         <p class="text-ink-500 text-sm mb-4">Con {{ p.displayName }} · {{ p.zone }}</p>
       } @else {
@@ -48,10 +48,10 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
 
       <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
         @if (validationError(); as msg) {
-          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
+          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ msg }}</p>
         }
         @if (submitError(); as msg) {
-          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ msg }}</p>
+          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ msg }}</p>
         }
 
         <!-- Paso 1: paciente -->
@@ -132,7 +132,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
               type="datetime-local"
               name="startDate"
               [(ngModel)]="startDate"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -142,7 +142,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
               type="datetime-local"
               name="endDate"
               [(ngModel)]="endDate"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
         }
@@ -159,7 +159,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
               rows="4"
               maxlength="1000"
               placeholder="Ej.: movilidad reducida, dieta sin sal…"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             ></textarea>
             <span class="text-xs text-ink-500 self-end">{{ specialRequirements.length }}/1000</span>
           </label>
@@ -172,7 +172,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
               required
               [(ngModel)]="phone"
               placeholder="+54 11 5555-5555"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
         }
@@ -215,7 +215,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
           </dl>
 
           @if (profile(); as p) {
-            <p class="text-sm text-primary-700 bg-primary-50 rounded-lg px-3 py-2">
+            <p class="text-sm text-primary-700 bg-primary-50 rounded-control px-3 py-2">
               La tarifa vigente ($ {{ p.ratePerHour }}/hora) queda congelada para esta solicitud.
             </p>
           }

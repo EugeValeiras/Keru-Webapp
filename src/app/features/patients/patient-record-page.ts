@@ -36,10 +36,10 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
       <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver a mis pacientes
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-6">Ficha del paciente</h1>
+      <h1 class="mt-2 mb-6">Ficha del paciente</h1>
 
       @if (saved()) {
-        <div class="bg-emerald-50 text-success rounded-card px-4 py-3 mb-4 text-sm">
+        <div class="bg-success-50 text-success rounded-card px-4 py-3 mb-4 text-sm">
           Ficha actualizada.
         </div>
       }
@@ -54,7 +54,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
         <p class="text-ink-500 text-sm">Cargando ficha…</p>
       } @else if (record(); as r) {
         @if (error(); as err) {
-          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
             {{ err }}
           </p>
         }
@@ -129,12 +129,12 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
 
           <!-- UC-22 · Círculo: quiénes están vinculados al paciente y con qué rol -->
           <section class="bg-surface rounded-card shadow-card p-8 mt-6">
-            <h2 class="text-lg font-bold text-ink-900">Círculo</h2>
+            <h2 class="text-lg text-ink-900">Círculo</h2>
             <p class="text-sm text-ink-500 mt-0.5 mb-4">
               Personas vinculadas a {{ r.fullName }} y el rol con el que acceden.
             </p>
             @if (circleError()) {
-              <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+              <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
                 No se pudo cargar el círculo. Probá recargar la página.
               </p>
             } @else if (circle(); as members) {
@@ -167,7 +167,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                 name="fullName"
                 required
                 [(ngModel)]="fullName"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
 
@@ -180,7 +180,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   required
                   [max]="today"
                   [(ngModel)]="birthDate"
-                  class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </label>
 
@@ -191,7 +191,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   name="bloodGroup"
                   [(ngModel)]="bloodGroup"
                   placeholder="0+"
-                  class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </label>
             </div>
@@ -203,7 +203,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                 name="mainCondition"
                 required
                 [(ngModel)]="mainCondition"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
 
@@ -221,7 +221,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   [(ngModel)]="allergyInput"
                   (keydown.enter)="$event.preventDefault(); addAllergy()"
                   placeholder="Penicilina"
-                  class="flex-1 rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="flex-1 rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
                 <button
                   type="button"
@@ -268,7 +268,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                     name="contactName"
                     required
                     [(ngModel)]="contactName"
-                    class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -278,7 +278,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                     name="contactPhone"
                     required
                     [(ngModel)]="contactPhone"
-                    class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </label>
               </div>
@@ -289,7 +289,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   name="contactRelationship"
                   [(ngModel)]="contactRelationship"
                   placeholder="hija"
-                  class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </label>
             </fieldset>

@@ -48,7 +48,7 @@ const DAY_MS = 86_400_000;
       <a routerLink="../dashboard" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver al estado actual
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-6">Evolución</h1>
+      <h1 class="mt-2 mb-6">Evolución</h1>
 
       <div class="flex flex-wrap gap-2 mb-4">
         @for (chip of chips(); track chip.id) {
@@ -85,7 +85,7 @@ const DAY_MS = 86_400_000;
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
           {{ err }}
         </p>
       }
@@ -102,7 +102,8 @@ const DAY_MS = 86_400_000;
         } @else {
           <div class="bg-surface rounded-card shadow-card p-6">
             <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
-              <h2 class="font-semibold text-ink-900">{{ info.label }}</h2>
+              <!-- Etiqueta de métrica, no título de sección: va en la sans (brand book §4). -->
+              <h2 class="font-sans text-base font-semibold text-ink-900">{{ info.label }}</h2>
               @if (info.unit) {
                 <span class="text-sm text-ink-500">{{ info.unit }}</span>
               }
@@ -172,7 +173,7 @@ export class PatientChartsPage {
     const cutoff = days === null ? null : Date.now() - days * DAY_MS;
     return this.series().map((s) => ({
       label: this.lineLabel(s.key),
-      color: s.key === BP_DIA ? '#A78BFA' : '#7C3AED',
+      color: s.key === BP_DIA ? '#A783D8' : '#7443B0',
       points: s.points
         .filter((p) => cutoff === null || new Date(p.measuredAt).getTime() >= cutoff)
         .map((p) => ({ x: p.measuredAt, y: p.value })),

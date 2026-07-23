@@ -6,7 +6,7 @@ import { ApiError, SweepResult } from '../../core/api/api.types';
   selector: 'kr-admin-ops-page',
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
-      <h1 class="text-2xl font-bold">Operaciones</h1>
+      <h1>Operaciones</h1>
 
       <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
         <div>
@@ -18,7 +18,7 @@ import { ApiError, SweepResult } from '../../core/api/api.types';
         </div>
 
         @if (error(); as err) {
-          <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
         }
 
         <button

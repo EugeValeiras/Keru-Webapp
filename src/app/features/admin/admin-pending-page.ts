@@ -12,7 +12,7 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       <div>
-        <h1 class="text-2xl font-bold">Postulaciones</h1>
+        <h1>Postulaciones</h1>
         @if (!loading()) {
           <p class="text-ink-500 mt-1">
             {{ pending().length }}
@@ -22,7 +22,7 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
 
       @if (loading()) {

@@ -13,14 +13,29 @@ import { timeAgo } from '../../shared/utils/dates';
       #trigger
       type="button"
       (click)="toggle()"
-      class="relative p-2 rounded-full hover:bg-primary-50 transition-colors"
+      class="relative p-2 rounded-full text-ink-700 hover:bg-primary-50 active:bg-primary-100 transition-colors"
       [attr.aria-label]="
         store.unread() > 0 ? 'Notificaciones, ' + store.unread() + ' sin leer' : 'Notificaciones'
       "
       aria-haspopup="true"
       [attr.aria-expanded]="open()"
     >
-      <span class="text-xl" aria-hidden="true">🔔</span>
+      <!-- Campana del set de iconos (Lucide "bell"): lineal, trazo 1.75, currentColor. -->
+      <svg
+        viewBox="0 0 24 24"
+        class="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+        <path
+          d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.74 7.326"
+        />
+      </svg>
       @if (store.unread() > 0) {
         <span
           class="absolute -top-0.5 -right-0.5 rounded-pill bg-primary-600 text-white text-xs font-semibold px-1.5 py-0.5 leading-none"
@@ -36,7 +51,7 @@ import { timeAgo } from '../../shared/utils/dates';
       <div class="fixed inset-0 z-10" (click)="open.set(false)" aria-hidden="true"></div>
 
       <div
-        class="absolute right-0 top-full mt-2 w-96 max-h-[70vh] overflow-y-auto bg-surface rounded-card shadow-card z-20"
+        class="absolute right-0 top-full mt-2 w-96 max-h-[70vh] overflow-y-auto bg-surface rounded-card shadow-card-hover z-20"
       >
         <div class="flex items-center justify-between px-4 py-3 border-b border-ink-300">
           <h3 class="font-semibold">Notificaciones</h3>
@@ -63,9 +78,9 @@ import { timeAgo } from '../../shared/utils/dates';
             >
               <span
                 class="mt-1.5 w-2 h-2 rounded-full shrink-0"
-                [class.bg-red-500]="n.type === 'alert'"
+                [class.bg-danger-600]="n.type === 'alert'"
                 [class.bg-primary-600]="n.type === 'note'"
-                [class.bg-amber-500]="n.type === 'quarantine'"
+                [class.bg-warning-600]="n.type === 'quarantine'"
               ></span>
               <span class="min-w-0">
                 <span class="block font-semibold text-sm">{{ n.title }}</span>

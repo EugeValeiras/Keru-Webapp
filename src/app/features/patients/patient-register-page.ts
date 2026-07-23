@@ -15,10 +15,10 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
       <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver a mis pacientes
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-6">Registrar paciente</h1>
+      <h1 class="mt-2 mb-6">Registrar paciente</h1>
 
       @if (duplicateBanner()) {
-        <div class="bg-amber-50 text-warning rounded-card px-4 py-3 mb-4 text-sm">
+        <div class="bg-warning-50 text-warning rounded-card px-4 py-3 mb-4 text-sm">
           Registramos el perfil, pero puede existir un perfil duplicado de la misma persona. Más
           adelante vas a poder vincularlos. Te llevamos a tus pacientes…
         </div>
@@ -29,7 +29,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
         (ngSubmit)="submit()"
       >
         @if (error(); as err) {
-          <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <div role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
             <p>{{ err }}</p>
             @for (f of fields(); track f) {
               <p class="mt-1">• {{ f }}</p>
@@ -45,7 +45,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
             required
             [(ngModel)]="fullName"
             placeholder="Rosa Díaz"
-            class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </label>
 
@@ -58,7 +58,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
               required
               [max]="today"
               [(ngModel)]="birthDate"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -69,7 +69,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
               name="bloodGroup"
               [(ngModel)]="bloodGroup"
               placeholder="0+"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
         </div>
@@ -82,7 +82,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
             required
             [(ngModel)]="mainCondition"
             placeholder="Hipertensión"
-            class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </label>
 
@@ -100,7 +100,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
               [(ngModel)]="allergyInput"
               (keydown.enter)="$event.preventDefault(); addAllergy()"
               placeholder="Penicilina"
-              class="flex-1 rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="flex-1 rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             <button
               type="button"
@@ -144,7 +144,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
                 required
                 [(ngModel)]="contactName"
                 placeholder="María Díaz"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
             <label class="flex flex-col gap-1">
@@ -155,7 +155,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
                 required
                 [(ngModel)]="contactPhone"
                 placeholder="+54 11 5555-5555"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
           </div>
@@ -166,7 +166,7 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
               name="contactRelationship"
               [(ngModel)]="contactRelationship"
               placeholder="hija"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
         </fieldset>

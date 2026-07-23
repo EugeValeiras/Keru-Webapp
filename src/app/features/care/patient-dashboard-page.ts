@@ -31,7 +31,7 @@ const POLL_MS = 45_000;
     } @else {
       <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <h1 class="text-2xl font-bold">Estado actual</h1>
+          <h1>Estado actual</h1>
           @if (state(); as st) {
             <p class="text-sm text-ink-500 mt-1">Datos al {{ timeAgo(st.asOf) }}</p>
           }
@@ -82,7 +82,7 @@ const POLL_MS = 45_000;
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
           {{ err }}
         </p>
       }

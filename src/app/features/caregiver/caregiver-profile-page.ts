@@ -23,7 +23,7 @@ const BADGE_ITEMS = [
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold">Mi perfil profesional</h1>
+        <h1>Mi perfil profesional</h1>
         <button
           type="button"
           (click)="load()"
@@ -35,20 +35,20 @@ const BADGE_ITEMS = [
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
 
       @if (profile(); as p) {
         <!-- Banner de estado -->
         @switch (p.status) {
           @case ('pending') {
-            <div class="rounded-card bg-amber-50 border border-amber-200 p-6">
+            <div class="rounded-card bg-warning-50 border border-warning-600/25 p-6">
               <p class="text-warning font-semibold text-lg">⏳ Tu perfil está en revisión.</p>
               <p class="text-ink-700 mt-1">Te avisamos cuando esté aprobado.</p>
             </div>
           }
           @case ('approved') {
-            <div class="rounded-card bg-emerald-50 border border-emerald-200 p-6">
+            <div class="rounded-card bg-success-50 border border-success-600/25 p-6">
               <p class="text-success font-semibold text-lg">✅ ¡Perfil aprobado!</p>
               <p class="text-ink-700 mt-1">Ya sos visible en el marketplace.</p>
               <!-- UC-02 A3: editar sin re-aprobación (tarifa efectivo-fechada) -->
@@ -61,10 +61,10 @@ const BADGE_ITEMS = [
             </div>
           }
           @case ('rejected') {
-            <div class="rounded-card bg-red-50 border border-red-200 p-6">
+            <div class="rounded-card bg-danger-50 border border-danger-600/25 p-6">
               <p class="text-danger font-semibold text-lg">Tu postulación fue rechazada.</p>
               @if (p.rejectionReason) {
-                <p class="text-ink-900 mt-2 bg-surface rounded-lg px-3 py-2">
+                <p class="text-ink-900 mt-2 bg-surface rounded-control px-3 py-2">
                   Motivo: {{ p.rejectionReason }}
                 </p>
               }
@@ -81,7 +81,7 @@ const BADGE_ITEMS = [
             </div>
           }
           @case ('deactivated') {
-            <div class="rounded-card bg-gray-100 border border-ink-300 p-6">
+            <div class="rounded-card bg-sand-100 border border-ink-300 p-6">
               <p class="text-ink-900 font-semibold text-lg">
                 Tu perfil está oculto del marketplace.
               </p>
@@ -91,7 +91,8 @@ const BADGE_ITEMS = [
 
         <!-- Resumen del perfil -->
         <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">
-          <h2 class="text-lg font-semibold">{{ p.displayName }}</h2>
+          <!-- Nombre propio, no título de sección: va en la sans (brand book §4). -->
+          <h2 class="font-sans text-lg font-semibold">{{ p.displayName }}</h2>
 
           <div>
             <p class="text-sm font-medium text-ink-700 mb-2">Especialidades</p>

@@ -14,8 +14,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || '',
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: '/favicon-192.png',
+      badge: '/favicon-192.png',
       data: { patientId: data.patientId || null, type: data.type || 'alert' },
     }),
   );

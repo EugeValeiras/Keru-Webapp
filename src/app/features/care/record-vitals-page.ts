@@ -17,13 +17,13 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
       <a routerLink="../../dashboard" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver al estado actual
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-1">Registrar vitales</h1>
+      <h1 class="mt-2 mb-1">Registrar vitales</h1>
       <p class="text-sm text-ink-500 mb-6">
         Cargá al menos una medición; el resto puede quedar vacío.
       </p>
 
       @if (quarantined()) {
-        <div role="status" class="bg-amber-50 border border-amber-300 rounded-card p-6 text-sm text-ink-700">
+        <div role="status" class="bg-warning-50 border border-warning-600/40 rounded-card p-6 text-sm text-ink-700">
           <p class="font-semibold mb-1">⏳ El registro quedó en cuarentena</p>
           <p>
             Llegó sin una asignación vigente que cubriera su momento de medición. No se descartó
@@ -36,7 +36,7 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
         (ngSubmit)="submit()"
       >
         @if (error(); as err) {
-          <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <div role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
             <p>{{ err }}</p>
             @for (f of fields(); track f) {
               <p class="mt-1">• {{ f }}</p>
@@ -58,7 +58,7 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
               [ngModel]="values()[m.key] ?? null"
               (ngModelChange)="setValue(m.key, $event)"
               [placeholder]="m.unit"
-              class="rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               [class]="
                 statusFor(m) === 'implausible'
                   ? 'border-danger'
@@ -91,7 +91,7 @@ type MetricStatus = 'empty' | 'implausible' | 'alert' | 'ok';
             type="datetime-local"
             name="measuredAt"
             [(ngModel)]="measuredAt"
-            class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           <span class="text-xs text-ink-500">Si lo dejás vacío, se registra ahora.</span>
         </label>

@@ -17,7 +17,7 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
     <div class="min-h-screen bg-canvas flex items-center justify-center px-4">
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-primary-600">Keru</h1>
+          <h1 class="text-3xl text-primary-600">Keru</h1>
           <p class="text-ink-500 mt-2">Cuidado de confianza para los tuyos</p>
         </div>
 
@@ -73,7 +73,7 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
                 @if (error(); as err) {
                   <p
                     role="alert"
-                    class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 text-left"
+                    class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 text-left"
                   >
                     {{ err }}
                   </p>
@@ -107,7 +107,7 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
                     {{ confirming() ? 'Aceptando…' : 'Aceptar invitación' }}
                   </button>
                 } @else {
-                  <p class="text-sm text-warning bg-amber-50 rounded-lg px-3 py-2 text-left">
+                  <p class="text-sm text-warning bg-warning-50 rounded-control px-3 py-2 text-left">
                     Esta invitación es para {{ p.invitedEmail }} y estás conectado como
                     {{ auth.email() }}.
                   </p>
