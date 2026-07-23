@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password-reset/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A4 · Pedir reset de contraseña: responde SIEMPRE 200 (anti-enumeración) */
+        post: operations["AuthController_requestPasswordReset_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A4 · Confirmar reset: setea la contraseña nueva, revoca sesiones vigentes y auto-loguea (410 si el token es inválido/expirado/usado) */
+        post: operations["AuthController_confirmPasswordReset_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/step-up": {
         parameters: {
             query?: never;
@@ -1261,6 +1295,23 @@ export interface components {
             /** @example true */
             ok: boolean;
         };
+        PasswordResetRequestDto: {
+            /** @example familiar@test.com */
+            email: string;
+        };
+        PasswordResetRequestResponseDto: {
+            /**
+             * @description Siempre true: no revela si el email existe (anti-enumeración, UC-04 A4).
+             * @example true
+             */
+            ok: boolean;
+        };
+        PasswordResetConfirmDto: {
+            /** @description Token de un solo uso recibido por email */
+            token: string;
+            /** @example S3gura!123 */
+            newPassword: string;
+        };
         StepUpDto: {
             /**
              * @description Password de la cuenta de la sesión
@@ -2135,6 +2186,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogoutResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_requestPasswordReset_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordResetRequestResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_confirmPasswordReset_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
                 };
             };
         };

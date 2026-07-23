@@ -49,6 +49,13 @@ import { KrPasswordInput } from '../../shared/ui/kr-password-input';
           />
         </label>
 
+        <a
+          routerLink="/password-reset/request"
+          class="text-sm text-primary-600 font-medium hover:underline self-end"
+        >
+          Olvidé mi contraseña
+        </a>
+
         <button
           type="submit"
           [disabled]="loading()"
