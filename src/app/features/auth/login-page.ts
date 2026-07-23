@@ -5,10 +5,11 @@ import { AuthApi } from '../../core/api/auth-api.service';
 import { ApiError, homeForRole } from '../../core/api/api.types';
 import { AuthStore } from '../../core/auth/auth-store';
 import { AuthShell } from './auth-shell';
+import { KrPasswordInput } from '../../shared/ui/kr-password-input';
 
 @Component({
   selector: 'kr-login-page',
-  imports: [FormsModule, RouterLink, AuthShell],
+  imports: [FormsModule, RouterLink, AuthShell, KrPasswordInput],
   template: `
     <kr-auth-shell>
       <form
@@ -40,13 +41,11 @@ import { AuthShell } from './auth-shell';
 
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium text-ink-700">Contraseña</span>
-          <input
-            type="password"
+          <kr-password-input
             name="password"
             required
             autocomplete="current-password"
             [(ngModel)]="password"
-            class="rounded-control border border-ink-300 bg-surface px-3 py-2 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </label>
 

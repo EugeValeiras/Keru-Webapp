@@ -56,7 +56,7 @@ test.describe.serial('KER-41 · Avatar, menú de cuenta y "Mi perfil"', () => {
     await page.getByRole('button', { name: /^Familiar/ }).click();
     await page.getByLabel('Nombre y apellido').fill(NAME);
     await page.getByLabel('Email').fill(EMAIL);
-    await page.getByLabel('Contraseña').fill(PASSWORD);
+    await page.locator('input[type="password"]').fill(PASSWORD);
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(page).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
   });

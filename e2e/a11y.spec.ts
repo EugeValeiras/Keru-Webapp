@@ -100,7 +100,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await family.getByRole('button', { name: /^Familiar/ }).click();
     await family.getByLabel('Nombre y apellido').fill('Familia A11y');
     await family.getByLabel('Email').fill(FAMILY_EMAIL);
-    await family.getByLabel('Contraseña').fill(PASSWORD);
+    await family.locator('input[type="password"]').fill(PASSWORD);
     await family.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(family).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
 
@@ -128,7 +128,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await caregiver.getByRole('button', { name: /^Cuidador\/a/ }).click();
     await caregiver.getByLabel('Nombre y apellido').fill(CAREGIVER_NAME);
     await caregiver.getByLabel('Email').fill(CAREGIVER_EMAIL);
-    await caregiver.getByLabel('Contraseña').fill(PASSWORD);
+    await caregiver.locator('input[type="password"]').fill(PASSWORD);
     await caregiver.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(caregiver).toHaveURL(/\/caregiver\/onboarding$/, { timeout: 15_000 });
 
@@ -158,7 +158,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
 
     await admin.goto('/login');
     await admin.getByLabel('Email').fill('admin@test.com');
-    await admin.getByLabel('Contraseña').fill('S3gura!123');
+    await admin.locator('input[type="password"]').fill('S3gura!123');
     await admin.getByRole('button', { name: 'Ingresar' }).click();
     await expect(admin).toHaveURL(/\/admin\/pending$/, { timeout: 15_000 });
 
@@ -177,7 +177,7 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     const stepUp = admin.getByRole('dialog', { name: 'Confirmá tu identidad' });
     await expect(stepUp).toBeVisible();
     await expectAxeClean(admin, 'step-up-modal');
-    await stepUp.getByLabel('Contraseña').fill('S3gura!123');
+    await stepUp.locator('input[type="password"]').fill('S3gura!123');
     await stepUp.getByRole('button', { name: 'Confirmar' }).click();
 
     await expect(

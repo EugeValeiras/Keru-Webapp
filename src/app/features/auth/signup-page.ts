@@ -5,12 +5,13 @@ import { AuthApi } from '../../core/api/auth-api.service';
 import { ApiError, SignupDto, homeForRole } from '../../core/api/api.types';
 import { AuthStore } from '../../core/auth/auth-store';
 import { AuthShell } from './auth-shell';
+import { KrPasswordInput } from '../../shared/ui/kr-password-input';
 
 type SignupRole = SignupDto['role'];
 
 @Component({
   selector: 'kr-signup-page',
-  imports: [FormsModule, RouterLink, AuthShell],
+  imports: [FormsModule, RouterLink, AuthShell, KrPasswordInput],
   template: `
     <kr-auth-shell
       tagline="Sumate al círculo: acá el cuidado se acompaña de cerca."
@@ -98,14 +99,12 @@ type SignupRole = SignupDto['role'];
 
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium text-ink-700">Contraseña</span>
-          <input
-            type="password"
+          <kr-password-input
             name="password"
             required
-            minlength="8"
+            [minlength]="8"
             autocomplete="new-password"
             [(ngModel)]="password"
-            class="rounded-control border border-ink-300 bg-surface px-3 py-2 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           <span class="text-xs text-ink-500">Mínimo 8 caracteres</span>
         </label>
