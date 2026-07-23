@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/set-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A5 · Primer acceso: definir la contraseña (sesión limitada MUST_SET_PASSWORD). Auto-loguea con sesión completa; 409 si la cuenta ya tiene contraseña */
+        post: operations["AuthController_setPassword_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/step-up": {
         parameters: {
             query?: never;
@@ -419,6 +436,23 @@ export interface paths {
         get: operations["InvitationController_preview_v1"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-03 A1 · Aceptar invitación sin cuenta: crea la cuenta (sin contraseña) y la vincula */
+        post: operations["InvitationController_accept_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1280,6 +1314,11 @@ export interface components {
             displayName: string;
             /** @description UC-23 · Foto de la cuenta para el avatar del header (null si no cargó una) */
             photoUrl?: string | null;
+            /**
+             * @description UC-04 A5 · true si la cuenta aún no definió su contraseña (first-login por invitación): la sesión es limitada y el cliente debe llevarla a "Definí tu contraseña" antes de usar la app.
+             * @example false
+             */
+            mustSetPassword: boolean;
         };
         LoginDto: {
             /** @example familiar@test.com */
@@ -1309,6 +1348,10 @@ export interface components {
         PasswordResetConfirmDto: {
             /** @description Token de un solo uso recibido por email */
             token: string;
+            /** @example S3gura!123 */
+            newPassword: string;
+        };
+        SetPasswordDto: {
             /** @example S3gura!123 */
             newPassword: string;
         };
@@ -2236,6 +2279,29 @@ export interface operations {
             };
         };
     };
+    AuthController_setPassword_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+        };
+    };
     AuthController_stepUp_v1: {
         parameters: {
             query?: never;
@@ -2768,6 +2834,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    InvitationController_accept_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
             };
         };
     };

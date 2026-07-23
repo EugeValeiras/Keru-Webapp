@@ -20,6 +20,9 @@ export type PasswordResetRequestDto = Schemas['PasswordResetRequestDto'];
 export type PasswordResetRequestResponse = Schemas['PasswordResetRequestResponseDto'];
 export type PasswordResetConfirmDto = Schemas['PasswordResetConfirmDto'];
 
+// KER-47 · UC-04 A5 · definir contraseña en el primer acceso (first-login)
+export type SetPasswordDto = Schemas['SetPasswordDto'];
+
 export type Role = AuthResponse['role'];
 
 // ---------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import {
   AccountProfile,
   ApiError,
+  AuthResponse,
   CaregiverProfile,
   CreateInvitationDto,
   EmittedInvitation,
@@ -118,5 +119,15 @@ export class MembershipApi {
   /** Requiere sesión con el email invitado. 400 usada/expirada, 403 otra cuenta. */
   confirmInvitation(token: string): Observable<InvitationConfirmed> {
     return this.http.post<InvitationConfirmed>(`/api/v1/invitations/${token}/confirm`, {});
+  }
+
+  /**
+   * UC-03 A1 · Aceptar la invitación SIN estar registrado: crea la cuenta desde la invitación
+   * (sin contraseña, estado MUST_SET_PASSWORD) y la vincula. Público. Devuelve una sesión limitada
+   * (mustSetPassword=true): el cliente lleva a "Definí tu contraseña" (UC-04 A5). 409 = el email ya
+   * tiene cuenta (que inicie sesión); 400 = invitación usada/expirada.
+   */
+  acceptInvitationAsNewAccount(token: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`/api/v1/invitations/${token}/accept`, {});
   }
 }

@@ -30,6 +30,8 @@ export class AuthStore {
   readonly email = computed(() => this.session()?.email ?? '');
   /** UC-23 · Foto de la cuenta: signal que el header consume para pintar el avatar sin recargar. */
   readonly photoUrl = computed(() => this.session()?.photoUrl ?? null);
+  /** UC-04 A5 · Sesión limitada de first-login: la cuenta aún no definió su contraseña. */
+  readonly mustSetPassword = computed(() => this.session()?.mustSetPassword === true);
 
   setSession(auth: AuthResponse): void {
     this.session.set(auth);
