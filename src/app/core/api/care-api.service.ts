@@ -53,9 +53,14 @@ export class CareApi {
     return this.http.get<QuarantinedRecord[]>(`/api/v1/patients/${patientId}/quarantine`);
   }
 
-  /** Resuelven consent-holder/manager (viewer: 403). Re-aplicar es no-op idempotente. */
-  approveQuarantined(patientId: string, id: string): Observable<QuarantinedRecord> {
-    return this.http.post<QuarantinedRecord>(`/api/v1/patients/${patientId}/quarantine/${id}/approve`, {});
+  /**
+   * Resuelven consent-holder/manager (viewer: 403). Re-aplicar es no-op idempotente.
+   * KER-38 (NFR-33): liberar cuarentena es operación sensible — exige token de step-up.
+   */
+  approveQuarantined(patientId: string, id: string, stepUpToken: string): Observable<QuarantinedRecord> {
+    return this.http.post<QuarantinedRecord>(`/api/v1/patients/${patientId}/quarantine/${id}/approve`, {}, {
+      headers: { 'x-step-up-token': stepUpToken },
+    });
   }
 
   /** Marca el item como descartado con traza — nunca se borra. */

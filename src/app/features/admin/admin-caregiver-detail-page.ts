@@ -12,6 +12,7 @@ import {
   SPECIALTY_LABELS,
   Specialty,
 } from '../../core/api/api.types';
+import { StepUpStore } from '../../core/auth/step-up.store';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrModal } from '../../shared/ui/kr-modal';
@@ -303,6 +304,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
 export class AdminCaregiverDetailPage {
   private readonly api = inject(AdminApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly stepUp = inject(StepUpStore);
 
   private readonly id = this.route.snapshot.paramMap.get('id')!;
 
@@ -360,17 +362,27 @@ export class AdminCaregiverDetailPage {
     );
   }
 
-  approve(): void {
-    this.run(() => this.api.approve(this.id), 'Perfil aprobado: ya es visible en el marketplace.');
+  /** KER-38 (NFR-33): aprobar exige re-confirmación de identidad (step-up). */
+  async approve(): Promise<void> {
+    const token = await this.stepUp.require();
+    if (!token) {
+      return; // canceló la re-confirmación
+    }
+    this.run(() => this.api.approve(this.id, token), 'Perfil aprobado: ya es visible en el marketplace.');
   }
 
-  reject(): void {
+  /** KER-38 (NFR-33): rechazar exige re-confirmación de identidad (step-up). */
+  async reject(): Promise<void> {
     const reason = this.rejectReason.trim();
     if (!reason || reason.length > 400) {
       return;
     }
+    const token = await this.stepUp.require();
+    if (!token) {
+      return;
+    }
     this.run(
-      () => this.api.reject(this.id, reason),
+      () => this.api.reject(this.id, reason, token),
       'Postulación rechazada.',
       () => {
         this.rejectOpen.set(false);
@@ -415,6 +427,10 @@ export class AdminCaregiverDetailPage {
       },
       error: (err: ApiError) => {
         this.busy.set(false);
+        // El step-up cacheado venció en vuelo: que el próximo intento re-pida el password.
+        if (err.code === 'STEP_UP_REQUIRED') {
+          this.stepUp.clear();
+        }
         this.error.set(err.message);
       },
     });

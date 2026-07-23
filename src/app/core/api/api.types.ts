@@ -7,6 +7,18 @@ export type AuthResponse = Schemas['AuthResponseDto'];
 export type LoginDto = Schemas['LoginDto'];
 export type SignupDto = Schemas['SignupDto'];
 
+// KER-38 · logout server-side + step-up (NFR-33/41). Declarados a mano: regenerar schema.d.ts
+// arrastra el drift pre-existente del contrato de hiring (finished→completed, KER-31) que es
+// de otra tarea. Shapes verificadas contra auth.dto.ts de Keru-API.
+export interface LogoutResponse {
+  ok: boolean;
+}
+export interface StepUpResponse {
+  /** Token corto con claim step_up: acompaña la operación sensible en x-step-up-token. */
+  stepUpToken: string;
+  expiresInSeconds: number;
+}
+
 export type Role = AuthResponse['role'];
 
 // ---------------------------------------------------------------------------
