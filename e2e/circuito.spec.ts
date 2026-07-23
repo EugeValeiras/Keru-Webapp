@@ -52,7 +52,7 @@ test.describe.serial('Circuito MVP Keru', () => {
     await family.getByRole('button', { name: /^Familiar/ }).click();
     await family.getByLabel('Nombre y apellido').fill('Familia E2E');
     await family.getByLabel('Email').fill(FAMILY_EMAIL);
-    await family.getByLabel('Contraseña').fill(PASSWORD);
+    await family.locator('input[type="password"]').fill(PASSWORD);
     await family.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(family).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
   });
@@ -82,7 +82,7 @@ test.describe.serial('Circuito MVP Keru', () => {
     await caregiver.getByRole('button', { name: /^Cuidador\/a/ }).click();
     await caregiver.getByLabel('Nombre y apellido').fill(CAREGIVER_NAME);
     await caregiver.getByLabel('Email').fill(CAREGIVER_EMAIL);
-    await caregiver.getByLabel('Contraseña').fill(PASSWORD);
+    await caregiver.locator('input[type="password"]').fill(PASSWORD);
     await caregiver.getByRole('button', { name: 'Crear cuenta' }).click();
 
     // Sin perfil, el shell del cuidador termina en el onboarding.
@@ -123,7 +123,7 @@ test.describe.serial('Circuito MVP Keru', () => {
 
     await admin.goto('/login');
     await admin.getByLabel('Email').fill('admin@test.com');
-    await admin.getByLabel('Contraseña').fill('S3gura!123');
+    await admin.locator('input[type="password"]').fill('S3gura!123');
     await admin.getByRole('button', { name: 'Ingresar' }).click();
     await expect(admin).toHaveURL(/\/admin\/pending$/, { timeout: 15_000 });
 
@@ -140,7 +140,7 @@ test.describe.serial('Circuito MVP Keru', () => {
     // KER-38 (NFR-33): aprobar es operación sensible — re-confirmación de identidad (step-up).
     const stepUp = admin.getByRole('dialog', { name: 'Confirmá tu identidad' });
     await expect(stepUp).toBeVisible();
-    await stepUp.getByLabel('Contraseña').fill('S3gura!123');
+    await stepUp.locator('input[type="password"]').fill('S3gura!123');
     await stepUp.getByRole('button', { name: 'Confirmar' }).click();
 
     await expect(

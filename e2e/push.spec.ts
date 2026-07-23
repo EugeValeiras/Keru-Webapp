@@ -82,7 +82,7 @@ async function signupFamily(page: Page, email: string): Promise<void> {
   await page.getByRole('button', { name: /^Familiar/ }).click();
   await page.getByLabel('Nombre y apellido').fill('Familia Push E2E');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Contraseña').fill(PASSWORD);
+  await page.locator('input[type="password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Crear cuenta' }).click();
   await expect(page).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
 }

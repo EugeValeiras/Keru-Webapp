@@ -2,6 +2,7 @@ import { Component, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StepUpStore } from '../../core/auth/step-up.store';
 import { KrModal } from '../../shared/ui/kr-modal';
+import { KrPasswordInput } from '../../shared/ui/kr-password-input';
 
 /**
  * Re-confirmación de identidad para operaciones sensibles (KER-38, UC-04 A3, NFR-33).
@@ -9,7 +10,7 @@ import { KrModal } from '../../shared/ui/kr-modal';
  */
 @Component({
   selector: 'kr-step-up-modal',
-  imports: [FormsModule, KrModal],
+  imports: [FormsModule, KrModal, KrPasswordInput],
   template: `
     @if (stepUp.open()) {
       <kr-modal title="Confirmá tu identidad" (closed)="cancel()">
@@ -18,16 +19,16 @@ import { KrModal } from '../../shared/ui/kr-modal';
             Esta operación es sensible: volvé a ingresar tu contraseña para continuar.
           </p>
           @if (stepUp.error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
+              {{ err }}
+            </p>
           }
           <label class="flex flex-col gap-1">
             <span class="text-sm font-medium text-ink-700">Contraseña</span>
-            <input
-              type="password"
+            <kr-password-input
               name="stepUpPassword"
               [(ngModel)]="password"
               autocomplete="current-password"
-              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
           <div class="flex justify-end gap-3">

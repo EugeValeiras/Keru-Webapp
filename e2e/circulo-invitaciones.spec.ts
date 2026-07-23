@@ -56,7 +56,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await family.getByRole('button', { name: /^Familiar/ }).click();
     await family.getByLabel('Nombre y apellido').fill(FAMILY_NAME);
     await family.getByLabel('Email').fill(FAMILY_EMAIL);
-    await family.getByLabel('Contraseña').fill(PASSWORD);
+    await family.locator('input[type="password"]').fill(PASSWORD);
     await family.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(family).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
 
@@ -113,7 +113,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await expect(guest.getByLabel('Email')).toHaveValue(GUEST_EMAIL);
     await guest.getByRole('button', { name: /^Familiar/ }).click();
     await guest.getByLabel('Nombre y apellido').fill(GUEST_NAME);
-    await guest.getByLabel('Contraseña').fill(PASSWORD);
+    await guest.locator('input[type="password"]').fill(PASSWORD);
     await guest.getByRole('button', { name: 'Crear cuenta' }).click();
 
     // El returnUrl vuelve a la landing, ya autenticado y con el email correcto.
