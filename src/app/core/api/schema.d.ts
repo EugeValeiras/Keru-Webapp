@@ -72,6 +72,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** UC-23 · Ver mi perfil de cuenta (nombre, email, rol, foto) */
+        get: operations["AccountsController_myAccount_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * UC-23 · Editar mi perfil de cuenta
+         * @description Set parcial de nombre y/o foto. El email (identidad de login, UC-04) no se edita por esta vía. La foto se sube antes por POST /files/images. Naturalmente idempotente (NFR-34).
+         */
+        patch: operations["AccountsController_updateMyAccount_v1"];
+        trace?: never;
+    };
     "/api/v1/patients": {
         parameters: {
             query?: never;
@@ -1223,6 +1244,8 @@ export interface components {
             /** @enum {string} */
             role: "patient" | "family" | "caregiver" | "admin";
             displayName: string;
+            /** @description UC-23 · Foto de la cuenta para el avatar del header (null si no cargó una) */
+            photoUrl?: string | null;
         };
         LoginDto: {
             /** @example familiar@test.com */
@@ -1250,6 +1273,22 @@ export interface components {
             stepUpToken: string;
             /** @example 300 */
             expiresInSeconds: number;
+        };
+        AccountResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** @description Identidad de login: de solo lectura (no se edita por esta vía) */
+            email: string;
+            displayName: string;
+            photoUrl?: string | null;
+            /** @enum {string} */
+            role: "patient" | "family" | "caregiver" | "admin";
+        };
+        UpdateAccountDto: {
+            /** @example Juana Díaz */
+            displayName?: string;
+            /** @example http://localhost:4566/keru-media/images/abc.jpg */
+            photoUrl?: string | null;
         };
         EmergencyContactDto: {
             /** @example María Díaz */
@@ -2119,6 +2158,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StepUpResponseDto"];
+                };
+            };
+        };
+    };
+    AccountsController_myAccount_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountResponseDto"];
+                };
+            };
+        };
+    };
+    AccountsController_updateMyAccount_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAccountDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountResponseDto"];
                 };
             };
         };

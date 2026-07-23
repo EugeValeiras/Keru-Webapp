@@ -10,6 +10,7 @@ import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
 import { StepUpModal } from './step-up-modal';
 import { KrPatientPicker } from './patient-picker';
+import { KrAccountMenu } from './account-menu';
 import { KrToastOutlet } from '../../shared/ui/kr-toast';
 
 interface NavItem {
@@ -40,7 +41,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, StepUpModal, KrPatientPicker, KrToastOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, StepUpModal, KrPatientPicker, KrAccountMenu, KrToastOutlet],
   template: `
     @if (isFamily()) {
       <!-- UC-18 flujo 1: oferta de push en el primer inicio; A1 degrada a solo campana. -->
@@ -73,14 +74,14 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
             }
             <kr-notification-bell />
           }
-          <span class="text-sm text-ink-500 hidden sm:block">{{ store.displayName() }}</span>
-          <button
-            type="button"
-            (click)="logout()"
-            class="text-sm font-medium text-ink-500 hover:text-danger transition-colors"
-          >
-            Salir
-          </button>
+          <kr-account-menu
+            [displayName]="store.displayName()"
+            [email]="store.email()"
+            [role]="store.role() ?? ''"
+            [accountId]="store.accountId()"
+            [photoUrl]="store.photoUrl()"
+            (logout)="logout()"
+          />
         </div>
       </div>
     </header>

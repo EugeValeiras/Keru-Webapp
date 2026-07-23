@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
+  AccountProfile,
   ApiError,
   CaregiverProfile,
   CreateInvitationDto,
@@ -15,6 +16,7 @@ import {
   PatientRecord,
   RegisterCaregiverDto,
   RegisterPatientDto,
+  UpdateAccountDto,
   UpdateCaregiverProfileDto,
   UpdatePatientDto,
 } from './api.types';
@@ -25,6 +27,16 @@ export class MembershipApi {
 
   getPatients(): Observable<Patient[]> {
     return this.http.get<Patient[]>('/api/v1/patients');
+  }
+
+  /** UC-23 · Mi perfil de cuenta (nombre, email, rol, foto). Cualquier rol lee el suyo. */
+  getMyAccount(): Observable<AccountProfile> {
+    return this.http.get<AccountProfile>('/api/v1/accounts/me');
+  }
+
+  /** UC-23 · Editar mi perfil de cuenta: set parcial de nombre y/o foto (el email no se edita). Sin operationId (naturalmente idempotente). */
+  updateMyAccount(dto: UpdateAccountDto): Observable<AccountProfile> {
+    return this.http.patch<AccountProfile>('/api/v1/accounts/me', dto);
   }
 
   registerPatient(dto: RegisterPatientDto): Observable<Patient> {
