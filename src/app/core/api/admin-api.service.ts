@@ -33,12 +33,18 @@ export class AdminApi {
     return this.http.get<AdminCaregiverDetail>(`/api/v1/admin/caregivers/${id}`);
   }
 
-  approve(id: string): Observable<CaregiverProfile> {
-    return this.http.post<CaregiverProfile>(`/api/v1/admin/caregivers/${id}/approve`, {});
+  /** KER-38 (NFR-33): aprobar es operación sensible — viaja con el token corto de step-up. */
+  approve(id: string, stepUpToken: string): Observable<CaregiverProfile> {
+    return this.http.post<CaregiverProfile>(`/api/v1/admin/caregivers/${id}/approve`, {}, {
+      headers: { 'x-step-up-token': stepUpToken },
+    });
   }
 
-  reject(id: string, reason: string): Observable<CaregiverProfile> {
-    return this.http.post<CaregiverProfile>(`/api/v1/admin/caregivers/${id}/reject`, { reason });
+  /** KER-38 (NFR-33): rechazar es operación sensible — viaja con el token corto de step-up. */
+  reject(id: string, reason: string, stepUpToken: string): Observable<CaregiverProfile> {
+    return this.http.post<CaregiverProfile>(`/api/v1/admin/caregivers/${id}/reject`, { reason }, {
+      headers: { 'x-step-up-token': stepUpToken },
+    });
   }
 
   setBadges(id: string, badges: Badges): Observable<CaregiverProfile> {

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, Catalogs, MetricValue, QuarantinedRecord } from '../../core/api/api.types';
 import { CatalogService } from '../../core/catalogs/catalog.service';
+import { StepUpStore } from '../../core/auth/step-up.store';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrModal } from '../../shared/ui/kr-modal';
@@ -201,6 +202,7 @@ export class PatientQuarantinePage {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(CareApi);
   private readonly catalogService = inject(CatalogService);
+  private readonly stepUp = inject(StepUpStore);
 
   private readonly patientId = this.route.snapshot.paramMap.get('patientId')!;
 
@@ -248,8 +250,13 @@ export class PatientQuarantinePage {
     });
   }
 
-  protected approve(item: QuarantinedRecord): void {
-    this.run(item, () => this.api.approveQuarantined(this.patientId, item.id), 'Registro aprobado: ya está en el historial con su fecha de medición original.');
+  /** KER-38 (NFR-33): liberar cuarentena es sensible — exige re-confirmar el password. */
+  protected async approve(item: QuarantinedRecord): Promise<void> {
+    const token = await this.stepUp.require();
+    if (!token) {
+      return; // canceló la re-confirmación
+    }
+    this.run(item, () => this.api.approveQuarantined(this.patientId, item.id, token), 'Registro aprobado: ya está en el historial con su fecha de medición original.');
   }
 
   protected discard(item: QuarantinedRecord): void {
@@ -277,6 +284,10 @@ export class PatientQuarantinePage {
       error: (err: ApiError) => {
         this.busy.set(null);
         this.discardTarget.set(null);
+        // El step-up cacheado venció en vuelo: que el próximo intento re-pida el password.
+        if (err.code === 'STEP_UP_REQUIRED') {
+          this.stepUp.clear();
+        }
         this.error.set(err.message);
       },
     });

@@ -172,6 +172,14 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await card.getByRole('link', { name: 'Revisar' }).click();
     await expect(admin).toHaveURL(/\/admin\/caregivers\//);
     await admin.getByRole('button', { name: 'Aprobar' }).click();
+
+    // KER-38 (NFR-33): aprobar pide re-confirmación de identidad — axe también sobre el modal.
+    const stepUp = admin.getByRole('dialog', { name: 'Confirmá tu identidad' });
+    await expect(stepUp).toBeVisible();
+    await expectAxeClean(admin, 'step-up-modal');
+    await stepUp.getByLabel('Contraseña').fill('S3gura!123');
+    await stepUp.getByRole('button', { name: 'Confirmar' }).click();
+
     await expect(
       admin.getByText('Perfil aprobado: ya es visible en el marketplace.'),
     ).toBeVisible();

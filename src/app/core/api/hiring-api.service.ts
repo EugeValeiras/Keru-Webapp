@@ -59,7 +59,7 @@ export class HiringApi {
     return this.http.get<HiringRequest[]>('/api/v1/hiring-requests');
   }
 
-  /** Solo el solicitante; deja la request 'finished'. */
+  /** Solo el solicitante; deja la request 'completed' (razón terminal, KER-31). */
   completeRequest(id: string): Observable<HiringRequest> {
     return this.http.post<HiringRequest>(`/api/v1/hiring-requests/${id}/complete`, {});
   }

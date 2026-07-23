@@ -136,6 +136,13 @@ test.describe.serial('Circuito MVP Keru', () => {
 
     await expect(admin).toHaveURL(/\/admin\/caregivers\//);
     await admin.getByRole('button', { name: 'Aprobar' }).click();
+
+    // KER-38 (NFR-33): aprobar es operación sensible — re-confirmación de identidad (step-up).
+    const stepUp = admin.getByRole('dialog', { name: 'Confirmá tu identidad' });
+    await expect(stepUp).toBeVisible();
+    await stepUp.getByLabel('Contraseña').fill('S3gura!123');
+    await stepUp.getByRole('button', { name: 'Confirmar' }).click();
+
     await expect(
       admin.getByText('Perfil aprobado: ya es visible en el marketplace.'),
     ).toBeVisible();

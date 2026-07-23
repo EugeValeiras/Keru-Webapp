@@ -124,6 +124,36 @@ export class PushStore {
     }
   }
 
+  /** KER-38: endpoint de la suscripción de ESTE navegador — el logout la revoca server-side. */
+  async currentEndpoint(): Promise<string | null> {
+    if (!this.supported) {
+      return null;
+    }
+    try {
+      const registration = this.registration ?? (await navigator.serviceWorker.getRegistration());
+      const subscription = await registration?.pushManager.getSubscription();
+      return subscription?.endpoint ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * KER-38 (NFR-41) · Al cerrar sesión: desuscribe el navegador SIN pegarle a la API — la
+   * revocación server-side ya la hizo el logout (denylist + SessionRevoked). Best-effort.
+   */
+  async forgetLocal(): Promise<void> {
+    try {
+      const registration = this.registration ?? (await navigator.serviceWorker.getRegistration());
+      const subscription = await registration?.pushManager.getSubscription();
+      await subscription?.unsubscribe();
+    } catch {
+      // Sin drama: el server ya revocó; un endpoint muerto se depura solo (410).
+    }
+    this.subscribed.set(false);
+    this.initializedFor = null;
+  }
+
   /** "Ahora no": no volver a ofrecer en esta cuenta; queda la campana y el toggle. */
   dismissPrompt(): void {
     const accountId = this.auth.accountId();

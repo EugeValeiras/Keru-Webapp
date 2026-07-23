@@ -19,7 +19,7 @@ const STATUS_ORDER: HiringStatus[] = [
   'accepted',
   'in-progress',
   'declined',
-  'finished',
+  'completed',
   'expired',
 ];
 
@@ -264,7 +264,7 @@ export class CaregiverInboxPage {
         return 'success';
       case 'declined':
         return 'danger';
-      case 'finished':
+      case 'completed':
         return 'primary';
       default:
         return 'neutral';

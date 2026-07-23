@@ -6,7 +6,14 @@ import { catchError } from 'rxjs/operators';
 import { toApiError } from '../api/api.types';
 import { AuthStore } from './auth-store';
 
-const AUTH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/signup'];
+// KER-38: el 401 de step-up (password incorrecto) o de logout (token ya revocado) NO es
+// "sesión vencida" — esas llamadas no limpian la sesión ni redirigen.
+const AUTH_ENDPOINTS = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/signup',
+  '/api/v1/auth/step-up',
+  '/api/v1/auth/logout',
+];
 
 /**
  * Normaliza el envelope de error de la API a un ApiError tipado y, ante un 401

@@ -7,6 +7,10 @@ export type AuthResponse = Schemas['AuthResponseDto'];
 export type LoginDto = Schemas['LoginDto'];
 export type SignupDto = Schemas['SignupDto'];
 
+// KER-38 · logout server-side + step-up (NFR-33/41)
+export type LogoutResponse = Schemas['LogoutResponseDto'];
+export type StepUpResponse = Schemas['StepUpResponseDto'];
+
 export type Role = AuthResponse['role'];
 
 // ---------------------------------------------------------------------------
@@ -278,7 +282,7 @@ export const HIRING_STATUS_LABELS: Record<HiringStatus, string> = {
   'in-progress': 'En curso',
   declined: 'Rechazada',
   cancelled: 'Cancelada',
-  finished: 'Finalizada',
+  completed: 'Finalizada',
   expired: 'Vencida',
 };
 

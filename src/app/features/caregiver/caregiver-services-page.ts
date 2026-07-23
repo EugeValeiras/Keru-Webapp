@@ -144,7 +144,7 @@ export class CaregiverServicesPage {
   readonly active = computed(() =>
     this.requests().filter((r) => r.status === 'accepted' || r.status === 'in-progress'),
   );
-  readonly finished = computed(() => this.requests().filter((r) => r.status === 'finished'));
+  readonly finished = computed(() => this.requests().filter((r) => r.status === 'completed'));
 
   constructor() {
     this.load();
