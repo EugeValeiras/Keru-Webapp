@@ -39,7 +39,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         </a>
       </div>
     } @else if (error(); as err) {
-      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
     } @else if (!profile()) {
       <p class="text-ink-500 text-sm">Cargando perfil…</p>
     } @else if (profile(); as p) {
@@ -67,7 +67,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             <kr-avatar [name]="p.displayName" [seed]="p.id" [size]="96" [photoUrl]="p.photoUrl" />
             <div class="text-center sm:text-left">
-              <h1 class="text-2xl font-bold">{{ p.displayName }}</h1>
+              <h1>{{ p.displayName }}</h1>
               <p class="text-ink-500">{{ p.zone }}</p>
               <p class="text-sm text-ink-500 mt-1">
                 @for (m of p.modalities; track m; let last = $last) {

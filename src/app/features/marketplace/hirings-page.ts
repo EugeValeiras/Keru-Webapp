@@ -28,10 +28,10 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
   selector: 'kr-hirings-page',
   imports: [RouterLink, KrBadge, KrEmptyState, ReviewModal],
   template: `
-    <h1 class="text-2xl font-bold mb-4">Mis contrataciones</h1>
+    <h1 class="mb-4">Mis contrataciones</h1>
 
     @if (error(); as err) {
-      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">{{ err }}</p>
     }
 
     <!-- Chips de filtro -->
@@ -109,7 +109,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
                   type="button"
                   (click)="cancel(r)"
                   [disabled]="cancellingId() === r.id"
-                  class="rounded-pill border border-danger text-danger font-semibold py-2.5 px-6 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                  class="rounded-pill border border-danger text-danger font-semibold py-2.5 px-6 hover:bg-danger-50 disabled:opacity-50 transition-colors"
                 >
                   {{ cancellingId() === r.id ? 'Cancelando…' : 'Cancelar solicitud' }}
                 </button>

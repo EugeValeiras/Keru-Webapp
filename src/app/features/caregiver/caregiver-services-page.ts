@@ -19,10 +19,10 @@ import { ReviewModal } from '../reputation/review-modal';
   imports: [RouterLink, KrAvatar, KrBadge, KrEmptyState, ReviewModal],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
-      <h1 class="text-2xl font-bold">Mis servicios</h1>
+      <h1>Mis servicios</h1>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
 
       @if (loading()) {

@@ -52,12 +52,12 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
       <a routerLink="../dashboard" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver al estado actual
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-6">Historial clínico</h1>
+      <h1 class="mt-2 mb-6">Historial clínico</h1>
 
       @if (quarantinePending() > 0) {
         <a
           routerLink="../quarantine"
-          class="flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-card px-4 py-3 mb-6 text-sm text-ink-700 hover:bg-amber-100 transition-colors"
+          class="flex items-center gap-2 bg-warning-50 border border-warning-600/40 rounded-card px-4 py-3 mb-6 text-sm text-ink-700 hover:bg-warning-50 transition-colors"
         >
           <span>⏳</span>
           <span>
@@ -87,7 +87,7 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
           {{ err }}
         </p>
       }

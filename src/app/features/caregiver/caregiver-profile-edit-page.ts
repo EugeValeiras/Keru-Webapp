@@ -30,7 +30,7 @@ interface SlotRow {
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
-        <h1 class="text-2xl font-bold">Editar mi perfil</h1>
+        <h1>Editar mi perfil</h1>
         <p class="text-ink-500 mt-1">
           Los cambios se publican al instante: tu perfil sigue aprobado y visible.
         </p>
@@ -41,7 +41,7 @@ interface SlotRow {
       } @else {
         <form class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4" (ngSubmit)="save()">
           @if (error(); as err) {
-            <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+            <div role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
               <p>{{ err }}</p>
               @if (fieldErrors().length > 0) {
                 <ul class="list-disc list-inside mt-1">
@@ -62,13 +62,13 @@ interface SlotRow {
             <p class="text-sm font-medium text-ink-700 mb-2">Disponibilidad (mínimo un horario)</p>
             <div class="flex flex-col gap-3">
               @for (slot of slots; track $index) {
-                <div class="flex items-end gap-3 rounded-lg border border-ink-300 p-3">
+                <div class="flex items-end gap-3 rounded-control border border-ink-300 p-3">
                   <label class="flex flex-col gap-1 flex-1">
                     <span class="text-sm font-medium text-ink-700">Día</span>
                     <select
                       [name]="'slot-day-' + $index"
                       [(ngModel)]="slot.dayOfWeek"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     >
                       @for (day of dayLabels; track $index; let i = $index) {
                         <option [ngValue]="i">{{ day }}</option>
@@ -81,7 +81,7 @@ interface SlotRow {
                       type="time"
                       [name]="'slot-from-' + $index"
                       [(ngModel)]="slot.from"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
                   </label>
                   <label class="flex flex-col gap-1">
@@ -90,7 +90,7 @@ interface SlotRow {
                       type="time"
                       [name]="'slot-to-' + $index"
                       [(ngModel)]="slot.to"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
                   </label>
                   <button
@@ -122,7 +122,7 @@ interface SlotRow {
                 min="1"
                 [(ngModel)]="ratePerHour"
                 placeholder="Ej: 3500"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
               <span class="text-xs text-ink-500">
                 El cambio rige desde ahora: las solicitudes que ya recibiste conservan la tarifa
@@ -135,7 +135,7 @@ interface SlotRow {
                 type="text"
                 name="currency"
                 [(ngModel)]="currency"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
           </div>
@@ -146,7 +146,7 @@ interface SlotRow {
               name="rateDescription"
               [(ngModel)]="rateDescription"
               placeholder="Ej: Incluye acompañamiento nocturno"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
           <label class="flex flex-col gap-1">
@@ -156,7 +156,7 @@ interface SlotRow {
               name="zone"
               [(ngModel)]="zone"
               placeholder="Ej: Palermo, CABA"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
           <div>
@@ -164,7 +164,7 @@ interface SlotRow {
             <div class="flex gap-3">
               @for (opt of modalityOptions; track opt[0]) {
                 <label
-                  class="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors"
+                  class="flex items-center gap-2 rounded-control border px-3 py-2 cursor-pointer transition-colors"
                   [class.border-primary-600]="modalitySel[opt[0]]"
                   [class.bg-primary-50]="modalitySel[opt[0]]"
                   [class.border-ink-300]="!modalitySel[opt[0]]"
@@ -181,7 +181,7 @@ interface SlotRow {
             </div>
           </div>
 
-          <p class="text-xs text-ink-500 bg-primary-50 rounded-lg px-3 py-2">
+          <p class="text-xs text-ink-500 bg-primary-50 rounded-control px-3 py-2">
             Para cambiar tu nombre, especialidades o certificaciones escribinos: requieren una
             nueva verificación.
           </p>

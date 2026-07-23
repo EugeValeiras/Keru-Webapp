@@ -24,25 +24,25 @@ const FOCUSABLE =
   selector: 'kr-modal',
   template: `
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/40"
       (click)="onBackdrop($event)"
       (keydown)="onKeydown($event)"
     >
       <div
         #dialog
         tabindex="-1"
-        class="bg-surface rounded-card shadow-card w-full max-h-[90vh] overflow-y-auto p-6 outline-none"
+        class="bg-surface rounded-card shadow-modal w-full max-h-[90vh] overflow-y-auto p-6 outline-none"
         [style.max-width.px]="width()"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="titleId"
       >
         <div class="flex items-start justify-between mb-4">
-          <h2 [id]="titleId" class="text-lg font-semibold">{{ title() }}</h2>
+          <h2 [id]="titleId" class="text-lg">{{ title() }}</h2>
           <button
             type="button"
             (click)="closed.emit()"
-            class="text-ink-500 hover:text-ink-900 text-xl leading-none"
+            class="rounded-full p-1.5 -m-1.5 text-ink-500 hover:text-ink-900 hover:bg-ink-200/60 active:bg-ink-200 text-xl leading-none"
             aria-label="Cerrar"
           >
             ✕

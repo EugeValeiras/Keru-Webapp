@@ -42,7 +42,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     }
     <header class="bg-surface border-b border-ink-300/40 sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center gap-6">
-        <span class="text-xl font-bold text-primary-600">Keru</span>
+        <img src="keru-logo.svg" alt="Keru" class="h-8 w-auto select-none" />
 
         <nav class="flex items-center gap-1 flex-1">
           @for (item of navItems(); track item.path) {

@@ -54,7 +54,7 @@ const ROLE_LABELS: Record<string, string> = {
                 type="text"
                 readonly
                 [value]="localLink()"
-                class="flex-1 min-w-0 rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-700"
+                class="flex-1 min-w-0 rounded-control border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-700"
               />
               <button
                 type="button"
@@ -70,7 +70,7 @@ const ROLE_LABELS: Record<string, string> = {
               <span class="font-semibold tabular-nums text-primary-700">{{ countdown() }}</span>
             </p>
 
-            <p class="text-sm text-ink-700 bg-primary-50 rounded-lg px-3 py-2">
+            <p class="text-sm text-ink-700 bg-primary-50 rounded-control px-3 py-2">
               Le enviamos el link por email a {{ inv.invitedEmail }}. Igual podés copiarlo y
               compartirlo por WhatsApp o el canal que quieras. Vence en 30 minutos y sirve una sola
               vez.
@@ -80,7 +80,7 @@ const ROLE_LABELS: Record<string, string> = {
       } @else {
         <form class="flex flex-col gap-4" (ngSubmit)="generate()">
           @if (error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
           }
 
           <label class="flex flex-col gap-1">
@@ -90,7 +90,7 @@ const ROLE_LABELS: Record<string, string> = {
               name="invitedEmail"
               required
               [(ngModel)]="invitedEmail"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -99,7 +99,7 @@ const ROLE_LABELS: Record<string, string> = {
             <select
               name="role"
               [(ngModel)]="role"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-surface"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-surface"
             >
               <option value="viewer">Solo ver</option>
               <option value="manager">Gestionar</option>
@@ -121,7 +121,7 @@ const ROLE_LABELS: Record<string, string> = {
       <section class="mt-6 border-t border-ink-300/60 pt-4">
         <h3 class="text-sm font-semibold text-ink-900 mb-2">Invitaciones vigentes</h3>
         @if (listError()) {
-          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+          <p class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
             No se pudieron cargar las invitaciones. Probá cerrar y volver a abrir.
           </p>
         } @else if (!listLoaded()) {
@@ -145,14 +145,14 @@ const ROLE_LABELS: Record<string, string> = {
                       type="button"
                       (click)="askRevoke(inv.token)"
                       [disabled]="revoking() !== null"
-                      class="rounded-pill border border-danger text-danger text-sm font-semibold py-1 px-3 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      class="rounded-pill border border-danger text-danger text-sm font-semibold py-1 px-3 hover:bg-danger-50 disabled:opacity-50 transition-colors"
                     >
                       Revocar
                     </button>
                   }
                 </div>
                 @if (revokeCandidate() === inv.token) {
-                  <div class="flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2">
+                  <div class="flex items-center gap-2 bg-danger-50 rounded-control px-3 py-2">
                     <p class="text-sm text-ink-700 flex-1">¿Revocar? El link deja de servir.</p>
                     <button
                       type="button"
@@ -177,7 +177,7 @@ const ROLE_LABELS: Record<string, string> = {
           </ul>
         }
         @if (revokeError(); as err) {
-          <p class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mt-2">{{ err }}</p>
+          <p class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mt-2">{{ err }}</p>
         }
       </section>
     </kr-modal>

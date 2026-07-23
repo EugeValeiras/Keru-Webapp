@@ -25,7 +25,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
   selector: 'kr-marketplace-page',
   imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrRating],
   template: `
-    <h1 class="text-2xl font-bold mb-4">Encontrá cuidadores</h1>
+    <h1 class="mb-4">Encontrá cuidadores</h1>
 
     <!-- Barra de filtros -->
     <form
@@ -37,7 +37,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         <select
           name="careType"
           [(ngModel)]="careType"
-          class="rounded-lg border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="rounded-control border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
         >
           <option value="">Todas</option>
           @for (opt of specialtyOptions; track opt[0]) {
@@ -51,7 +51,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
         <select
           name="modality"
           [(ngModel)]="modality"
-          class="rounded-lg border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="rounded-control border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
         >
           <option value="">Todas</option>
           @for (opt of modalityOptions; track opt[0]) {
@@ -66,7 +66,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           name="zone"
           [(ngModel)]="zone"
           placeholder="Zona, ej. Palermo"
-          class="rounded-lg border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="rounded-control border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
       </label>
 
@@ -78,7 +78,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           [(ngModel)]="minRate"
           min="0"
           placeholder="$"
-          class="rounded-lg border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="rounded-control border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
       </label>
 
@@ -90,7 +90,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           [(ngModel)]="maxRate"
           min="0"
           placeholder="$"
-          class="rounded-lg border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="rounded-control border border-ink-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
       </label>
 
@@ -117,7 +117,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
     </form>
 
     @if (error(); as err) {
-      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (loading()) {

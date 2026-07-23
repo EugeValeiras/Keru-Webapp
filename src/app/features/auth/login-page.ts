@@ -12,7 +12,7 @@ import { AuthStore } from '../../core/auth/auth-store';
     <div class="min-h-screen flex items-center justify-center px-4">
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-primary-600">Keru</h1>
+          <h1 class="text-3xl text-primary-600">Keru</h1>
           <p class="text-ink-500 mt-2">Cuidado de confianza para los tuyos</p>
         </div>
 
@@ -23,7 +23,7 @@ import { AuthStore } from '../../core/auth/auth-store';
           <h2 class="text-xl font-semibold">Iniciar sesión</h2>
 
           @if (error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
           }
 
           <label class="flex flex-col gap-1">
@@ -34,7 +34,7 @@ import { AuthStore } from '../../core/auth/auth-store';
               required
               autocomplete="email"
               [(ngModel)]="email"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -46,7 +46,7 @@ import { AuthStore } from '../../core/auth/auth-store';
               required
               autocomplete="current-password"
               [(ngModel)]="password"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 

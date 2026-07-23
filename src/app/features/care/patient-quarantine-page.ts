@@ -55,7 +55,7 @@ const STATUS_TONES: Record<QuarantinedRecord['status'], BadgeTone> = {
       <a routerLink="../history" class="text-sm text-primary-600 font-medium hover:underline">
         ← Volver al historial
       </a>
-      <h1 class="text-2xl font-bold mt-2 mb-1">Registros en cuarentena</h1>
+      <h1 class="mt-2 mb-1">Registros en cuarentena</h1>
       <p class="text-sm text-ink-500 mb-6 max-w-2xl">
         Registros que llegaron tarde, sin una asignación que cubriera su momento de medición.
         No se descartan solos: el círculo decide si entran al historial (con su fecha original) o
@@ -80,12 +80,12 @@ const STATUS_TONES: Record<QuarantinedRecord['status'], BadgeTone> = {
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
           {{ err }}
         </p>
       }
       @if (success(); as msg) {
-        <p role="status" class="text-sm text-success bg-emerald-50 rounded-lg px-3 py-2 mb-4">
+        <p role="status" class="text-sm text-success bg-success-50 rounded-control px-3 py-2 mb-4">
           {{ msg }}
         </p>
       }
@@ -154,7 +154,7 @@ const STATUS_TONES: Record<QuarantinedRecord['status'], BadgeTone> = {
                     type="button"
                     (click)="discardTarget.set(item)"
                     [disabled]="busy() !== null"
-                    class="rounded-pill border border-ink-300 text-ink-700 font-semibold py-2 px-5 hover:bg-red-50 hover:text-danger disabled:opacity-50 transition-colors"
+                    class="rounded-pill border border-ink-300 text-ink-700 font-semibold py-2 px-5 hover:bg-danger-50 hover:text-danger disabled:opacity-50 transition-colors"
                   >
                     Descartar
                   </button>

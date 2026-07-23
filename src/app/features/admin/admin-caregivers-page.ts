@@ -24,7 +24,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
   selector: 'kr-admin-caregivers-page',
   imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState],
   template: `
-    <h1 class="text-2xl font-bold mb-6">Cuidadores</h1>
+    <h1 class="mb-6">Cuidadores</h1>
 
     <div class="bg-surface rounded-card shadow-card p-4 mb-6 flex flex-wrap items-center gap-3">
       <div class="flex flex-wrap gap-2">
@@ -61,7 +61,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
     </div>
 
     @if (error(); as err) {
-      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (loading()) {

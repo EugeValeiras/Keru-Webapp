@@ -37,10 +37,10 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
       @if (success(); as msg) {
-        <p class="text-sm text-success bg-emerald-50 rounded-lg px-3 py-2">{{ msg }}</p>
+        <p class="text-sm text-success bg-success-50 rounded-control px-3 py-2">{{ msg }}</p>
       }
 
       @if (loading()) {
@@ -51,7 +51,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
           <kr-avatar [seed]="d.id" [name]="d.displayName" [size]="56" />
           <div class="flex-1">
             <div class="flex items-center gap-3">
-              <h1 class="text-2xl font-bold">{{ d.displayName }}</h1>
+              <h1>{{ d.displayName }}</h1>
               <kr-badge [tone]="statusTone[d.status]">{{ statusLabel[d.status] }}</kr-badge>
             </div>
             <p class="text-sm text-ink-500 mt-1">Postulación del {{ formatDate(d.createdAt) }}</p>
@@ -64,7 +64,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
         </div>
 
         @if (d.rejectionReason) {
-          <div class="bg-red-50 border border-red-200 rounded-card p-6">
+          <div class="bg-danger-50 border border-danger-600/25 rounded-card p-6">
             <h2 class="font-semibold text-danger mb-1">Motivo de rechazo</h2>
             <p class="text-ink-900">{{ d.rejectionReason }}</p>
           </div>
@@ -195,7 +195,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
                 type="button"
                 (click)="rejectOpen.set(true)"
                 [disabled]="busy()"
-                class="rounded-pill border border-ink-300 text-danger font-semibold py-2.5 px-6 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                class="rounded-pill border border-ink-300 text-danger font-semibold py-2.5 px-6 hover:bg-danger-50 disabled:opacity-50 transition-colors"
               >
                 Rechazar
               </button>
@@ -205,7 +205,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
                 type="button"
                 (click)="deactivateOpen.set(true)"
                 [disabled]="busy()"
-                class="rounded-pill border border-ink-300 text-ink-700 font-semibold py-2.5 px-6 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                class="rounded-pill border border-ink-300 text-ink-700 font-semibold py-2.5 px-6 hover:bg-sand-100 disabled:opacity-50 transition-colors"
               >
                 Desactivar
               </button>
@@ -236,7 +236,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
                 maxlength="400"
                 [(ngModel)]="rejectReason"
                 placeholder="Ej: Certificación de RCP ilegible"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               ></textarea>
               <span class="text-xs text-ink-500">{{ rejectReason.length }}/400</span>
             </label>
@@ -244,7 +244,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
               <button
                 type="button"
                 (click)="rejectOpen.set(false)"
-                class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-gray-100 transition-colors"
+                class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-sand-100 transition-colors"
               >
                 Cancelar
               </button>
@@ -265,7 +265,7 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
       @if (deactivateOpen()) {
         <kr-modal title="Desactivar perfil" (closed)="deactivateOpen.set(false)">
           <div class="flex flex-col gap-4">
-            <p class="text-sm text-warning bg-amber-50 rounded-lg px-3 py-2">
+            <p class="text-sm text-warning bg-warning-50 rounded-control px-3 py-2">
               Desactivar afecta contrataciones activas de forma asincrónica.
             </p>
             <label class="flex flex-col gap-1">
@@ -274,14 +274,14 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
                 name="deactivateReason"
                 rows="3"
                 [(ngModel)]="deactivateReason"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               ></textarea>
             </label>
             <div class="flex justify-end gap-3">
               <button
                 type="button"
                 (click)="deactivateOpen.set(false)"
-                class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-gray-100 transition-colors"
+                class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-sand-100 transition-colors"
               >
                 Cancelar
               </button>

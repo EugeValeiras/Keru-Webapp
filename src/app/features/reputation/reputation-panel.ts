@@ -19,7 +19,7 @@ import { formatDate } from '../../shared/utils/dates';
       </div>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       } @else if (!reputation()) {
         <p class="text-sm text-ink-500">Cargando reseñas…</p>
       } @else if (reputation(); as rep) {

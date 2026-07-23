@@ -14,7 +14,7 @@ type SignupRole = SignupDto['role'];
     <div class="min-h-screen flex items-center justify-center px-4 py-8">
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-primary-600">Keru</h1>
+          <h1 class="text-3xl text-primary-600">Keru</h1>
           <p class="text-ink-500 mt-2">Creá tu cuenta</p>
         </div>
 
@@ -23,7 +23,7 @@ type SignupRole = SignupDto['role'];
           (ngSubmit)="submit()"
         >
           @if (error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
           }
           @for (fieldError of fieldErrors(); track fieldError) {
             <p class="text-xs text-danger">{{ fieldError }}</p>
@@ -58,7 +58,7 @@ type SignupRole = SignupDto['role'];
               required
               autocomplete="name"
               [(ngModel)]="displayName"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -70,7 +70,7 @@ type SignupRole = SignupDto['role'];
               required
               autocomplete="email"
               [(ngModel)]="email"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
           </label>
 
@@ -83,7 +83,7 @@ type SignupRole = SignupDto['role'];
               minlength="8"
               autocomplete="new-password"
               [(ngModel)]="password"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             <span class="text-xs text-ink-500">Mínimo 8 caracteres</span>
           </label>

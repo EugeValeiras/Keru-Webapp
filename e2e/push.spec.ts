@@ -155,7 +155,7 @@ test.describe.serial('UC-18 · push aceptado: suscripción, alerta con push caí
     const bell = family.getByRole('button', { name: /Notificaciones/ });
     await expect(bell.locator('span.absolute')).toBeVisible({ timeout: 20_000 });
     await bell.click();
-    await expect(family.locator('button:has(span.bg-red-500)').first()).toBeVisible({ timeout: 15_000 });
+    await expect(family.locator('button:has(span.bg-danger-600)').first()).toBeVisible({ timeout: 15_000 });
     await expect(family.getByText('Alerta clínica').first()).toBeVisible();
     await family.keyboard.press('Escape');
 

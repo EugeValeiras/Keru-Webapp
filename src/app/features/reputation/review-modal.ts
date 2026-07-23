@@ -25,7 +25,7 @@ import { KrRating } from '../../shared/ui/kr-rating';
       } @else if (infoMessage(); as msg) {
         <div class="text-center py-4">
           <p class="text-4xl mb-3">ℹ️</p>
-          <p class="text-ink-700 bg-primary-50 rounded-lg px-3 py-2 mb-6">{{ msg }}</p>
+          <p class="text-ink-700 bg-primary-50 rounded-control px-3 py-2 mb-6">{{ msg }}</p>
           <button
             type="button"
             (click)="closed.emit()"
@@ -37,7 +37,7 @@ import { KrRating } from '../../shared/ui/kr-rating';
       } @else {
         <form class="flex flex-col gap-4" (ngSubmit)="submit()">
           @if (error(); as err) {
-            <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+            <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
           }
 
           <div class="flex flex-col gap-1">
@@ -53,7 +53,7 @@ import { KrRating } from '../../shared/ui/kr-rating';
               rows="4"
               maxlength="1000"
               placeholder="Contanos cómo fue…"
-              class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             ></textarea>
             <span class="text-xs text-ink-500 self-end">{{ comment.length }}/1000</span>
           </label>

@@ -42,7 +42,7 @@ const STEP_TITLES = [
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
-        <h1 class="text-2xl font-bold">
+        <h1>
           {{ resubmitMode() ? 'Corregí tu postulación' : 'Convertite en cuidador/a' }}
         </h1>
         <p class="text-ink-500 mt-1">
@@ -76,7 +76,7 @@ const STEP_TITLES = [
           (ngSubmit)="next()"
         >
           @if (error(); as err) {
-            <div role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">
+            <div role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
               <p>{{ err }}</p>
               @if (fieldErrors().length > 0) {
                 <ul class="list-disc list-inside mt-1">
@@ -98,7 +98,7 @@ const STEP_TITLES = [
                 required
                 [(ngModel)]="displayName"
                 placeholder="Ej: Laura Gómez"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
               <span class="text-xs text-ink-500"
                 >Así te van a ver las familias en el marketplace.</span
@@ -116,7 +116,7 @@ const STEP_TITLES = [
             <div class="grid grid-cols-2 gap-3">
               @for (opt of specialtyOptions; track opt[0]) {
                 <label
-                  class="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors"
+                  class="flex items-center gap-2 rounded-control border px-3 py-2 cursor-pointer transition-colors"
                   [class.border-primary-600]="specialtySel[opt[0]]"
                   [class.bg-primary-50]="specialtySel[opt[0]]"
                   [class.border-ink-300]="!specialtySel[opt[0]]"
@@ -139,7 +139,7 @@ const STEP_TITLES = [
               Sumá tus certificaciones (opcional). Si agregás una, completá institución y año.
             </p>
             @for (cert of certs; track $index) {
-              <div class="rounded-lg border border-ink-300 p-4 flex flex-col gap-3">
+              <div class="rounded-control border border-ink-300 p-4 flex flex-col gap-3">
                 <div class="flex items-start justify-between gap-2">
                   <label class="flex flex-col gap-1 flex-1">
                     <span class="text-sm font-medium text-ink-700">Título / certificación</span>
@@ -148,7 +148,7 @@ const STEP_TITLES = [
                       [name]="'cert-type-' + $index"
                       [(ngModel)]="cert.type"
                       placeholder="Ej: Enfermería"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
                   </label>
                   <button
@@ -167,7 +167,7 @@ const STEP_TITLES = [
                       [name]="'cert-inst-' + $index"
                       [(ngModel)]="cert.institution"
                       placeholder="Ej: UBA"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
                   </label>
                   <label class="flex flex-col gap-1">
@@ -177,7 +177,7 @@ const STEP_TITLES = [
                       [name]="'cert-year-' + $index"
                       [(ngModel)]="cert.year"
                       placeholder="Ej: 2015"
-                      class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
                   </label>
                 </div>
@@ -196,13 +196,13 @@ const STEP_TITLES = [
           @if (step() === 4) {
             <p class="text-sm text-ink-700">¿Qué días y horarios podés trabajar? (mínimo uno)</p>
             @for (slot of slots; track $index) {
-              <div class="flex items-end gap-3 rounded-lg border border-ink-300 p-3">
+              <div class="flex items-end gap-3 rounded-control border border-ink-300 p-3">
                 <label class="flex flex-col gap-1 flex-1">
                   <span class="text-sm font-medium text-ink-700">Día</span>
                   <select
                     [name]="'slot-day-' + $index"
                     [(ngModel)]="slot.dayOfWeek"
-                    class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   >
                     @for (day of dayLabels; track $index; let i = $index) {
                       <option [ngValue]="i">{{ day }}</option>
@@ -215,7 +215,7 @@ const STEP_TITLES = [
                     type="time"
                     [name]="'slot-from-' + $index"
                     [(ngModel)]="slot.from"
-                    class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -224,7 +224,7 @@ const STEP_TITLES = [
                     type="time"
                     [name]="'slot-to-' + $index"
                     [(ngModel)]="slot.to"
-                    class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </label>
                 <button
@@ -257,7 +257,7 @@ const STEP_TITLES = [
                   min="1"
                   [(ngModel)]="ratePerHour"
                   placeholder="Ej: 3500"
-                  class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </label>
               <label class="flex flex-col gap-1">
@@ -266,7 +266,7 @@ const STEP_TITLES = [
                   type="text"
                   name="currency"
                   [(ngModel)]="currency"
-                  class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </label>
             </div>
@@ -279,7 +279,7 @@ const STEP_TITLES = [
                 name="rateDescription"
                 [(ngModel)]="rateDescription"
                 placeholder="Ej: Incluye acompañamiento nocturno"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
             <label class="flex flex-col gap-1">
@@ -289,7 +289,7 @@ const STEP_TITLES = [
                 name="zone"
                 [(ngModel)]="zone"
                 placeholder="Ej: Palermo, CABA"
-                class="rounded-lg border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               />
             </label>
             <div>
@@ -297,7 +297,7 @@ const STEP_TITLES = [
               <div class="flex gap-3">
                 @for (opt of modalityOptions; track opt[0]) {
                   <label
-                    class="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors"
+                    class="flex items-center gap-2 rounded-control border px-3 py-2 cursor-pointer transition-colors"
                     [class.border-primary-600]="modalitySel[opt[0]]"
                     [class.bg-primary-50]="modalitySel[opt[0]]"
                     [class.border-ink-300]="!modalitySel[opt[0]]"
@@ -315,7 +315,7 @@ const STEP_TITLES = [
             </div>
 
             <!-- Resumen -->
-            <div class="rounded-lg bg-primary-50 p-4 text-sm flex flex-col gap-1">
+            <div class="rounded-control bg-primary-50 p-4 text-sm flex flex-col gap-1">
               <p class="font-semibold text-primary-700 mb-1">Resumen de tu postulación</p>
               <p><span class="text-ink-500">Nombre:</span> {{ displayName }}</p>
               <p>

@@ -112,7 +112,7 @@ export class KrLineChart {
             pointRadius: 0,
             pointHoverRadius: 0,
             fill: '-1',
-            backgroundColor: 'rgba(5,150,105,0.08)',
+            backgroundColor: 'rgba(27,122,85,0.08)',
           },
         ]
       : [];

@@ -22,7 +22,7 @@ const TABS: { key: Tab; label: string }[] = [
     <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
       ← Volver a pacientes
     </a>
-    <h1 class="text-2xl font-bold mt-2 mb-6">Cuidadores del paciente</h1>
+    <h1 class="mt-2 mb-6">Cuidadores del paciente</h1>
 
     <div class="flex flex-wrap gap-2 mb-6">
       @for (t of tabs; track t.key) {
@@ -42,7 +42,7 @@ const TABS: { key: Tab; label: string }[] = [
     </div>
 
     @if (error(); as err) {
-      <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2 mb-4">{{ err }}</p>
+      <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">{{ err }}</p>
     }
 
     @if (!loaded()) {

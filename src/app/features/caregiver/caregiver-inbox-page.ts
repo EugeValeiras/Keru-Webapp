@@ -34,10 +34,10 @@ const CONTACT_LABELS: Record<string, string> = {
   imports: [KrAvatar, KrBadge, KrEmptyState, ReputationPanel],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
-      <h1 class="text-2xl font-bold">Solicitudes</h1>
+      <h1>Solicitudes</h1>
 
       @if (error(); as err) {
-        <p role="alert" class="text-sm text-danger bg-red-50 rounded-lg px-3 py-2">{{ err }}</p>
+        <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">{{ err }}</p>
       }
 
       <!-- Chips de filtro -->
@@ -81,7 +81,7 @@ const CONTACT_LABELS: Record<string, string> = {
             </div>
 
             @if (businessMsg()[r.id]; as msg) {
-              <p class="text-sm text-warning bg-amber-50 rounded-lg px-3 py-2">{{ msg }}</p>
+              <p class="text-sm text-warning bg-warning-50 rounded-control px-3 py-2">{{ msg }}</p>
             }
 
             <div class="flex items-center gap-3">
@@ -99,7 +99,7 @@ const CONTACT_LABELS: Record<string, string> = {
                   type="button"
                   (click)="decline(r)"
                   [disabled]="acting() === r.id"
-                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-red-50 hover:text-danger disabled:opacity-50 transition-colors"
+                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-danger-50 hover:text-danger disabled:opacity-50 transition-colors"
                 >
                   Rechazar
                 </button>
