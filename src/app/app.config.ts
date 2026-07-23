@@ -4,7 +4,7 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withViewTransitions } from '@angular/router';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -14,7 +14,9 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    // Motion v2 (KER-21): fade/slide sutil entre páginas vía View Transitions API;
+    // las animaciones viven en styles.css y se apagan con prefers-reduced-motion.
+    provideRouter(routes, withViewTransitions()),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
   ],
 };

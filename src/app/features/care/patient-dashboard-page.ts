@@ -4,6 +4,7 @@ import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, CatalogMetric, Catalogs, PatientState } from '../../core/api/api.types';
 import { CatalogService } from '../../core/catalogs/catalog.service';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { timeAgo } from '../../shared/utils/dates';
 
 interface MetricCard {
@@ -20,7 +21,7 @@ const POLL_MS = 45_000;
 /** UC-14: estado actual del paciente. Se monta bajo /app y /caregiver → links SIEMPRE relativos. */
 @Component({
   selector: 'kr-patient-dashboard-page',
-  imports: [RouterLink, KrEmptyState],
+  imports: [RouterLink, KrEmptyState, KrSkeleton],
   template: `
     @if (forbidden()) {
       <kr-empty-state
@@ -119,7 +120,7 @@ const POLL_MS = 45_000;
           </div>
         }
       } @else if (loading()) {
-        <p class="text-ink-500 text-sm">Cargando estado…</p>
+        <kr-skeleton variant="metrics" [count]="3" />
       }
     }
   `,

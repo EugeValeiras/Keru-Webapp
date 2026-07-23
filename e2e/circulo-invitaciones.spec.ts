@@ -1,4 +1,5 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
+import { E2E_CONTEXT } from './context-options';
 
 /**
  * Círculo del paciente por UI (KER-1/KER-2 + ficha editable), con actores en
@@ -38,6 +39,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     browser = b;
     // Permisos de clipboard para poder verificar el "Copiar" del modal.
     familyCtx = await browser.newContext({
+      ...E2E_CONTEXT,
       permissions: ['clipboard-read', 'clipboard-write'],
     });
     family = await familyCtx.newPage();
@@ -97,7 +99,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
   });
 
   test('c. el invitado confirma en un contexto nuevo y ve al paciente', async () => {
-    guestCtx = await browser.newContext();
+    guestCtx = await browser.newContext(E2E_CONTEXT);
     guest = await guestCtx.newPage();
 
     await guest.goto(inviteLink);
@@ -187,7 +189,7 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
   });
 
   test('h. la landing rechaza el link revocado', async () => {
-    strangerCtx = await browser.newContext();
+    strangerCtx = await browser.newContext(E2E_CONTEXT);
     const stranger = await strangerCtx.newPage();
 
     await stranger.goto(revokedLink);

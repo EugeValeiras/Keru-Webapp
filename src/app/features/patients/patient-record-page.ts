@@ -13,6 +13,7 @@ import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { formatDate } from '../../shared/utils/dates';
 
 const LINK_ROLE_LABELS: Record<PatientLinkRole, string> = {
@@ -30,7 +31,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
 /** UC-22 · Ficha del paciente: vista para cualquier vinculado, edición solo titular/gestor. */
 @Component({
   selector: 'kr-patient-record-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrPhotoInput],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrPhotoInput, KrSkeleton],
   template: `
     <div class="max-w-2xl mx-auto">
       <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
@@ -51,7 +52,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
           subtitle="Tu cuenta no está vinculada a esta persona. Pedile una invitación a quien administra su círculo."
         />
       } @else if (loading()) {
-        <p class="text-ink-500 text-sm">Cargando ficha…</p>
+        <kr-skeleton variant="detail" />
       } @else if (record(); as r) {
         @if (error(); as err) {
           <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">
@@ -151,7 +152,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                 }
               </ul>
             } @else {
-              <p class="text-ink-500 text-sm">Cargando círculo…</p>
+              <kr-skeleton variant="list" [count]="2" />
             }
           </section>
         } @else {

@@ -6,6 +6,7 @@ import { AuthStore } from '../../core/auth/auth-store';
 import { CatalogService } from '../../core/catalogs/catalog.service';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { formatDateTime } from '../../shared/utils/dates';
 
 type Filter = 'all' | HistoryItem['type'];
@@ -40,7 +41,7 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
 /** Historial clínico (DESC del server, filtro client-side). Montado bajo /app y /caregiver. */
 @Component({
   selector: 'kr-patient-history-page',
-  imports: [RouterLink, KrBadge, KrEmptyState],
+  imports: [RouterLink, KrBadge, KrEmptyState, KrSkeleton],
   template: `
     @if (forbidden()) {
       <kr-empty-state
@@ -93,7 +94,7 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
       }
 
       @if (!loaded()) {
-        <p class="text-ink-500 text-sm">Cargando historial…</p>
+        <kr-skeleton variant="list" [count]="4" />
       } @else if (filtered().length === 0) {
         <kr-empty-state
           icon="🗂️"
@@ -101,7 +102,7 @@ const TYPE_ICONS: Record<HistoryItem['type'], string> = {
           subtitle="Cuando se carguen vitales, medicación o novedades, van a aparecer acá."
         />
       } @else {
-        <ol class="flex flex-col gap-3">
+        <ol class="kr-stagger flex flex-col gap-3">
           @for (item of visible(); track item.id) {
             <li class="bg-surface rounded-card shadow-card p-6">
               <div class="flex flex-wrap items-center gap-2 mb-2">

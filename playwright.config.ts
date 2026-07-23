@@ -25,5 +25,11 @@ export default defineConfig({
   use: {
     baseURL: process.env['E2E_BASE_URL'] || fileBaseUrl || 'http://127.0.0.1:4200',
     headless: true,
+    // Motion v2 (KER-21): todas las animaciones respetan prefers-reduced-motion,
+    // así que emularlo las apaga durante los tests y axe no muestrea colores a
+    // mitad de animación (el flake de KER-20). Esto solo cubre los fixtures por
+    // defecto: los contextos que las suites crean a mano (browser.newContext())
+    // NO lo heredan y deben pasar E2E_CONTEXT (e2e/context-options.ts).
+    reducedMotion: 'reduce',
   },
 });

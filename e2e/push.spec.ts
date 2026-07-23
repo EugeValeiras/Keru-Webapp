@@ -1,4 +1,5 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
+import { E2E_CONTEXT } from './context-options';
 
 /**
  * UC-18 · Push del navegador para alertas, adicional a la campana (KER-4).
@@ -94,7 +95,7 @@ test.describe.serial('UC-18 · push aceptado: suscripción, alerta con push caí
 
   test.beforeAll(async ({ browser: b }) => {
     browser = b;
-    ctx = await browser.newContext();
+    ctx = await browser.newContext(E2E_CONTEXT);
     await ctx.addInitScript(STUB_SCRIPT, pushStubs('granted'));
     family = await ctx.newPage();
   });
@@ -186,7 +187,7 @@ test.describe.serial('UC-18 A1 · permiso rechazado: solo campana', () => {
   const EMAIL = `familia.push.a1+${run}@e2e.com`;
 
   test.beforeAll(async ({ browser }) => {
-    ctx = await browser.newContext();
+    ctx = await browser.newContext(E2E_CONTEXT);
     await ctx.addInitScript(STUB_SCRIPT, pushStubs('denied'));
     family = await ctx.newPage();
   });

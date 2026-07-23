@@ -1,4 +1,5 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
+import { E2E_CONTEXT } from './context-options';
 
 /**
  * Circuito completo del MVP por UI, con tres actores en contextos separados:
@@ -15,7 +16,9 @@ const CAREGIVER_EMAIL = `cuidador+${run}@e2e.com`;
 const PASSWORD = 'S3gura!123';
 const CAREGIVER_NAME = `Cuidador E2E ${run}`;
 const PATIENT_NAME = 'Elena Test';
-const ZONE = 'Belgrano E2E';
+// Zona única por corrida (como en a11y.spec): con zona fija, las corridas
+// acumulan cuidadores y el nuevo cae detrás del corte de "Mostrar más" (50).
+const ZONE = `Belgrano E2E ${run}`;
 
 /** datetime-local: 'YYYY-MM-DDTHH:mm' en hora local. */
 function toLocalDateTime(date: Date): string {
@@ -34,7 +37,7 @@ test.describe.serial('Circuito MVP Keru', () => {
 
   test.beforeAll(async ({ browser: b }) => {
     browser = b;
-    familyCtx = await browser.newContext();
+    familyCtx = await browser.newContext(E2E_CONTEXT);
     family = await familyCtx.newPage();
   });
 
@@ -72,7 +75,7 @@ test.describe.serial('Circuito MVP Keru', () => {
   });
 
   test('c. signup de cuidador y onboarding completo', async () => {
-    caregiverCtx = await browser.newContext();
+    caregiverCtx = await browser.newContext(E2E_CONTEXT);
     caregiver = await caregiverCtx.newPage();
 
     await caregiver.goto('/signup');
@@ -115,7 +118,7 @@ test.describe.serial('Circuito MVP Keru', () => {
   });
 
   test('d. admin aprueba la postulación', async () => {
-    adminCtx = await browser.newContext();
+    adminCtx = await browser.newContext(E2E_CONTEXT);
     admin = await adminCtx.newPage();
 
     await admin.goto('/login');
