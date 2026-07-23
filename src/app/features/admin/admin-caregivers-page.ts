@@ -69,7 +69,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
     } @else if (result(); as res) {
       @if (res.items.length === 0) {
         <kr-empty-state
-          icon="🔍"
+          scene="search"
           title="Sin resultados"
           subtitle="Probá con otros filtros o búsqueda."
         />

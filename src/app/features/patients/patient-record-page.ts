@@ -14,6 +14,7 @@ import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
+import { ToastService } from '../../shared/ui/toast.service';
 import { formatDate } from '../../shared/utils/dates';
 
 const LINK_ROLE_LABELS: Record<PatientLinkRole, string> = {
@@ -39,15 +40,9 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
       </a>
       <h1 class="mt-2 mb-6">Ficha del paciente</h1>
 
-      @if (saved()) {
-        <div class="bg-success-50 text-success rounded-card px-4 py-3 mb-4 text-sm">
-          Ficha actualizada.
-        </div>
-      }
-
       @if (forbidden()) {
         <kr-empty-state
-          icon="🔒"
+          scene="locked"
           title="Sin acceso a este paciente"
           subtitle="Tu cuenta no está vinculada a esta persona. Pedile una invitación a quien administra su círculo."
         />
@@ -320,6 +315,7 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
 })
 export class PatientRecordPage {
   private readonly api = inject(MembershipApi);
+  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly patientId = this.route.snapshot.paramMap.get('patientId')!;
 
@@ -332,7 +328,6 @@ export class PatientRecordPage {
   readonly forbidden = signal(false);
   readonly editing = signal(false);
   readonly saving = signal(false);
-  readonly saved = signal(false);
   readonly error = signal<string | null>(null);
 
   // Estado del form de edición (ngModel)
@@ -397,7 +392,6 @@ export class PatientRecordPage {
     this.contactName = r.emergencyContact.name;
     this.contactPhone = r.emergencyContact.phone;
     this.contactRelationship = r.emergencyContact.relationship ?? '';
-    this.saved.set(false);
     this.error.set(null);
     this.editing.set(true);
   }
@@ -486,8 +480,8 @@ export class PatientRecordPage {
         this.saving.set(false);
         this.record.set(record);
         this.editing.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.saved.set(false), 4000);
+        // Texto exacto asertado en e2e/circulo-invitaciones.spec (test e).
+        this.toast.success('Ficha actualizada.');
       },
       error: (err: ApiError) => {
         this.saving.set(false);

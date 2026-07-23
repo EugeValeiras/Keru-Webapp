@@ -148,7 +148,10 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await family.getByLabel('Condición principal').fill(NEW_CONDITION);
     await family.getByRole('button', { name: 'Guardar', exact: true }).click();
 
-    await expect(family.getByText('Ficha actualizada.')).toBeVisible({ timeout: 15_000 });
+    // La confirmación llega como toast dentro de la región viva polite (KER-23).
+    await expect(
+      family.getByRole('status').filter({ hasText: 'Ficha actualizada.' }),
+    ).toBeVisible({ timeout: 15_000 });
     await expect(family.getByText(NEW_CONDITION)).toBeVisible();
   });
 

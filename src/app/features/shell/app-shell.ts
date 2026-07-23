@@ -5,6 +5,7 @@ import { ActivePatientStore } from '../../core/patient-context/active-patient.st
 import { PushStore } from '../../core/notifications/push.store';
 import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
+import { KrToastOutlet } from '../../shared/ui/kr-toast';
 
 interface NavItem {
   label: string;
@@ -34,7 +35,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, KrToastOutlet],
   template: `
     @if (isFamily()) {
       <!-- UC-18 flujo 1: oferta de push en el primer inicio; A1 degrada a solo campana. -->
@@ -87,6 +88,8 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     <main class="max-w-6xl mx-auto px-4 py-8">
       <router-outlet />
     </main>
+
+    <kr-toast-outlet />
   `,
 })
 export class AppShell {

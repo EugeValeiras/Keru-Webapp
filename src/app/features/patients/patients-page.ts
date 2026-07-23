@@ -24,7 +24,7 @@ import { InviteModal } from './invite-modal';
       <p class="text-ink-500 text-sm">Cargando pacientes…</p>
     } @else if (store.patients().length === 0) {
       <kr-empty-state
-        icon="🫂"
+        scene="patients"
         title="Todavía no registraste pacientes"
         subtitle="Registrá a la persona que querés cuidar para empezar a llevar su historia clínica."
       >

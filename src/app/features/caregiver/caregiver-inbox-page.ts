@@ -61,7 +61,7 @@ const CONTACT_LABELS: Record<string, string> = {
       @if (loading()) {
         <p class="text-ink-500">Cargando solicitudes…</p>
       } @else if (filtered().length === 0) {
-        <kr-empty-state icon="📭" title="Sin solicitudes por ahora" />
+        <kr-empty-state scene="inbox" title="Sin solicitudes por ahora" />
       } @else {
         @for (r of filtered(); track r.id) {
           <div class="bg-surface rounded-card shadow-card p-6 flex flex-col gap-4">

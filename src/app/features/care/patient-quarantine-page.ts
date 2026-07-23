@@ -47,7 +47,7 @@ const STATUS_TONES: Record<QuarantinedRecord['status'], BadgeTone> = {
   template: `
     @if (forbidden()) {
       <kr-empty-state
-        icon="🔒"
+        scene="locked"
         title="Sin acceso a este paciente"
         subtitle="Solo el círculo del paciente puede ver los registros en cuarentena."
       />

@@ -15,6 +15,7 @@ import { KrBadge } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrRating } from '../../shared/ui/kr-rating';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
+import { ToastService } from '../../shared/ui/toast.service';
 
 const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
   ['certifications', 'Certificaciones'],
@@ -125,7 +126,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
       <kr-skeleton variant="cards" [count]="6" />
     } @else if (cards().length === 0) {
       <kr-empty-state
-        icon="🔍"
+        scene="search"
         [title]="onlyFavorites() ? 'Todavía no marcaste favoritos' : 'No encontramos cuidadores'"
         [subtitle]="
           onlyFavorites()
@@ -220,6 +221,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 })
 export class MarketplacePage {
   private readonly api = inject(HiringApi);
+  private readonly toast = inject(ToastService);
 
   protected readonly specialtyOptions = Object.entries(SPECIALTY_LABELS);
   protected readonly modalityOptions = Object.entries(MODALITY_LABELS);
@@ -297,9 +299,15 @@ export class MarketplacePage {
     this.setFavorite(card.id, !wasFavorite);
     const call = wasFavorite ? this.api.removeFavorite(card.id) : this.api.addFavorite(card.id);
     call.subscribe({
+      next: () =>
+        this.toast.success(
+          wasFavorite
+            ? `${card.displayName} ya no está en tus favoritos.`
+            : `${card.displayName} quedó en tus favoritos.`,
+        ),
       error: (err: ApiError) => {
         this.setFavorite(card.id, wasFavorite, true);
-        this.error.set(err.message);
+        this.toast.error(err.message);
       },
     });
   }
