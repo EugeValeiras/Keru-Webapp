@@ -44,6 +44,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/invite-landing-page').then((m) => m.InviteLandingPage),
   },
   {
+    // UC-23 · "Mi perfil" de la cuenta: accesible a cualquier rol autenticado (usa el shell).
+    path: 'perfil',
+    component: AppShell,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/profile/account-profile-page').then((m) => m.AccountProfilePage),
+      },
+    ],
+  },
+  {
     path: 'app',
     component: AppShell,
     canActivate: [authGuard, roleGuard('family', 'patient')],

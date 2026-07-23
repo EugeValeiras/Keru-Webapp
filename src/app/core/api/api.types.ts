@@ -7,6 +7,10 @@ export type AuthResponse = Schemas['AuthResponseDto'];
 export type LoginDto = Schemas['LoginDto'];
 export type SignupDto = Schemas['SignupDto'];
 
+// UC-23 · Perfil de la cuenta (KER-41): datos propios + edición de nombre y foto.
+export type AccountProfile = Schemas['AccountResponseDto'];
+export type UpdateAccountDto = Schemas['UpdateAccountDto'];
+
 // KER-38 · logout server-side + step-up (NFR-33/41)
 export type LogoutResponse = Schemas['LogoutResponseDto'];
 export type StepUpResponse = Schemas['StepUpResponseDto'];
