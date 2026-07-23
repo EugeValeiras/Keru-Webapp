@@ -9,6 +9,7 @@ import { PushStore } from '../../core/notifications/push.store';
 import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
 import { StepUpModal } from './step-up-modal';
+import { KrPatientPicker } from './patient-picker';
 import { KrToastOutlet } from '../../shared/ui/kr-toast';
 
 interface NavItem {
@@ -39,7 +40,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, StepUpModal, KrToastOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, StepUpModal, KrPatientPicker, KrToastOutlet],
   template: `
     @if (isFamily()) {
       <!-- UC-18 flujo 1: oferta de push en el primer inicio; A1 degrada a solo campana. -->
@@ -64,16 +65,11 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         <div class="flex items-center gap-3">
           @if (isFamily()) {
             @if (patients.patients().length > 1) {
-              <select
-                [value]="patients.activePatientId()"
-                (change)="onPatientChange($event)"
-                class="rounded-pill border border-ink-300 px-3 py-1.5 text-sm bg-surface"
-                aria-label="Paciente activo"
-              >
-                @for (p of patients.patients(); track p.id) {
-                  <option [value]="p.id">{{ p.fullName }}</option>
-                }
-              </select>
+              <kr-patient-picker
+                [patients]="patients.patients()"
+                [activeId]="patients.activePatientId()"
+                (select)="onPatientChange($event)"
+              />
             }
             <kr-notification-bell />
           }
@@ -127,8 +123,7 @@ export class AppShell {
     });
   }
 
-  onPatientChange(event: Event): void {
-    const id = (event.target as HTMLSelectElement).value;
+  onPatientChange(id: string): void {
     this.patients.setActive(id);
     if (this.router.url.includes('/app/patients/')) {
       void this.router.navigate(['/app/patients', id, 'dashboard']);

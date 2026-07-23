@@ -15,6 +15,7 @@ export class ActivePatientStore {
 
   readonly patients = signal<Patient[]>([]);
   readonly loaded = signal(false);
+  private loading = false;
   private readonly activeId = signal<string | null>(null);
 
   readonly activePatientId = computed(() => {
@@ -35,12 +36,25 @@ export class ActivePatientStore {
   }
 
   load(): void {
-    this.api.getPatients().subscribe((patients) => {
-      this.patients.set(patients);
-      this.loaded.set(true);
-      if (!this.activeId()) {
-        this.activeId.set(localStorage.getItem(this.storageKey));
-      }
+    // Dedup de llamadas concurrentes EN VUELO (el shell y las páginas
+    // por-paciente pueden pedir la carga a la vez). No corta si ya está
+    // cargado: load() también refresca tras registrar un paciente (UC-01).
+    if (this.loading) {
+      return;
+    }
+    this.loading = true;
+    this.api.getPatients().subscribe({
+      next: (patients) => {
+        this.patients.set(patients);
+        this.loaded.set(true);
+        this.loading = false;
+        if (!this.activeId()) {
+          this.activeId.set(localStorage.getItem(this.storageKey));
+        }
+      },
+      error: () => {
+        this.loading = false;
+      },
     });
   }
 

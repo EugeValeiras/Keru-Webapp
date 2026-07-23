@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   ApiError,
@@ -9,6 +9,7 @@ import {
   Modality,
 } from '../../core/api/api.types';
 import { HiringApi } from '../../core/api/hiring-api.service';
+import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrRating } from '../../shared/ui/kr-rating';
@@ -33,6 +34,41 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
 
     @if (error(); as err) {
       <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mb-4">{{ err }}</p>
+    }
+
+    <!-- UC-22 (KER-40): el contexto lo gobierna el paciente activo; opción visible "Todos". -->
+    @if (multiPatient()) {
+      <div class="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Paciente de las contrataciones">
+        <span class="text-sm text-ink-500 mr-1">Mostrando:</span>
+        <button
+          type="button"
+          data-testid="scope-patient"
+          (click)="patientScope.set('patient')"
+          [attr.aria-pressed]="patientScope() === 'patient'"
+          class="rounded-pill px-4 py-1.5 text-sm font-medium border transition-colors"
+          [class]="
+            patientScope() === 'patient'
+              ? 'bg-primary-600 text-white border-primary-600'
+              : 'bg-surface text-ink-700 border-ink-300 hover:border-primary-600'
+          "
+        >
+          {{ activePatientName() }}
+        </button>
+        <button
+          type="button"
+          data-testid="scope-all"
+          (click)="patientScope.set('all')"
+          [attr.aria-pressed]="patientScope() === 'all'"
+          class="rounded-pill px-4 py-1.5 text-sm font-medium border transition-colors"
+          [class]="
+            patientScope() === 'all'
+              ? 'bg-primary-600 text-white border-primary-600'
+              : 'bg-surface text-ink-700 border-ink-300 hover:border-primary-600'
+          "
+        >
+          Todos los pacientes
+        </button>
+      </div>
     }
 
     <!-- Chips de filtro -->
@@ -70,11 +106,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
     } @else if (filtered().length === 0) {
       <kr-empty-state
         icon="🗓️"
-        [title]="
-          statusFilter() === null
-            ? 'Todavía no tenés contrataciones'
-            : 'Nada por acá con ese estado'
-        "
+        [title]="emptyTitle()"
         subtitle="Buscá un cuidador y mandá tu primera solicitud."
       >
         <a
@@ -95,6 +127,11 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
                   {{ format(r.startDate) }} → {{ format(r.endDate) }} ·
                   {{ modalityLabel(r.modality) }}
                 </p>
+                @if (multiPatient()) {
+                  <p class="text-sm text-ink-500 mt-0.5" data-testid="card-patient">
+                    Paciente: <span class="text-ink-700 font-medium">{{ patientName(r.patientId) }}</span>
+                  </p>
+                }
               </div>
               <kr-badge [tone]="toneFor(r.status)">{{ statusLabels[r.status] }}</kr-badge>
             </div>
@@ -166,6 +203,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
 })
 export class HiringsPage {
   private readonly api = inject(HiringApi);
+  private readonly patients = inject(ActivePatientStore);
 
   protected readonly statusOptions = Object.entries(HIRING_STATUS_LABELS) as [
     HiringStatus,
@@ -181,15 +219,61 @@ export class HiringsPage {
   readonly cancellingId = signal<string | null>(null);
   readonly reviewRequestId = signal<string | null>(null);
 
+  /** UC-22: la vista respeta el paciente activo; 'all' es la vista global opt-in. */
+  readonly patientScope = signal<'patient' | 'all'>('patient');
+
+  readonly multiPatient = computed(() => this.patients.patients().length > 1);
+  readonly activePatientName = computed(() => this.patients.activePatient()?.fullName ?? 'Paciente');
+
+  private readonly patientNames = computed(() => {
+    const map = new Map<string, string>();
+    for (const p of this.patients.patients()) {
+      map.set(p.id, p.fullName);
+    }
+    return map;
+  });
+
+  readonly emptyTitle = computed(() => {
+    if (this.statusFilter() !== null) {
+      return 'Nada por acá con ese estado';
+    }
+    if (this.multiPatient() && this.patientScope() === 'patient') {
+      return `${this.activePatientName()} todavía no tiene contrataciones`;
+    }
+    return 'Todavía no tenés contrataciones';
+  });
+
   readonly filtered = computed(() => {
     const status = this.statusFilter();
-    const list = this.requests();
-    return status === null ? list : list.filter((r) => r.status === status);
+    // Solo hay ambigüedad de contexto con más de un paciente (UC-22 A2).
+    const scopeToPatient = this.multiPatient() && this.patientScope() === 'patient';
+    const activeId = this.patients.activePatientId();
+    return this.requests().filter((r) => {
+      if (status !== null && r.status !== status) {
+        return false;
+      }
+      if (scopeToPatient && activeId && r.patientId !== activeId) {
+        return false;
+      }
+      return true;
+    });
   });
 
   constructor() {
+    // El shell ya carga los perfiles; idempotente por si se entra directo acá.
+    this.patients.load();
     // Refetch siempre al entrar: los estados cambian por barridos del sistema.
     this.fetch();
+    // Elegir un paciente en el selector devuelve el contexto a ese paciente
+    // (aunque se estuviera viendo "Todos"): cambiar el selector filtra la lista.
+    effect(() => {
+      this.patients.activePatientId();
+      this.patientScope.set('patient');
+    });
+  }
+
+  patientName(id: string): string {
+    return this.patientNames().get(id) ?? 'Paciente';
   }
 
   private fetch(): void {
