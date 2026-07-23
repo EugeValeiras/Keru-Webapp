@@ -43,13 +43,13 @@ const BADGE_ITEMS = [
         @switch (p.status) {
           @case ('pending') {
             <div class="rounded-card bg-warning-50 border border-warning-600/25 p-6">
-              <p class="text-warning font-semibold text-lg">⏳ Tu perfil está en revisión.</p>
+              <p class="text-warning font-semibold text-lg">Tu perfil está en revisión.</p>
               <p class="text-ink-700 mt-1">Te avisamos cuando esté aprobado.</p>
             </div>
           }
           @case ('approved') {
             <div class="rounded-card bg-success-50 border border-success-600/25 p-6">
-              <p class="text-success font-semibold text-lg">✅ ¡Perfil aprobado!</p>
+              <p class="text-success font-semibold text-lg">✓ ¡Perfil aprobado!</p>
               <p class="text-ink-700 mt-1">Ya sos visible en el marketplace.</p>
               <!-- UC-02 A3: editar sin re-aprobación (tarifa efectivo-fechada) -->
               <a

@@ -2,7 +2,7 @@
 
 SPA Angular del marketplace de cuidadores domiciliarios **Keru**. Una sola app con tres experiencias ruteadas por el rol del JWT: **familia/paciente** (marketplace + seguimiento clínico), **cuidador** (onboarding, bandeja, registro clínico) y **admin** (back-office de aprobación).
 
-Estética: look Airbnb con paleta violeta — Tailwind v4 + design system propio en `shared/ui` (tokens en `src/styles.css`).
+Estética: identidad **"abrazo profesional"** (violeta cálido, Fraunces + Figtree, forma blanda) definida en el brand book del repo paraguas — [`../docs/brand/brand-book.md`](../docs/brand/brand-book.md), **referencia de diseño obligatoria para toda tarea de UI**: paleta, tipografía, tono de voz, iconografía y motion salen de ahí, no se inventan por tarea. Implementada con Tailwind v4 + design system propio en `shared/ui` (tokens en `src/styles.css`).
 
 ## Stack
 

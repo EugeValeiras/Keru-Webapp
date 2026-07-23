@@ -30,7 +30,7 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
       } @else if (pending().length === 0) {
         <kr-empty-state
           icon="🎉"
-          title="Sin pendientes 🎉"
+          title="Sin pendientes"
           subtitle="No hay postulaciones esperando revisión."
         />
       } @else {
