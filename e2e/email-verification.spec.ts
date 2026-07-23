@@ -16,8 +16,28 @@ import { test, expect, Page } from '@playwright/test';
  */
 
 async function expectAxeClean(page: Page, screen: string): Promise<void> {
-  // Dejar asentar el render (chunk lazy + fuentes) antes de muestrear contraste (ver KER-46).
+  // Dejar asentar el render antes de muestrear contraste. En pantallas con datos e imágenes
+  // (el marketplace tras el signup) axe puede muestrear el texto de una card de cuidador antes
+  // de que carguen sus datos/imagen y se pinte el fondo → color-contrast falso (ver KER-46/20).
+  // Esperamos red quieta + fuentes + imágenes cargadas + un frame antes de analizar.
+  await page.waitForLoadState('networkidle');
   await page.evaluate(() => (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from(document.images)
+        .filter((img) => !img.complete)
+        .map((img) => new Promise((res) => (img.onload = img.onerror = () => res(null)))),
+    ),
+  );
+  // Causa raíz del color-contrast falso: en ng serve (dev, también en CI) los estilos de cada
+  // componente se inyectan async; hasta que se pinta el fondo de las cards del marketplace,
+  // axe mide el texto contra un fondo equivocado. Esperar a que una card tenga fondo real.
+  await page.waitForFunction(() => {
+    const card = document.querySelector('.p-6.transition-shadow');
+    if (!card) return true; // pantalla sin cards (verify-email): nada que asentar
+    const bg = getComputedStyle(card).backgroundColor;
+    return bg !== '' && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)';
+  });
   await page.waitForTimeout(400);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

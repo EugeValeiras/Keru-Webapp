@@ -1,5 +1,6 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
 import { E2E_CONTEXT } from './context-options';
+import { verifyEmailViaLink } from './inbox';
 
 /**
  * Círculo del paciente por UI (KER-1/KER-2 + ficha editable), con actores en
@@ -59,6 +60,11 @@ test.describe.serial('Círculo: invitaciones, roles y ficha', () => {
     await family.locator('input[type="password"]').fill(PASSWORD);
     await family.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(family).toHaveURL(/\/app\/marketplace$/, { timeout: 15_000 });
+
+    // KER-49 · el self-signup queda con email NO verificado y emitir una invitación está
+    // gateado (403 EMAIL_NOT_VERIFIED). El titular verifica su email por el link real (como
+    // la persona) antes de invitar; sin esto, el gate corta el flujo del círculo.
+    await verifyEmailViaLink(family, FAMILY_EMAIL);
 
     await family.goto('/app/patients');
     await family.getByRole('link', { name: 'Registrar paciente' }).first().click();
