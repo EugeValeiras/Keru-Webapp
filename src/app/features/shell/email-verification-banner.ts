@@ -16,7 +16,7 @@ import { ToastService } from '../../shared/ui/toast.service';
       <div
         class="bg-warning-50 border-b border-warning-600/40"
         role="region"
-        aria-label="Verificá tu email"
+        aria-label="Verificación de cuenta pendiente"
       >
         <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3 flex-wrap">
           <span class="text-sm text-ink-700 flex-1 min-w-48">

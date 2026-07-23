@@ -63,7 +63,7 @@ test('tras el self-signup aparece el banner de verificación con reenviar; reenv
 
   // Aterriza en la app (marketplace) con el banner persistente de verificación.
   await expect(page).toHaveURL(/\/app\/marketplace$/);
-  const banner = page.getByRole('region', { name: 'Verificá tu email' });
+  const banner = page.getByRole('region', { name: 'Verificación de cuenta pendiente' });
   await expect(banner).toBeVisible();
   await expect(banner).toContainText(/verificá tu email/i);
 
