@@ -30,6 +30,12 @@ export class AuthStore {
   readonly email = computed(() => this.session()?.email ?? '');
   /** UC-23 · Foto de la cuenta: signal que el header consume para pintar el avatar sin recargar. */
   readonly photoUrl = computed(() => this.session()?.photoUrl ?? null);
+  /**
+   * UC-04 A5 · ¿el email de la cuenta está verificado? El self-signup arranca en false. Ante una
+   * sesión sin el campo (persistida antes del feature) tratamos como verificada: no molestamos con
+   * el banner a cuentas legacy; solo lo mostramos cuando la API dice explícitamente false.
+   */
+  readonly emailVerified = computed(() => this.session()?.emailVerified ?? true);
 
   setSession(auth: AuthResponse): void {
     this.session.set(auth);
