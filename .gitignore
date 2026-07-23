@@ -48,3 +48,4 @@ Thumbs.db
 /blob-report
 /playwright/.cache
 .e2e-base-url
+serve-*.log
