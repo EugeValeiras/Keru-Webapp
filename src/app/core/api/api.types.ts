@@ -7,17 +7,9 @@ export type AuthResponse = Schemas['AuthResponseDto'];
 export type LoginDto = Schemas['LoginDto'];
 export type SignupDto = Schemas['SignupDto'];
 
-// KER-38 · logout server-side + step-up (NFR-33/41). Declarados a mano: regenerar schema.d.ts
-// arrastra el drift pre-existente del contrato de hiring (finished→completed, KER-31) que es
-// de otra tarea. Shapes verificadas contra auth.dto.ts de Keru-API.
-export interface LogoutResponse {
-  ok: boolean;
-}
-export interface StepUpResponse {
-  /** Token corto con claim step_up: acompaña la operación sensible en x-step-up-token. */
-  stepUpToken: string;
-  expiresInSeconds: number;
-}
+// KER-38 · logout server-side + step-up (NFR-33/41)
+export type LogoutResponse = Schemas['LogoutResponseDto'];
+export type StepUpResponse = Schemas['StepUpResponseDto'];
 
 export type Role = AuthResponse['role'];
 
@@ -290,7 +282,7 @@ export const HIRING_STATUS_LABELS: Record<HiringStatus, string> = {
   'in-progress': 'En curso',
   declined: 'Rechazada',
   cancelled: 'Cancelada',
-  finished: 'Finalizada',
+  completed: 'Finalizada',
   expired: 'Vencida',
 };
 

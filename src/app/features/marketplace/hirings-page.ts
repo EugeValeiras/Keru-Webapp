@@ -18,7 +18,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
   pending: 'warning',
   accepted: 'primary',
   'in-progress': 'primary',
-  finished: 'success',
+  completed: 'success',
   declined: 'danger',
   cancelled: 'neutral',
   expired: 'neutral',
@@ -127,7 +127,7 @@ const STATUS_TONES: Record<HiringStatus, BadgeTone> = {
                 </button>
               </div>
             }
-            @if (r.status === 'finished') {
+            @if (r.status === 'completed') {
               <div>
                 <button
                   type="button"

@@ -38,6 +38,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 · Cerrar sesión: revoca el token (denylist jti) y las push de la sesión (NFR-41) */
+        post: operations["AuthController_logout_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/step-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A3 · Re-confirmar password: emite token corto step_up para operaciones sensibles (NFR-33) */
+        post: operations["AuthController_stepUp_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients": {
         parameters: {
             query?: never;
@@ -208,7 +242,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** UC-19 · Aprobar cuenta (la publica en el marketplace) */
+        /** UC-19 · Aprobar cuenta (la publica en el marketplace). Exige step-up (NFR-33) */
         post: operations["AdminCaregiverController_approve_v1"];
         delete?: never;
         options?: never;
@@ -225,7 +259,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** UC-19 · Rechazar cuenta (con motivo) */
+        /** UC-19 · Rechazar cuenta (con motivo). Exige step-up (NFR-33) */
         post: operations["AdminCaregiverController_reject_v1"];
         delete?: never;
         options?: never;
@@ -477,6 +511,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hiring-requests/rehire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-16 A2 · Rehire urgente hacia un cuidador previo (KER-32)
+         * @description Re-solicitud dirigida a un cuidador que ya atendió al paciente, sin re-búsqueda. Re-pinnea la tarifa vigente (NFR-03/21) y la respuesta incluye el diff tarifa anterior vs vigente (NFR-23). Sigue el ciclo normal de UC-10.
+         */
+        post: operations["MarketplaceController_rehire_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hiring-requests/{id}/cancel-active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 A3 · Cancelar la asignación activa (solicitante, KER-32)
+         * @description Cierra el servicio aceptado/en curso con razón terminal `cancelled-by-requester`, audita y notifica al cuidador por la campana (UC-18). Verbo mutante con operationId (NFR-34).
+         */
+        post: operations["MarketplaceController_cancelActive_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hiring-requests/{id}/no-show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 A4 · Registrar no-show del cuidador (KER-32)
+         * @description El solicitante registra que el cuidador no se presentó, con timestamp. Cierra el servicio con razón terminal `no-show`, audita y notifica al cuidador por la campana. No habilita reseñas (NFR-20).
+         */
+        post: operations["MarketplaceController_noShow_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hiring-requests/{id}/complete": {
         parameters: {
             query?: never;
@@ -486,8 +580,31 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** UC-09 · Finalizar / marcar como pagada (cierra el servicio) */
+        /**
+         * UC-09 · Completar el servicio (cierre con razón terminal, independiente del pago)
+         * @description Cierra el servicio con razón terminal `completed` (Decouple row 49). El pago no participa: declararlo es un paso opcional posterior (`declare-paid`).
+         */
         post: operations["MarketplaceController_complete_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hiring-requests/{id}/declare-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 (OQ-1) · Declarar pagado (honor-mark opcional post-cierre)
+         * @description Marca de honor del solicitante sobre un servicio ya cerrado. Opcional: no condiciona el cierre ni la elegibilidad de reseña (NFR-10/20/58). Re-declarar es un no-op idempotente.
+         */
+        post: operations["MarketplaceController_declarePaid_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -545,6 +662,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/caregiver/requests/{id}/cancel-active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 A3 · Cancelar la asignación activa (cuidador, KER-32)
+         * @description Cierra el servicio aceptado/en curso con razón terminal `cancelled-by-caregiver`, audita y notifica al solicitante por la campana (UC-18). Verbo mutante con operationId (NFR-34).
+         */
+        post: operations["CaregiverRequestsController_cancelActive_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/caregiver/requests/{id}/decline": {
         parameters: {
             query?: never;
@@ -556,6 +693,26 @@ export interface paths {
         put?: never;
         /** UC-10 · Rechazar solicitud */
         post: operations["CaregiverRequestsController_decline_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/hiring-requests/{id}/cancel-active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * UC-09 A3 · Cancelar la asignación activa (admin/soporte, KER-32)
+         * @description Cierra el servicio aceptado/en curso con razón terminal `cancelled-by-admin`, audita y notifica a ambas partes por la campana (UC-18). Verbo mutante con operationId (NFR-34).
+         */
+        post: operations["AdminHiringController_cancelActive_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -658,6 +815,23 @@ export interface paths {
         put?: never;
         /** UC-13 · Registrar medicación administrada */
         post: operations["CareRecordController_medication_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patientId}/records/{recordId}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-12 A5 · Corregir un registro (NFR-38): versión nueva con autor y razón; el original queda superseded y las alertas se re-evalúan */
+        post: operations["CareRecordController_correct_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -823,7 +997,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** UC-12 A3 · Aprobar: entra al historial con su measuredAt original (NFR-36) */
+        /** UC-12 A3 · Aprobar: entra al historial con su measuredAt original (NFR-36). Exige step-up (NFR-33) */
         post: operations["QuarantineController_approve_v1"];
         delete?: never;
         options?: never;
@@ -919,6 +1093,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KER-33 · Salud de la API: DB, Redis y lag del outbox (healthcheck del contenedor) */
+        get: operations["HealthController_check_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/ops/sweep": {
         parameters: {
             query?: never;
@@ -970,6 +1161,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/ops/outbox/dead-letter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KER-33 · Listar la dead-letter del outbox (eventos que agotaron reintentos) */
+        get: operations["OutboxOpsController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ops/outbox/dead-letter/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KER-33 · Reencolar un evento dead-lettered con reintentos frescos
+         * @description Verbo naturalmente idempotente (NFR-34): el jobId dedupea en la cola y el worker no reprocesa eventos ya despachados (flag dispatched); reintentar dos veces no duplica efectos.
+         */
+        post: operations["OutboxOpsController_retry_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1001,6 +1229,27 @@ export interface components {
             email: string;
             /** @example S3gura!123 */
             password: string;
+        };
+        LogoutDto: {
+            /** @description Endpoint Web Push del device que cierra sesión: se revoca esa suscripción. Sin él, se revocan todas las de la cuenta. */
+            pushEndpoint?: string;
+        };
+        LogoutResponseDto: {
+            /** @example true */
+            ok: boolean;
+        };
+        StepUpDto: {
+            /**
+             * @description Password de la cuenta de la sesión
+             * @example S3gura!123
+             */
+            password: string;
+        };
+        StepUpResponseDto: {
+            /** @description Token corto con claim step_up: acompaña la operación sensible en x-step-up-token */
+            stepUpToken: string;
+            /** @example 300 */
+            expiresInSeconds: number;
         };
         EmergencyContactDto: {
             /** @example María Díaz */
@@ -1411,9 +1660,121 @@ export interface components {
             /** @description Datos de contacto del solicitante. Para el cuidador solo con solicitud aceptada/en curso (UC-10). */
             contactData?: Record<string, never>;
             /** @enum {string} */
-            status: "pending" | "accepted" | "declined" | "cancelled" | "in-progress" | "finished" | "expired";
+            status: "pending" | "accepted" | "declined" | "cancelled" | "in-progress" | "completed" | "expired";
+            /**
+             * @description Razón terminal del cierre del servicio (Decouple row 49); solo en estados terminales de servicio.
+             * @enum {string}
+             */
+            terminalReason?: "completed" | "cancelled-by-requester" | "cancelled-by-caregiver" | "cancelled-by-admin" | "no-show" | "end-of-life";
+            /**
+             * Format: date-time
+             * @description Honor-mark de pago declarado por el solicitante tras el cierre (opcional, NFR-10/58).
+             */
+            paidDeclaredAt?: string;
+            /**
+             * Format: date-time
+             * @description Momento del no-show reportado por el solicitante (UC-09 A4, KER-32); solo con razón `no-show`.
+             */
+            noShowReportedAt?: string;
             /** @description Tarifa pinneada al solicitar (NFR-03/23) */
             ratePerHourSnapshot: string;
+        };
+        RehireRequestDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            caregiverId: string;
+            /** @enum {string} */
+            modality: "home" | "hospital";
+            /** @example 2026-08-01T08:00:00Z */
+            startDate: string;
+            /** @example 2026-08-15T18:00:00Z */
+            endDate: string;
+            /** @example Requiere movilidad reducida */
+            specialRequirements?: string;
+            /**
+             * @example {
+             *       "phone": "+54 11 5555-5555"
+             *     }
+             */
+            contactData: Record<string, never>;
+        };
+        RehireRateDiffDto: {
+            /** @description Tarifa pinneada en la última contratación previa con ese cuidador */
+            previousRatePerHour: string;
+            /** @description Tarifa vigente re-pinneada en esta re-solicitud (NFR-03/21) */
+            currentRatePerHour: string;
+            currency: string;
+            /** @description true si la tarifa cambió desde la contratación anterior */
+            changed: boolean;
+        };
+        RehireResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            caregiverId: string;
+            /** @description Nombre del paciente (visible para el cuidador, UC-10) */
+            patientName?: string;
+            /** @description Nombre del cuidador (visible para el solicitante) */
+            caregiverName?: string;
+            modality: string;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+            specialRequirements?: string;
+            /** @description Datos de contacto del solicitante. Para el cuidador solo con solicitud aceptada/en curso (UC-10). */
+            contactData?: Record<string, never>;
+            /** @enum {string} */
+            status: "pending" | "accepted" | "declined" | "cancelled" | "in-progress" | "completed" | "expired";
+            /**
+             * @description Razón terminal del cierre del servicio (Decouple row 49); solo en estados terminales de servicio.
+             * @enum {string}
+             */
+            terminalReason?: "completed" | "cancelled-by-requester" | "cancelled-by-caregiver" | "cancelled-by-admin" | "no-show" | "end-of-life";
+            /**
+             * Format: date-time
+             * @description Honor-mark de pago declarado por el solicitante tras el cierre (opcional, NFR-10/58).
+             */
+            paidDeclaredAt?: string;
+            /**
+             * Format: date-time
+             * @description Momento del no-show reportado por el solicitante (UC-09 A4, KER-32); solo con razón `no-show`.
+             */
+            noShowReportedAt?: string;
+            /** @description Tarifa pinneada al solicitar (NFR-03/23) */
+            ratePerHourSnapshot: string;
+            rateDiff: components["schemas"]["RehireRateDiffDto"];
+        };
+        CancelActiveDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /** @example Viaje imprevisto: no puedo continuar el servicio */
+            note?: string;
+        };
+        RecordNoShowDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /**
+             * @description Momento del no-show; por defecto, el del registro.
+             * @example 2026-08-01T08:30:00Z
+             */
+            occurredAt?: string;
+            /** @example No se presentó al inicio del turno */
+            note?: string;
         };
         CaregiverHistoryItemDto: {
             /** Format: uuid */
@@ -1492,6 +1853,11 @@ export interface components {
              * @enum {string}
              */
             status: "recorded" | "quarantined";
+            /**
+             * Format: uuid
+             * @description NFR-38: si es una corrección, la versión (registro) que reemplaza — el original queda superseded.
+             */
+            supersedesRecordId?: Record<string, never> | null;
         };
         RecordMedicationDto: {
             /**
@@ -1509,6 +1875,38 @@ export interface components {
             schedule?: string;
             /** @example Tomada con el desayuno */
             observations?: string;
+        };
+        CorrectRecordDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /** @example Error de tipeo: la temperatura era 36.8, no 39.8 */
+            reason: string;
+            /**
+             * @description Corrige también el tiempo de medición. Default: el del original (NFR-36).
+             * @example 2026-07-21T10:00:00Z
+             */
+            measuredAt?: string;
+            /** @description Si el original es vitals. */
+            values?: components["schemas"]["MetricValueDto"][];
+            /**
+             * @description Si el original es medication.
+             * @example Enalapril
+             */
+            medication?: string;
+            /** @example 10 mg */
+            dose?: string;
+            /** @example 08:00 */
+            schedule?: string;
+            /** @example Tomada con el desayuno */
+            observations?: string;
+            /**
+             * @description Si el original es note.
+             * @example Durmió bien, comió poco en el almuerzo
+             */
+            text?: string;
         };
         RecordNoteDto: {
             /**
@@ -1608,6 +2006,13 @@ export interface components {
              * @description Si se aprobó: registro promovido al historial.
              */
             approvedRecordId?: Record<string, never> | null;
+            /**
+             * Format: uuid
+             * @description NFR-38: si el intento era una corrección, el registro que corrige.
+             */
+            supersedesRecordId?: Record<string, never> | null;
+            /** @description NFR-38: razón de la corrección en cuarentena. */
+            correctionReason?: Record<string, never> | null;
         };
     };
     responses: never;
@@ -1660,6 +2065,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_logout_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoutDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogoutResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_stepUp_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepUpDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepUpResponseDto"];
                 };
             };
         };
@@ -1927,7 +2378,10 @@ export interface operations {
     AdminCaregiverController_approve_v1: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
             path: {
                 id: string;
             };
@@ -1948,7 +2402,10 @@ export interface operations {
     AdminCaregiverController_reject_v1: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
             path: {
                 id: string;
             };
@@ -2341,7 +2798,101 @@ export interface operations {
             };
         };
     };
+    MarketplaceController_rehire_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RehireRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RehireResponseDto"];
+                };
+            };
+        };
+    };
+    MarketplaceController_cancelActive_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
+    MarketplaceController_noShow_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordNoShowDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
     MarketplaceController_complete_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
+    MarketplaceController_declarePaid_v1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2423,6 +2974,31 @@ export interface operations {
             };
         };
     };
+    CaregiverRequestsController_cancelActive_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
     CaregiverRequestsController_decline_v1: {
         parameters: {
             query?: never;
@@ -2433,6 +3009,31 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResponseDto"];
+                };
+            };
+        };
+    };
+    AdminHiringController_cancelActive_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelActiveDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2573,6 +3174,32 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RecordMedicationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordResponseDto"];
+                };
+            };
+        };
+    };
+    CareRecordController_correct_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: string;
+                recordId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectRecordDto"];
             };
         };
         responses: {
@@ -2792,7 +3419,10 @@ export interface operations {
     QuarantineController_approve_v1: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
             path: {
                 patientId: string;
                 id: string;
@@ -2913,6 +3543,31 @@ export interface operations {
             };
         };
     };
+    HealthController_check_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Todos los checks arriba */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Algún check caído o outbox con lag (detalle en el body) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     OpsController_sweep_v1: {
         parameters: {
             query?: never;
@@ -2965,6 +3620,55 @@ export interface operations {
         responses: {
             /** @description Métricas del back-office */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OutboxOpsController_list_v1: {
+        parameters: {
+            query?: {
+                /** @description Máximo de filas (default 50) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eventos dead-lettered, más recientes primero (attempts + lastError incluidos) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OutboxOpsController_retry_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description id del evento en outbox_event */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evento reencolado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No existe o no está dead-lettered */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
