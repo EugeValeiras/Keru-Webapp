@@ -2,6 +2,7 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { CareApi } from '../api/care-api.service';
 import { AppNotification } from '../api/api.types';
 import { AuthStore } from '../auth/auth-store';
+import { ToastService } from '../../shared/ui/toast.service';
 
 const POLL_MS = 45_000;
 
@@ -13,6 +14,7 @@ const POLL_MS = 45_000;
 export class NotificationStore {
   private readonly api = inject(CareApi);
   private readonly auth = inject(AuthStore);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly unread = signal(0);
@@ -74,8 +76,14 @@ export class NotificationStore {
     this.items.update((list) => list.map((n) => (n.read ? n : { ...n, read: true })));
     this.unread.set(0);
     this.api.markAllRead().subscribe({
-      next: () => this.refreshCount(),
-      error: () => this.refreshCount(), // revierte el optimismo si el server no acompañó
+      next: () => {
+        this.refreshCount();
+        this.toast.success('Listo, quedaron todas leídas.');
+      },
+      error: () => {
+        this.refreshCount(); // revierte el optimismo si el server no acompañó
+        this.toast.error('No pudimos marcarlas como leídas. Probá de nuevo.');
+      },
     });
   }
 }

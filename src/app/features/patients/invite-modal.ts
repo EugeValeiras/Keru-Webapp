@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiError, CreateInvitationDto, EmittedInvitation, Invitation } from '../../core/api/api.types';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import { KrModal } from '../../shared/ui/kr-modal';
+import { ToastService } from '../../shared/ui/toast.service';
 
 type InviteRole = CreateInvitationDto['role'];
 
@@ -176,15 +177,13 @@ const ROLE_LABELS: Record<string, string> = {
             }
           </ul>
         }
-        @if (revokeError(); as err) {
-          <p class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2 mt-2">{{ err }}</p>
-        }
       </section>
     </kr-modal>
   `,
 })
 export class InviteModal implements OnInit {
   private readonly api = inject(MembershipApi);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly patientId = input.required<string>();
@@ -206,7 +205,6 @@ export class InviteModal implements OnInit {
   readonly listError = signal(false);
   readonly revokeCandidate = signal<string | null>(null);
   readonly revoking = signal<string | null>(null);
-  readonly revokeError = signal<string | null>(null);
   private readonly now = signal(Date.now());
 
   /** Vigentes = pendientes y no vencidas (el tick va sacando las que expiran). */
@@ -277,7 +275,6 @@ export class InviteModal implements OnInit {
   }
 
   askRevoke(token: string): void {
-    this.revokeError.set(null);
     this.revokeCandidate.set(token);
   }
 
@@ -286,7 +283,6 @@ export class InviteModal implements OnInit {
       return;
     }
     this.revoking.set(token);
-    this.revokeError.set(null);
     this.api.revokeInvitation(token).subscribe({
       next: () => {
         this.revoking.set(null);
@@ -296,10 +292,11 @@ export class InviteModal implements OnInit {
           this.reset();
         }
         this.loadInvitations();
+        this.toast.success('Invitación revocada. Ese link ya no sirve.');
       },
       error: (err: ApiError) => {
         this.revoking.set(null);
-        this.revokeError.set(err.message);
+        this.toast.error(err.message);
       },
     });
   }

@@ -40,7 +40,7 @@ const DAY_MS = 86_400_000;
   template: `
     @if (forbidden()) {
       <kr-empty-state
-        icon="🔒"
+        scene="locked"
         title="Sin acceso a este paciente"
         subtitle="Tu vínculo o asignación con este paciente pudo haber vencido. Si creés que es un error, hablá con la familia o con soporte."
       />

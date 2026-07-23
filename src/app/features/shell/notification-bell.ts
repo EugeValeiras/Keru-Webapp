@@ -4,9 +4,11 @@ import { AppNotification } from '../../core/api/api.types';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { PushStore } from '../../core/notifications/push.store';
 import { timeAgo } from '../../shared/utils/dates';
+import { KrIllustration } from '../../shared/ui/kr-illustration';
 
 @Component({
   selector: 'kr-notification-bell',
+  imports: [KrIllustration],
   host: { class: 'relative inline-block', '(keydown.escape)': 'closePanel()' },
   template: `
     <button
@@ -69,7 +71,10 @@ import { timeAgo } from '../../shared/utils/dates';
         </div>
 
         @if (visible().length === 0) {
-          <p class="text-ink-500 text-sm text-center py-8">Sin notificaciones</p>
+          <div class="flex flex-col items-center py-8">
+            <kr-illustration scene="notifications" [size]="88" />
+            <p class="text-ink-500 text-sm mt-2">Sin notificaciones</p>
+          </div>
         } @else {
           <div class="kr-stagger">
             @for (n of visible(); track n.id) {

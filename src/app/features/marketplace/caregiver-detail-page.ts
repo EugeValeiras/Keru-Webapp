@@ -13,6 +13,7 @@ import { HiringApi } from '../../core/api/hiring-api.service';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
+import { ToastService } from '../../shared/ui/toast.service';
 import { ReputationPanel } from '../reputation/reputation-panel';
 
 const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
@@ -185,6 +186,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 })
 export class CaregiverDetailPage {
   private readonly api = inject(HiringApi);
+  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly badgeLabels = BADGE_LABELS;
@@ -233,9 +235,18 @@ export class CaregiverDetailPage {
       ? this.api.removeFavorite(this.caregiverId)
       : this.api.addFavorite(this.caregiverId);
     call.subscribe({
+      next: () => {
+        const name = this.profile()?.displayName;
+        this.toast.success(
+          was
+            ? `${name ?? 'El perfil'} ya no está en tus favoritos.`
+            : `${name ?? 'El perfil'} quedó en tus favoritos.`,
+        );
+      },
+      // El error del toggle no debe tapar la ficha entera: aviso y revert.
       error: (err: ApiError) => {
         this.isFavorite.set(was);
-        this.error.set(err.message);
+        this.toast.error(err.message);
       },
     });
   }
