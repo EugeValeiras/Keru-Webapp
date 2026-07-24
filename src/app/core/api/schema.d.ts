@@ -1884,7 +1884,6 @@ export interface components {
         CaregiverDetailDto: {
             /** Format: uuid */
             id: string;
-            accountId: string;
             displayName: string;
             photoUrl?: string | null;
             /** @enum {string} */
