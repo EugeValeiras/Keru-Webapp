@@ -1952,6 +1952,26 @@ export interface components {
             /** @description Cuenta que emitió la invitación (habilitada a revocarla). */
             invitedByAccountId: string;
         };
+        InvitationPreviewDto: {
+            /** Format: uuid */
+            patientId: string;
+            /** @description Nombre del paciente al que se invita a acompañar. */
+            patientName: string;
+            /** @description Email invitado: prellena y bloquea el email del registro (NFR-19). */
+            invitedEmail: string;
+            /**
+             * @description Rol del vínculo a otorgar (informativo; lo fijó quien invitó). KER-67.
+             * @enum {string}
+             */
+            roleToGrant: "manager" | "viewer";
+            /**
+             * Format: date-time
+             * @description Vence a los 30 minutos de emitida (OQ-2).
+             */
+            expiresAt: string;
+            /** @description true solo si está pendiente y no expiró; false → no se puede confirmar. */
+            valid: boolean;
+        };
         InvitationConfirmedDto: {
             /** Format: uuid */
             patientId: string;
@@ -3280,12 +3300,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Datos de la invitación para la pantalla de confirmación */
+            /** @description Datos de la invitación para la pantalla de confirmación y el registro por invitación (KER-67) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvitationPreviewDto"];
+                };
             };
         };
     };
