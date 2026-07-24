@@ -43,7 +43,7 @@ import { InviteModal } from './invite-modal';
             (click)="store.setActive(p.id)"
             class="bg-surface rounded-card shadow-card p-6 flex items-center gap-4 hover:shadow-card-hover transition-shadow"
           >
-            <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="56" />
+            <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="56" [photoUrl]="p.photoUrl" />
             <div class="min-w-0 flex-1">
               <p class="font-semibold text-ink-900 truncate">{{ p.fullName }}</p>
               <p class="text-sm text-ink-500">{{ p.age }} años</p>

@@ -1598,6 +1598,11 @@ export interface components {
              */
             age: number;
             /**
+             * @description Foto del paciente si tiene una cargada; ausente si no. El cliente cae al avatar de iniciales.
+             * @example https://cdn.keru.app/p/rosa.jpg
+             */
+            photoUrl?: string;
+            /**
              * Format: uuid
              * @description Si se detectó un posible duplicado del mismo humano (residuo #21), su id; el cliente puede ofrecer vincular/mergear.
              */
