@@ -60,6 +60,10 @@ test.describe.serial('KER-54 · Identidad unificada cuenta↔perfil de cuidador 
       mimeType: 'image/png',
       buffer: PNG_1X1,
     });
+    // KER-48: elegir la imagen abre el recorte circular; se confirma para subir.
+    const cropper = caregiver.getByRole('dialog', { name: 'Ajustá tu foto' });
+    await expect(cropper).toBeVisible({ timeout: 15_000 });
+    await cropper.getByRole('button', { name: 'Recortar y subir' }).click();
     await expect(caregiver.getByAltText('Foto de perfil')).toBeVisible({ timeout: 15_000 });
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
 

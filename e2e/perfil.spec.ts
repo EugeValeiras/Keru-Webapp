@@ -101,14 +101,26 @@ test.describe.serial('KER-41 · Avatar, menú de cuenta y "Mi perfil"', () => {
     await expectAxeClean(page, 'perfil');
   });
 
-  test('subir foto (preview) + editar nombre → el header se actualiza sin recargar', async () => {
-    // Subir la foto: preview inmediato en la página.
+  test('subir foto (recorte circular + preview) + editar nombre → el header se actualiza sin recargar', async () => {
+    // El avatar editable es un botón accesible (KER-48), no un pill "Subir foto".
+    await expect(page.getByRole('button', { name: 'Subir foto de perfil' })).toBeVisible();
+
+    // Elegir la imagen abre el paso de recorte con máscara circular; se confirma para subir.
     await page.locator('input[type="file"]').first().setInputFiles({
       name: 'avatar.png',
       mimeType: 'image/png',
       buffer: PNG_1X1,
     });
+    const cropper = page.getByRole('dialog', { name: 'Ajustá tu foto' });
+    await expect(cropper).toBeVisible({ timeout: 15_000 });
+    await expect(cropper.getByLabel('Zoom de la foto')).toBeVisible();
+    await cropper.getByRole('button', { name: 'Recortar y subir' }).click();
+
+    // Recortada y subida: preview inmediato y el modal se cierra.
     await expect(page.getByAltText('Foto de perfil')).toBeVisible({ timeout: 15_000 });
+    await expect(cropper).toBeHidden();
+    // Ahora el avatar comunica que se puede cambiar (aria-label).
+    await expect(page.getByRole('button', { name: 'Cambiar foto de perfil' })).toBeVisible();
 
     // Editar el nombre y guardar.
     await page.getByLabel('Nombre y apellido').fill(NEW_NAME);
