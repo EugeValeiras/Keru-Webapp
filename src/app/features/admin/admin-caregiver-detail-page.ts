@@ -17,6 +17,7 @@ import {
 import { StepUpStore } from '../../core/auth/step-up.store';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
+import { KrCertIcon } from '../../shared/ui/kr-cert-icon';
 import { KrModal } from '../../shared/ui/kr-modal';
 import { formatDate } from '../../shared/utils/dates';
 
@@ -48,7 +49,7 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
 
 @Component({
   selector: 'kr-admin-caregiver-detail-page',
-  imports: [FormsModule, KrAvatar, KrBadge, KrModal],
+  imports: [FormsModule, KrAvatar, KrBadge, KrCertIcon, KrModal],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       @if (error(); as err) {
@@ -106,7 +107,9 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
                 <li class="rounded-control border border-ink-200 p-4 flex flex-col gap-2">
                   <div class="flex items-center justify-between gap-2 flex-wrap">
                     <div>
-                      <span class="font-medium">{{ c.badgeIcon }} {{ c.label }}</span>
+                      <span class="font-medium inline-flex items-center gap-1.5">
+                        <kr-cert-icon [iconKey]="c.iconKey" />{{ c.label }}
+                      </span>
                       <span class="text-ink-500"> — {{ c.institution }}, {{ c.year }}</span>
                     </div>
                     <kr-badge [tone]="certStatusTone(c.status)">{{ certStatusLabel(c.status) }}</kr-badge>

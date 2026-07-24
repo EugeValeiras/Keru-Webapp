@@ -12,6 +12,7 @@ import {
 import { HiringApi } from '../../core/api/hiring-api.service';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
+import { KrCertIcon } from '../../shared/ui/kr-cert-icon';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { ToastService } from '../../shared/ui/toast.service';
 import { ReputationPanel } from '../reputation/reputation-panel';
@@ -24,7 +25,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
 @Component({
   selector: 'kr-caregiver-detail-page',
-  imports: [RouterLink, KrAvatar, KrBadge, KrSkeleton, ReputationPanel],
+  imports: [RouterLink, KrAvatar, KrBadge, KrCertIcon, KrSkeleton, ReputationPanel],
   template: `
     @if (notFound()) {
       <div class="bg-surface rounded-card shadow-card p-12 text-center max-w-lg mx-auto">
@@ -117,7 +118,9 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
               @for (cert of p.certifications; track cert.id) {
                 <li class="flex items-center justify-between gap-3 text-sm">
                   <span>
-                    <span class="font-medium text-ink-900">{{ cert.badgeIcon }} {{ cert.label }}</span>
+                    <span class="font-medium text-ink-900 inline-flex items-center gap-1.5">
+                      <kr-cert-icon [iconKey]="cert.iconKey" />{{ cert.label }}
+                    </span>
                     <span class="text-ink-500"> — {{ cert.institution }}, {{ cert.year }}</span>
                   </span>
                   <kr-badge tone="success">Verificada</kr-badge>

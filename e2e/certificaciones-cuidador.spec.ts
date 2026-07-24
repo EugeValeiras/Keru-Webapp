@@ -19,6 +19,14 @@ const CERT_LABEL = 'Título de Enfermería';
 
 const PDF = Buffer.from('%PDF-1.4\nKER-52 certificado de prueba\n%%EOF', 'latin1');
 
+// KER-77: los íconos SVG son assets locales; nada debe pegarle a icons0.dev en runtime.
+const externalIconRequests: string[] = [];
+function watchExternalIcons(page: Page): void {
+  page.on('request', (req) => {
+    if (/icons0\.dev/i.test(req.url())) externalIconRequests.push(req.url());
+  });
+}
+
 async function expectAxeClean(page: Page, screen: string): Promise<void> {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -44,6 +52,7 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     browser = b;
     caregiverCtx = await browser.newContext(E2E_CONTEXT);
     caregiver = await caregiverCtx.newPage();
+    watchExternalIcons(caregiver);
   });
 
   test.afterAll(async () => {
@@ -103,6 +112,7 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
   test('b. el admin aprueba la cuenta, ve el documento y aprueba la certificación (step-up)', async () => {
     adminCtx = await browser.newContext(E2E_CONTEXT);
     admin = await adminCtx.newPage();
+    watchExternalIcons(admin);
 
     await admin.goto('/login');
     await admin.getByLabel('Email').fill('admin@test.com');
@@ -122,6 +132,8 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     const certItem = admin.locator('li').filter({ hasText: CERT_LABEL });
     await expect(certItem).toBeVisible({ timeout: 15_000 });
     await expect(certItem.getByRole('button', { name: 'Ver documento' })).toBeVisible();
+    // KER-77: la insignia se renderiza como ÍCONO SVG diseñado (no emoji), con su iconKey estable.
+    await expect(certItem.locator('kr-cert-icon[data-cert-icon="stethoscope"] svg')).toBeVisible();
     await expectAxeClean(admin, 'admin · detalle cuidador (certificaciones)');
 
     // Aprobar la cuenta (step-up). El botón "Aprobar" de la cuenta vive en la tarjeta de Acciones
@@ -153,6 +165,7 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
   test('c. la familia ve la certificación verificada con su insignia en la ficha del marketplace', async () => {
     familyCtx = await browser.newContext(E2E_CONTEXT);
     family = await familyCtx.newPage();
+    watchExternalIcons(family);
 
     await family.goto('/signup');
     await family.getByRole('button', { name: /^Familiar/ }).click();
@@ -173,5 +186,12 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     const certRow = family.locator('li').filter({ hasText: CERT_LABEL });
     await expect(certRow).toBeVisible({ timeout: 15_000 });
     await expect(certRow.getByText('Verificada')).toBeVisible();
+    // KER-77: la insignia pública es el ÍCONO SVG diseñado del catálogo (no emoji).
+    await expect(certRow.locator('kr-cert-icon[data-cert-icon="stethoscope"] svg')).toBeVisible();
+    // El ícono es decorativo (aria-hidden) y el nombre de la certificación lo acompaña como texto → axe verde.
+    await expectAxeClean(family, 'marketplace · ficha pública (certificación con ícono SVG)');
+
+    // KER-77: en ningún momento del circuito se pegó a icons0.dev (assets 100% locales).
+    expect(externalIconRequests).toEqual([]);
   });
 });

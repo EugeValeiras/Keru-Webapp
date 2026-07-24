@@ -162,6 +162,9 @@ const STEP_TITLES = [
                       class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     >
                       <option value="" disabled>Elegí una…</option>
+                      <!-- KER-77: un <option> no renderiza SVG inline → acá el emoji (badgeIcon) es el
+                           fallback text-only intencional. El ícono SVG (iconKey) se muestra en el detalle
+                           admin y la ficha pública del marketplace, donde sí se puede renderizar. -->
                       @for (item of catalog(); track item.key) {
                         <option [value]="item.key">{{ item.badgeIcon }} {{ item.label }}</option>
                       }
