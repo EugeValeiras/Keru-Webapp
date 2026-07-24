@@ -2,12 +2,19 @@ import { Component, computed, input } from '@angular/core';
 
 export type BadgeTone = 'primary' | 'neutral' | 'success' | 'warning' | 'danger';
 
+// Tinte -50 + texto -700 en cada tono, alineado con el patrón de `primary`
+// (bg-100 + text-700): el par -50/-700 da ≥6.9:1, holgado AA. El -600 sobre -50
+// pasa AA en reposo pero con margen fino (~4.7:1), y ese margen se agotaba cuando
+// axe muestreaba el badge a mitad del fade-in de la card del marketplace (opacity
+// <1 → colores compuestos con el fondo) → order-flake de la suite (KER-72). El fix
+// de raíz de ese flake es la espera del helper axe (email-verification.spec.ts);
+// el -700 es el endurecimiento de margen que lo vuelve robusto por diseño.
 const TONE_CLASSES: Record<BadgeTone, string> = {
   primary: 'bg-primary-100 text-primary-700',
   neutral: 'bg-sand-100 text-ink-700',
-  success: 'bg-success-50 text-success',
-  warning: 'bg-warning-50 text-warning',
-  danger: 'bg-danger-50 text-danger',
+  success: 'bg-success-50 text-success-700',
+  warning: 'bg-warning-50 text-warning-700',
+  danger: 'bg-danger-50 text-danger-700',
 };
 
 @Component({
