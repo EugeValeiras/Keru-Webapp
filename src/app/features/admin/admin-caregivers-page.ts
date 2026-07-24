@@ -92,7 +92,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                   <tr class="border-b border-ink-300/20 hover:bg-primary-50/40 transition-colors">
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-3">
-                        <kr-avatar [name]="c.displayName" [seed]="c.id" [size]="36" />
+                        <kr-avatar [name]="c.displayName" [seed]="c.id" [photoUrl]="c.photoUrl" [size]="36" />
                         <span class="font-medium text-ink-900">{{ c.displayName }}</span>
                       </div>
                     </td>
