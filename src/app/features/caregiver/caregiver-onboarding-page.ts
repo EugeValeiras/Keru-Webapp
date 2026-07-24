@@ -5,6 +5,7 @@ import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
   CaregiverProfile,
+  CertificationCatalogItem,
   MODALITY_LABELS,
   Modality,
   RegisterCaregiverDto,
@@ -17,10 +18,21 @@ import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 import { KrAvailabilityEditor } from '../../shared/ui/kr-availability-editor';
 import { isSlotValid } from '../../shared/ui/availability';
 
+/** KER-52: tipos aceptados y tamaño máximo del documento privado de una certificación. */
+const DOC_ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp';
+const DOC_MAX_BYTES = 10 * 1024 * 1024;
+
 interface CertRow {
-  type: string;
+  /** Clave del catálogo finito (KER-52), no texto libre. */
+  catalogKey: string;
   institution: string;
   year: number | null;
+  /** Key privada del documento subido (KER-52); null hasta que se sube. */
+  documentKey: string | null;
+  documentContentType: string | null;
+  fileName: string | null;
+  uploading: boolean;
+  uploadError: string | null;
 }
 
 interface SlotRow {
@@ -132,23 +144,28 @@ const STEP_TITLES = [
             </div>
           }
 
-          <!-- Paso 3: Certificaciones -->
+          <!-- Paso 3: Certificaciones (KER-52: catálogo finito + documento privado por cert) -->
           @if (step() === 3) {
             <p class="text-sm text-ink-700">
-              Sumá tus certificaciones (opcional). Si agregás una, completá institución y año.
+              Sumá tus certificaciones (opcional). Elegí el tipo del catálogo, completá institución y
+              año, y <strong>adjuntá el documento</strong> (PDF o imagen). El documento es privado:
+              solo lo revisa el equipo de Keru para verificar tu certificación.
             </p>
-            @for (cert of certs; track $index) {
+            @for (cert of certs(); track $index) {
               <div class="rounded-control border border-ink-300 p-4 flex flex-col gap-3">
                 <div class="flex items-start justify-between gap-2">
                   <label class="flex flex-col gap-1 flex-1">
-                    <span class="text-sm font-medium text-ink-700">Título / certificación</span>
-                    <input
-                      type="text"
+                    <span class="text-sm font-medium text-ink-700">Tipo de certificación</span>
+                    <select
                       [name]="'cert-type-' + $index"
-                      [(ngModel)]="cert.type"
-                      placeholder="Ej: Enfermería"
+                      [(ngModel)]="cert.catalogKey"
                       class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    />
+                    >
+                      <option value="" disabled>Elegí una…</option>
+                      @for (item of catalog(); track item.key) {
+                        <option [value]="item.key">{{ item.badgeIcon }} {{ item.label }}</option>
+                      }
+                    </select>
                   </label>
                   <button
                     type="button"
@@ -180,6 +197,24 @@ const STEP_TITLES = [
                     />
                   </label>
                 </div>
+                <label class="flex flex-col gap-1">
+                  <span class="text-sm font-medium text-ink-700">Documento (PDF o imagen)</span>
+                  <input
+                    type="file"
+                    [attr.accept]="docAccept"
+                    [name]="'cert-doc-' + $index"
+                    (change)="onCertFile($event, $index)"
+                    class="text-sm file:mr-3 file:rounded-pill file:border-0 file:bg-primary-100 file:px-4 file:py-2 file:text-primary-700 file:font-medium"
+                  />
+                  @if (cert.uploading) {
+                    <span class="text-xs text-ink-500">Subiendo documento…</span>
+                  } @else if (cert.documentKey && cert.fileName) {
+                    <span class="text-xs text-success">✓ {{ cert.fileName }} adjuntado</span>
+                  }
+                  @if (cert.uploadError) {
+                    <span class="text-xs text-danger" role="alert">{{ cert.uploadError }}</span>
+                  }
+                </label>
               </div>
             }
             <button
@@ -272,7 +307,7 @@ const STEP_TITLES = [
               <p>
                 <span class="text-ink-500">Especialidades:</span> {{ selectedSpecialtyLabels() }}
               </p>
-              <p><span class="text-ink-500">Certificaciones:</span> {{ certs.length }}</p>
+              <p><span class="text-ink-500">Certificaciones:</span> {{ certs().length }}</p>
               <p><span class="text-ink-500">Horarios:</span> {{ slots.length }}</p>
               <p>
                 <span class="text-ink-500">Tarifa:</span>
@@ -341,12 +376,16 @@ export class CaregiverOnboardingPage {
   readonly stepTitles = STEP_TITLES;
   readonly specialtyOptions = Object.entries(SPECIALTY_LABELS) as [Specialty, string][];
   readonly modalityOptions = Object.entries(MODALITY_LABELS) as [Modality, string][];
+  readonly docAccept = DOC_ACCEPT;
+  /** KER-52 · Catálogo finito de certificaciones (cargado del backend). */
+  readonly catalog = signal<CertificationCatalogItem[]>([]);
 
   // Estado del formulario (ngModel)
   displayName = this.auth.displayName();
   readonly photoUrl = signal<string | null>(null);
   specialtySel: Record<string, boolean> = {};
-  certs: CertRow[] = [];
+  // Signal (app zoneless): mutar un array plano no repinta; las altas/bajas/subidas van por update().
+  readonly certs = signal<CertRow[]>([]);
   slots: SlotRow[] = [];
   ratePerHour: number | null = null;
   currency = 'ARS';
@@ -355,6 +394,11 @@ export class CaregiverOnboardingPage {
   modalitySel: Record<string, boolean> = {};
 
   constructor() {
+    // KER-52: cargar el catálogo finito de certificaciones para el selector del paso 3.
+    this.api.getCertificationCatalog().subscribe({
+      next: (items) => this.catalog.set(items),
+      error: () => this.catalog.set([]),
+    });
     // Sin perfil → alta normal. Con perfil: solo se admite quedarse si es un
     // re-envío pedido explícitamente (?mode=resubmit) sobre un perfil rechazado.
     this.api.getMyCaregiverProfile().subscribe({
@@ -382,11 +426,20 @@ export class CaregiverOnboardingPage {
     for (const s of profile.specialties) {
       this.specialtySel[s] = true;
     }
-    this.certs = profile.certifications.map((c) => ({
-      type: c.type,
-      institution: c.institution,
-      year: c.year,
-    }));
+    // KER-52: en la re-postulación se conservan tipo/institución/año, pero el documento se re-adjunta
+    // (el documentKey privado no se expone en la ficha; hay que volver a subirlo).
+    this.certs.set(
+      profile.certifications.map((c) => ({
+        catalogKey: c.catalogKey,
+        institution: c.institution,
+        year: c.year,
+        documentKey: null,
+        documentContentType: null,
+        fileName: null,
+        uploading: false,
+        uploadError: null,
+      })),
+    );
     if (profile.availability.length > 0) {
       this.slots = profile.availability.map((a) => ({
         dayOfWeek: a.dayOfWeek,
@@ -424,8 +477,14 @@ export class CaregiverOnboardingPage {
       case 2:
         return this.selectedSpecialties().length > 0;
       case 3:
-        return this.certs.every(
-          (c) => c.type.trim().length > 0 && c.institution.trim().length > 0 && !!c.year,
+        // KER-52: cada cert requiere tipo del catálogo, institución, año y documento adjunto (subido).
+        return this.certs().every(
+          (c) =>
+            c.catalogKey.length > 0 &&
+            c.institution.trim().length > 0 &&
+            !!c.year &&
+            !!c.documentKey &&
+            !c.uploading,
         );
       case 4:
         return this.slots.length > 0 && this.slots.every(isSlotValid);
@@ -443,11 +502,52 @@ export class CaregiverOnboardingPage {
   }
 
   addCert(): void {
-    this.certs.push({ type: '', institution: '', year: null });
+    this.certs.update((list) => [
+      ...list,
+      {
+        catalogKey: '',
+        institution: '',
+        year: null,
+        documentKey: null,
+        documentContentType: null,
+        fileName: null,
+        uploading: false,
+        uploadError: null,
+      },
+    ]);
   }
 
   removeCert(index: number): void {
-    this.certs.splice(index, 1);
+    this.certs.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  /** Actualiza la cert `index` con una copia nueva (zoneless: dispara el repintado del signal). */
+  private patchCert(index: number, patch: Partial<CertRow>): void {
+    this.certs.update((list) => list.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  }
+
+  /** KER-52 · Sube el documento privado de la cert `index` y guarda su documentKey en la fila. */
+  onCertFile(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.patchCert(index, { uploadError: null, documentKey: null, documentContentType: null, fileName: null });
+    if (!file) return;
+    if (file.size > DOC_MAX_BYTES) {
+      this.patchCert(index, { uploadError: 'El documento supera los 10 MB.' });
+      return;
+    }
+    this.patchCert(index, { uploading: true });
+    this.api.uploadDocument(file).subscribe({
+      next: (res) =>
+        this.patchCert(index, {
+          documentKey: res.documentKey,
+          documentContentType: res.contentType,
+          fileName: file.name,
+          uploading: false,
+        }),
+      error: (err: ApiError) =>
+        this.patchCert(index, { uploading: false, uploadError: err.message ?? 'No se pudo subir el documento.' }),
+    });
   }
 
   back(): void {
@@ -473,11 +573,14 @@ export class CaregiverOnboardingPage {
       displayName: this.displayName.trim(),
       ...(this.photoUrl() !== null ? { photoUrl: this.photoUrl()! } : {}),
       specialties: this.selectedSpecialties(),
-      certifications: this.certs.map((c) => ({
-        type: c.type.trim(),
+      // El select solo ofrece claves del catálogo; el cast estrecha string → unión del contrato.
+      certifications: this.certs().map((c) => ({
+        catalogKey: c.catalogKey,
         institution: c.institution.trim(),
         year: Number(c.year),
-      })),
+        documentKey: c.documentKey!,
+        documentContentType: c.documentContentType!,
+      })) as RegisterCaregiverDto['certifications'],
       availability: this.slots.map((s) => ({
         dayOfWeek: Number(s.dayOfWeek),
         from: s.from,

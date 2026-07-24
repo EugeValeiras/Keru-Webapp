@@ -10,6 +10,9 @@ import {
   SweepResult,
 } from './api.types';
 
+/** KER-52 · Header del token corto de step-up (NFR-33) para operaciones sensibles. */
+const stepUpHeaders = (stepUpToken: string) => ({ 'x-step-up-token': stepUpToken });
+
 @Injectable({ providedIn: 'root' })
 export class AdminApi {
   private readonly http = inject(HttpClient);
@@ -49,6 +52,39 @@ export class AdminApi {
 
   setBadges(id: string, badges: Badges): Observable<CaregiverProfile> {
     return this.http.put<CaregiverProfile>(`/api/v1/admin/caregivers/${id}/badges`, badges);
+  }
+
+  /**
+   * KER-52 (UC-19) · Descarga el documento privado de una certificación (solo admin). Devuelve el
+   * binario; el componente arma un object URL para abrirlo. Cada descarga se audita en el backend.
+   */
+  downloadCertificationDocument(id: string, certId: string): Observable<Blob> {
+    return this.http.get(`/api/v1/admin/caregivers/${id}/certifications/${certId}/document`, {
+      responseType: 'blob',
+    });
+  }
+
+  /** KER-52 (UC-19) · Aprueba una certificación (se muestra con su insignia). Exige step-up (NFR-33). */
+  approveCertification(id: string, certId: string, stepUpToken: string): Observable<AdminCaregiverDetail> {
+    return this.http.post<AdminCaregiverDetail>(
+      `/api/v1/admin/caregivers/${id}/certifications/${certId}/approve`,
+      {},
+      { headers: stepUpHeaders(stepUpToken) },
+    );
+  }
+
+  /** KER-52 (UC-19 A2) · Rechaza una certificación con motivo. Exige step-up (NFR-33). */
+  rejectCertification(
+    id: string,
+    certId: string,
+    reason: string,
+    stepUpToken: string,
+  ): Observable<AdminCaregiverDetail> {
+    return this.http.post<AdminCaregiverDetail>(
+      `/api/v1/admin/caregivers/${id}/certifications/${certId}/reject`,
+      { reason },
+      { headers: stepUpHeaders(stepUpToken) },
+    );
   }
 
   deactivate(id: string, reason?: string): Observable<CaregiverProfile> {

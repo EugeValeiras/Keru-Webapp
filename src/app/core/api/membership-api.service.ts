@@ -4,8 +4,10 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
   AccountProfile,
+  AddCertificationDto,
   ApiError,
   CaregiverProfile,
+  CertificationCatalogItem,
   ChangeLinkRoleDto,
   CreateInvitationDto,
   EmittedInvitation,
@@ -20,6 +22,7 @@ import {
   UpdateAccountDto,
   UpdateCaregiverProfileDto,
   UpdatePatientDto,
+  UploadedDocument,
 } from './api.types';
 
 @Injectable({ providedIn: 'root' })
@@ -109,6 +112,26 @@ export class MembershipApi {
     const form = new FormData();
     form.append('file', file);
     return this.http.post<{ url: string }>('/api/v1/files/images', form);
+  }
+
+  /**
+   * KER-52 · Sube el documento PRIVADO de una certificación (PDF/imagen, máx 10MB). Devuelve una
+   * `documentKey` opaca (NO una URL pública); el documento solo lo descarga el admin (UC-19).
+   */
+  uploadDocument(file: File): Observable<UploadedDocument> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<UploadedDocument>('/api/v1/files/documents', form);
+  }
+
+  /** KER-52 · Catálogo finito de tipos de certificación (con su insignia) para el alta. */
+  getCertificationCatalog(): Observable<CertificationCatalogItem[]> {
+    return this.http.get<CertificationCatalogItem[]>('/api/v1/caregivers/certification-catalog');
+  }
+
+  /** KER-52 (UC-02 A4) · Agrega una certificación del catálogo con su documento privado. */
+  addCertification(dto: AddCertificationDto): Observable<CaregiverProfile> {
+    return this.http.post<CaregiverProfile>('/api/v1/caregivers/me/certifications', dto);
   }
 
   /** NO es idempotente: cada POST crea una invitación nueva (no reintentar automático). */

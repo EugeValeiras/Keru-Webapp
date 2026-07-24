@@ -291,6 +291,43 @@ export interface paths {
         patch: operations["CaregiverController_updateApproved_v1"];
         trace?: never;
     };
+    "/api/v1/caregivers/certification-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KER-52 · Catálogo finito de tipos de certificación (con su insignia) */
+        get: operations["CaregiverController_certificationCatalog_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/caregivers/me/certifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KER-52 (UC-02 A4) · Agregar una certificación del catálogo (con su documento privado)
+         * @description Aditiva: la certificación nueva nace pendiente y oculta, y entra a la cola de revisión del admin (UC-19). No toca las credenciales aprobadas. Idempotente por operationId (NFR-34).
+         */
+        post: operations["CaregiverController_addCertification_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/caregivers/pending": {
         parameters: {
             query?: never;
@@ -370,6 +407,60 @@ export interface paths {
         put?: never;
         /** UC-19 · Rechazar cuenta (con motivo). Exige step-up (NFR-33) */
         post: operations["AdminCaregiverController_reject_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/caregivers/{id}/certifications/{certId}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * KER-52 (UC-19) · Descargar el documento privado de una certificación (SOLO admin, auditado)
+         * @description El binario del certificado escaneado. Solo rol admin (otros → 403); nunca hay URL pública; cada descarga se audita.
+         */
+        get: operations["AdminCaregiverController_certificationDocument_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/caregivers/{id}/certifications/{certId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** KER-52 (UC-19) · Aprobar una certificación (se muestra con su insignia). Exige step-up */
+        post: operations["AdminCaregiverController_approveCertification_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/caregivers/{id}/certifications/{certId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** KER-52 (UC-19 A2) · Rechazar una certificación (con motivo). Exige step-up */
+        post: operations["AdminCaregiverController_rejectCertification_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -507,6 +598,23 @@ export interface paths {
         put?: never;
         /** Subir imagen de perfil (jpeg/png/webp, máx 5MB) → URL pública */
         post: operations["FilesController_upload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/files/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** KER-52 · Subir documento PRIVADO de certificación (PDF/imagen, máx 10MB) → documentKey (NO URL pública) */
+        post: operations["FilesController_uploadDocument_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1560,12 +1668,22 @@ export interface components {
             role: "consent-holder" | "manager" | "viewer";
         };
         CertificationDto: {
-            /** @example Enfermería */
-            type: string;
+            /**
+             * @example nursing-degree
+             * @enum {string}
+             */
+            catalogKey: "nursing-degree" | "nursing-assistant" | "cpr" | "first-aid" | "geriatric-care" | "palliative-care" | "dementia-care" | "physical-therapy" | "therapeutic-companion" | "pediatric-nursing" | "diabetes-nutrition";
             /** @example Universidad de Buenos Aires */
             institution: string;
             /** @example 2015 */
             year: number;
+            /**
+             * @description Key del documento privado (de POST /files/documents). NO es una URL.
+             * @example private/documents/uuid.pdf
+             */
+            documentKey: string;
+            /** @example application/pdf */
+            documentContentType: string;
         };
         AvailabilityDto: {
             /**
@@ -1622,12 +1740,39 @@ export interface components {
              */
             modalities: ("home" | "hospital")[];
         };
+        CertificationView: {
+            /** Format: uuid */
+            id: string;
+            /** @example nursing-degree */
+            catalogKey: string;
+            /**
+             * @description Nombre visible (catálogo)
+             * @example Título de Enfermería
+             */
+            label: string;
+            /**
+             * @description Ícono de la insignia (catálogo)
+             * @example 🩺
+             */
+            badgeIcon: string;
+            institution: string;
+            year: number;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            /** @description true si status === approved (compat) */
+            verified: boolean;
+            reviewedAt?: string | null;
+            rejectionReason?: string | null;
+            /** @description true si tiene documento privado adjunto (para la descarga admin) */
+            hasDocument: boolean;
+        };
         CaregiverResponseDto: {
             /** Format: uuid */
             id: string;
             displayName: string;
             photoUrl?: string | null;
-            certifications: Record<string, never>[];
+            /** @description Vista dueño: todas las certificaciones con su estado (sin la key privada del documento) */
+            certifications: components["schemas"]["CertificationView"][];
             availability: Record<string, never>[];
             rates: Record<string, never>;
             /** @enum {string} */
@@ -1663,6 +1808,37 @@ export interface components {
              */
             modalities?: ("home" | "hospital")[];
         };
+        CertificationCatalogItemDto: {
+            /** @example nursing-degree */
+            key: string;
+            /** @example Título de Enfermería */
+            label: string;
+            /** @example 🩺 */
+            badgeIcon: string;
+        };
+        AddCertificationDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            /**
+             * @example cpr
+             * @enum {string}
+             */
+            catalogKey: "nursing-degree" | "nursing-assistant" | "cpr" | "first-aid" | "geriatric-care" | "palliative-care" | "dementia-care" | "physical-therapy" | "therapeutic-companion" | "pediatric-nursing" | "diabetes-nutrition";
+            /** @example Cruz Roja Argentina */
+            institution: string;
+            /** @example 2021 */
+            year: number;
+            /**
+             * @description Key del documento privado (de POST /files/documents).
+             * @example private/documents/uuid.pdf
+             */
+            documentKey: string;
+            /** @example application/pdf */
+            documentContentType: string;
+        };
         CaregiverDetailDto: {
             /** Format: uuid */
             id: string;
@@ -1671,7 +1847,8 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "approved" | "rejected" | "deactivated";
             specialties: string[];
-            certifications: Record<string, never>[];
+            /** @description Certificaciones con estado por-cert + hasDocument (para descargar/aprobar). Sin la key privada. */
+            certifications: components["schemas"]["CertificationView"][];
             availability: Record<string, never>[];
             rates: Record<string, never>;
             zone: string;
@@ -1685,6 +1862,10 @@ export interface components {
         };
         RejectCaregiverDto: {
             /** @example Certificación de RCP ilegible */
+            reason: string;
+        };
+        RejectCertificationDto: {
+            /** @example El documento está ilegible */
             reason: string;
         };
         SetBadgesDto: {
@@ -1752,6 +1933,15 @@ export interface components {
             /** @description URL pública de la imagen subida (usar como photoUrl) */
             url: string;
         };
+        UploadedDocumentDto: {
+            /**
+             * @description Key privada del documento (usar como documentKey). NO es una URL pública.
+             * @example private/documents/uuid.pdf
+             */
+            documentKey: string;
+            /** @example application/pdf */
+            contentType: string;
+        };
         CaregiverCardDto: {
             /** Format: uuid */
             id: string;
@@ -1789,7 +1979,8 @@ export interface components {
             ratingAverage?: number;
             /** @description Cantidad de reseñas reveladas */
             ratingCount?: number;
-            certifications: Record<string, never>[];
+            /** @description KER-52: SOLO las certificaciones aprobadas, cada una con su insignia (catálogo). Las pendientes/rechazadas y la key privada del documento NO se exponen al público. */
+            certifications: components["schemas"]["CertificationView"][];
             availability: Record<string, never>[];
         };
         CreateRequestDto: {
@@ -2657,6 +2848,48 @@ export interface operations {
             };
         };
     };
+    CaregiverController_certificationCatalog_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationCatalogItemDto"][];
+                };
+            };
+        };
+    };
+    CaregiverController_addCertification_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCertificationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverResponseDto"];
+                };
+            };
+        };
+    };
     AdminCaregiverController_pending_v1: {
         parameters: {
             query?: never;
@@ -2768,6 +3001,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaregiverResponseDto"];
+                };
+            };
+        };
+    };
+    AdminCaregiverController_certificationDocument_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                certId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminCaregiverController_approveCertification_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
+            path: {
+                id: string;
+                certId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDetailDto"];
+                };
+            };
+        };
+    };
+    AdminCaregiverController_rejectCertification_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
+            path: {
+                id: string;
+                certId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectCertificationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDetailDto"];
                 };
             };
         };
@@ -2973,6 +3280,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadedImageDto"];
+                };
+            };
+        };
+    };
+    FilesController_uploadDocument_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadedDocumentDto"];
                 };
             };
         };

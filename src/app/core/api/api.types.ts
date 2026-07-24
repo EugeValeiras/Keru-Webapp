@@ -58,7 +58,16 @@ export type CaregiverStatus = Schemas['CaregiverResponseDto']['status'];
 export type RegisterCaregiverDto = Schemas['RegisterCaregiverDto'];
 /** UC-02 A3 · Set parcial del perfil aprobado (sin credenciales); la tarifa es efectivo-fechada. */
 export type UpdateCaregiverProfileDto = Schemas['UpdateCaregiverProfileDto'];
+/** KER-52 · Certificación en el alta/re-postulación (input): tipo del catálogo + documento privado. */
 export type Certification = Schemas['CertificationDto'];
+/** KER-52 · Vista de una certificación (perfil/marketplace/admin): estado por-cert + insignia. Sin documentKey. */
+export type CertificationView = Schemas['CertificationView'];
+/** KER-52 · Entrada del catálogo finito de certificaciones (tipo + insignia). */
+export type CertificationCatalogItem = Schemas['CertificationCatalogItemDto'];
+/** KER-52 · Agregar una certificación (UC-02 A4). */
+export type AddCertificationDto = Schemas['AddCertificationDto'];
+/** KER-52 · Respuesta de la subida del documento privado: la key opaca (no una URL). */
+export type UploadedDocument = Schemas['UploadedDocumentDto'];
 export type Availability = Schemas['AvailabilityDto'];
 export type Rates = Schemas['RatesDto'];
 
@@ -69,7 +78,7 @@ export type CaregiverProfile = Omit<
 > & {
   badges: Badges;
   rejectionReason?: string | null;
-  certifications: (Certification & { verified?: boolean })[];
+  certifications: CertificationView[];
   availability: Availability[];
   rates: Rates;
 };
@@ -81,7 +90,7 @@ export type MarketplaceProfile = Omit<
   'badges' | 'certifications' | 'availability'
 > & {
   badges: Badges;
-  certifications: (Certification & { verified?: boolean })[];
+  certifications: CertificationView[];
   availability: Availability[];
 };
 
@@ -90,7 +99,7 @@ export type AdminCaregiverDetail = Omit<
   'badges' | 'certifications' | 'availability' | 'rates' | 'rejectionReason' | 'reviewedBy' | 'reviewedAt'
 > & {
   badges: Badges;
-  certifications: (Certification & { verified?: boolean })[];
+  certifications: CertificationView[];
   availability: Availability[];
   rates: Rates;
   rejectionReason?: string | null;

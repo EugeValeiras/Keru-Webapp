@@ -107,22 +107,20 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
           </div>
         </section>
 
-        <!-- Certificaciones -->
+        <!-- Certificaciones verificadas (KER-52: solo las aprobadas, con su insignia del catálogo) -->
         <section class="bg-surface rounded-card shadow-card p-6">
-          <h2 class="font-semibold mb-3">Certificaciones</h2>
+          <h2 class="font-semibold mb-3">Certificaciones verificadas</h2>
           @if (p.certifications.length === 0) {
-            <p class="text-sm text-ink-500">Sin certificaciones cargadas.</p>
+            <p class="text-sm text-ink-500">Sin certificaciones verificadas.</p>
           } @else {
             <ul class="flex flex-col gap-2">
-              @for (cert of p.certifications; track $index) {
+              @for (cert of p.certifications; track cert.id) {
                 <li class="flex items-center justify-between gap-3 text-sm">
                   <span>
-                    <span class="font-medium text-ink-900">{{ cert.type }}</span>
+                    <span class="font-medium text-ink-900">{{ cert.badgeIcon }} {{ cert.label }}</span>
                     <span class="text-ink-500"> — {{ cert.institution }}, {{ cert.year }}</span>
                   </span>
-                  @if (cert.verified) {
-                    <kr-badge tone="success">Verificada</kr-badge>
-                  }
+                  <kr-badge tone="success">Verificada</kr-badge>
                 </li>
               }
             </ul>

@@ -59,10 +59,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Feature cross-repo (KER-52): si la rama de la tarea existe en Keru-API (mismo nombre),
+      # se corre Playwright contra ESA API (que trae los endpoints nuevos que la UI necesita),
+      # no contra main. Fallback a main para PRs de webapp sin cambios de API.
+      - name: Resolver rama de Keru-API
+        id: apiref
+        run: |
+          BR="${{ github.head_ref }}"
+          if [ -n "$BR" ] && git ls-remote --exit-code --heads https://github.com/EugeValeiras/Keru-API "$BR" >/dev/null 2>&1; then
+            echo "Usando rama $BR de Keru-API"
+            echo "ref=$BR" >> "$GITHUB_OUTPUT"
+          else
+            echo "Usando main de Keru-API"
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout Keru-API
         uses: actions/checkout@v4
         with:
           repository: EugeValeiras/Keru-API
+          ref: ${{ steps.apiref.outputs.ref }}
           path: keru-api
 
       - uses: actions/setup-node@v4
