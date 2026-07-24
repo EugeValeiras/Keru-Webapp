@@ -6,6 +6,7 @@ import { AuthStore } from '../../core/auth/auth-store';
 import { StepUpStore } from '../../core/auth/step-up.store';
 import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
 import { PushStore } from '../../core/notifications/push.store';
+import { CaregiverRequestsStore } from '../../core/hiring/caregiver-requests.store';
 import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
 import { EmailVerificationBanner } from './email-verification-banner';
@@ -13,10 +14,13 @@ import { StepUpModal } from './step-up-modal';
 import { KrPatientPicker } from './patient-picker';
 import { KrAccountMenu } from './account-menu';
 import { KrToastOutlet } from '../../shared/ui/kr-toast';
+import { KrBadge } from '../../shared/ui/kr-badge';
 
 interface NavItem {
   label: string;
   path: string;
+  /** KER-56 · El ítem muestra el conteo de solicitudes pendientes del cuidador. */
+  badge?: 'caregiver-pending';
 }
 
 const FAMILY_NAV: NavItem[] = [
@@ -30,7 +34,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
   patient: FAMILY_NAV,
   caregiver: [
     { label: 'Mi perfil', path: '/caregiver/profile' },
-    { label: 'Solicitudes', path: '/caregiver/requests' },
+    { label: 'Solicitudes', path: '/caregiver/requests', badge: 'caregiver-pending' },
     { label: 'Mis servicios', path: '/caregiver/services' },
   ],
   admin: [
@@ -42,7 +46,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, EmailVerificationBanner, StepUpModal, KrPatientPicker, KrAccountMenu, KrToastOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, EmailVerificationBanner, StepUpModal, KrPatientPicker, KrAccountMenu, KrToastOutlet, KrBadge],
   template: `
     <!-- UC-04 A5 (KER-49): banner persistente si el email del self-signup no está verificado (cualquier rol). -->
     <kr-email-verification-banner />
@@ -59,9 +63,17 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
             <a
               [routerLink]="item.path"
               routerLinkActive="bg-primary-100 text-primary-700"
-              class="rounded-pill px-4 py-1.5 text-sm font-medium text-ink-700 hover:bg-primary-50 transition-colors"
+              class="inline-flex items-center gap-2 rounded-pill px-4 py-1.5 text-sm font-medium text-ink-700 hover:bg-primary-50 transition-colors"
+              [attr.aria-label]="navAriaLabel(item)"
             >
               {{ item.label }}
+              <!-- KER-56 · Badge de conteo de solicitudes pendientes (solo cuidador, count>0).
+                   El número va aria-hidden; el conteo accesible vive en el aria-label del enlace. -->
+              @if (item.badge === 'caregiver-pending' && pendingRequests() > 0) {
+                <kr-badge tone="warning" class="inline-flex kr-pop" aria-hidden="true">
+                  {{ pendingRequests() }}
+                </kr-badge>
+              }
             </a>
           }
         </nav>
@@ -103,6 +115,7 @@ export class AppShell {
   protected readonly store = inject(AuthStore);
   protected readonly patients = inject(ActivePatientStore);
   private readonly push = inject(PushStore);
+  private readonly caregiverRequests = inject(CaregiverRequestsStore);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
   private readonly stepUp = inject(StepUpStore);
@@ -112,6 +125,9 @@ export class AppShell {
     const role = this.store.role();
     return role === 'family' || role === 'patient';
   });
+  protected readonly isCaregiver = computed(() => this.store.role() === 'caregiver');
+  /** KER-56 · Conteo de solicitudes pendientes para el badge de la nav (solo cuidador). */
+  protected readonly pendingRequests = this.caregiverRequests.pendingCount;
 
   constructor() {
     effect(() => {
@@ -125,6 +141,22 @@ export class AppShell {
         void this.push.init();
       }
     });
+    effect(() => {
+      // KER-56 · Solo el cuidador tiene bandeja de solicitudes: refresca el conteo
+      // al montar el shell y lo mantiene fresco por polling (pausado con la pestaña oculta).
+      if (this.isCaregiver()) {
+        this.caregiverRequests.startPolling();
+      }
+    });
+  }
+
+  /** KER-56 · Etiqueta accesible del ítem de nav; incluye el conteo cuando el badge está visible (no solo color). */
+  navAriaLabel(item: NavItem): string | null {
+    if (item.badge === 'caregiver-pending' && this.pendingRequests() > 0) {
+      const n = this.pendingRequests();
+      return `${item.label}, ${n} ${n === 1 ? 'pendiente' : 'pendientes'}`;
+    }
+    return null;
   }
 
   onPatientChange(id: string): void {

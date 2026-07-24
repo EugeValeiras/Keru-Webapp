@@ -150,6 +150,8 @@ test.describe.serial('Circuito MVP Keru', () => {
 
   test('e. familia busca por zona y envía la solicitud', async () => {
     await family.goto('/app/marketplace');
+    // KER-56 · el rol familia no tiene bandeja de solicitudes → su nav no muestra badge de conteo.
+    await expect(family.locator('header nav kr-badge')).toHaveCount(0);
     await family.getByLabel('Zona').fill(ZONE);
     await family.getByRole('button', { name: 'Buscar' }).click();
 
@@ -195,12 +197,22 @@ test.describe.serial('Circuito MVP Keru', () => {
     await caregiver.goto('/caregiver/requests');
     const acceptBtn = caregiver.getByRole('button', { name: 'Aceptar' });
     await expect(acceptBtn).toBeVisible({ timeout: 15_000 });
+
+    // KER-56 · con 1 solicitud pendiente, el badge de la nav muestra el conteo (aria-label + número).
+    const requestsNav = caregiver.getByRole('link', { name: /^Solicitudes/ });
+    await expect(requestsNav).toHaveAttribute('aria-label', 'Solicitudes, 1 pendiente');
+    await expect(requestsNav.locator('kr-badge')).toHaveText('1');
+
     await acceptBtn.click();
 
     // El filtro queda en "Pendiente"; pasar a "Aceptada" y verificar el estado.
     await expect(caregiver.getByText('Sin solicitudes por ahora')).toBeVisible({
       timeout: 15_000,
     });
+
+    // KER-56 · al aceptar, el conteo baja a 0 → el badge desaparece de la nav.
+    await expect(requestsNav.locator('kr-badge')).toHaveCount(0);
+
     await caregiver.getByRole('button', { name: 'Aceptada', exact: true }).click();
     await expect(caregiver.locator('kr-badge', { hasText: 'Aceptada' })).toBeVisible();
   });

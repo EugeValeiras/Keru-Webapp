@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HiringApi } from '../../core/api/hiring-api.service';
+import { CaregiverRequestsStore } from '../../core/hiring/caregiver-requests.store';
 import {
   ApiError,
   HIRING_STATUS_LABELS,
@@ -152,6 +153,8 @@ const CONTACT_LABELS: Record<string, string> = {
 })
 export class CaregiverInboxPage {
   private readonly api = inject(HiringApi);
+  /** KER-56 · Badge de la nav: alimentamos el conteo de pendientes desde la lista ya traída. */
+  private readonly requestsStore = inject(CaregiverRequestsStore);
 
   readonly requests = signal<HiringRequest[]>([]);
   readonly loading = signal(false);
@@ -179,6 +182,9 @@ export class CaregiverInboxPage {
       next: (items) => {
         this.loading.set(false);
         this.requests.set(items);
+        // Mantiene el badge de la nav en sync tras montar la bandeja y tras aceptar/declinar
+        // (accept/decline recargan con this.load()), sin un request extra.
+        this.requestsStore.setFromRequests(items);
       },
       error: (err: ApiError) => {
         this.loading.set(false);
