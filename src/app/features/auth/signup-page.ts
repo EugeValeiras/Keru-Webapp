@@ -133,13 +133,15 @@ export class SignupPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  // KER-50: el self-signup ofrece solo family y caregiver. Administrar perfiles de paciente es
+  // capacidad de `family` (para vos o un ser querido); el rol `patient` quedó fuera del signup
+  // (login-de-paciente diferido, ADR-0003 §7). Quien se cuida a sí mismo se registra como Familiar.
   readonly roleOptions: { value: SignupRole; label: string; hint: string }[] = [
     {
       value: 'family',
       label: 'Familiar',
-      hint: 'Busco y contrato cuidadores para un ser querido',
+      hint: 'Busco y contrato cuidadores para mí o un ser querido',
     },
-    { value: 'patient', label: 'Paciente', hint: 'Busco un cuidador para mí' },
     { value: 'caregiver', label: 'Cuidador/a', hint: 'Ofrezco mis servicios de cuidado' },
   ];
 

@@ -1300,7 +1300,7 @@ export interface components {
              * @example family
              * @enum {string}
              */
-            role: "patient" | "family" | "caregiver";
+            role: "family" | "caregiver";
             /** @example Juan Díaz */
             displayName: string;
         };

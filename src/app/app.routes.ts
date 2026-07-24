@@ -74,9 +74,11 @@ export const routes: Routes = [
     ],
   },
   {
+    // KER-50: administrar perfiles de paciente es capacidad de `family` (el rol `patient` salió
+    // del signup). Solo cuentas family entran a /app (marketplace + gestión de pacientes).
     path: 'app',
     component: AppShell,
-    canActivate: [authGuard, roleGuard('family', 'patient')],
+    canActivate: [authGuard, roleGuard('family')],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'marketplace' },
       {
