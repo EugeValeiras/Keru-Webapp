@@ -1,11 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AdminApi } from '../../core/api/admin-api.service';
 import {
   AdminCaregiverDetail,
   ApiError,
   CaregiverStatus,
+  CertificationView,
   DAY_LABELS,
   MODALITY_LABELS,
   Modality,
@@ -30,6 +32,18 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
   approved: 'success',
   rejected: 'danger',
   deactivated: 'neutral',
+};
+
+/** KER-52 · Estado por-certificación. */
+const CERT_STATUS_LABEL: Record<string, string> = {
+  pending: 'Pendiente',
+  approved: 'Verificada',
+  rejected: 'Rechazada',
+};
+const CERT_STATUS_TONE: Record<string, BadgeTone> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'danger',
 };
 
 @Component({
@@ -81,17 +95,54 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
           </div>
         </div>
 
-        <!-- Certificaciones -->
+        <!-- Certificaciones (KER-52: revisión por-cert con documento privado) -->
         <div class="bg-surface rounded-card shadow-card p-6">
           <h2 class="text-lg font-semibold mb-3">Certificaciones</h2>
           @if (d.certifications.length === 0) {
             <p class="text-ink-500 text-sm">No declaró certificaciones.</p>
           } @else {
-            <ul class="flex flex-col gap-2">
-              @for (c of d.certifications; track $index) {
-                <li class="text-ink-900">
-                  <span class="font-medium">{{ c.type }}</span>
-                  <span class="text-ink-500"> — {{ c.institution }}, {{ c.year }}</span>
+            <ul class="flex flex-col gap-3">
+              @for (c of d.certifications; track c.id) {
+                <li class="rounded-control border border-ink-200 p-4 flex flex-col gap-2">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div>
+                      <span class="font-medium">{{ c.badgeIcon }} {{ c.label }}</span>
+                      <span class="text-ink-500"> — {{ c.institution }}, {{ c.year }}</span>
+                    </div>
+                    <kr-badge [tone]="certStatusTone(c.status)">{{ certStatusLabel(c.status) }}</kr-badge>
+                  </div>
+                  @if (c.rejectionReason) {
+                    <p class="text-xs text-danger">Motivo: {{ c.rejectionReason }}</p>
+                  }
+                  <div class="flex flex-wrap gap-2">
+                    @if (c.hasDocument) {
+                      <button
+                        type="button"
+                        (click)="downloadDoc(c.id)"
+                        class="rounded-pill border border-ink-300 text-ink-700 text-sm font-medium py-1.5 px-4 hover:bg-primary-50 transition-colors"
+                      >
+                        Ver documento
+                      </button>
+                    }
+                    @if (c.status === 'pending') {
+                      <button
+                        type="button"
+                        (click)="approveCert(c.id)"
+                        [disabled]="busy()"
+                        class="rounded-pill bg-primary-600 text-white text-sm font-semibold py-1.5 px-4 hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                      >
+                        Aprobar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="openRejectCert(c.id)"
+                        [disabled]="busy()"
+                        class="rounded-pill border border-ink-300 text-danger text-sm font-semibold py-1.5 px-4 hover:bg-danger-50 disabled:opacity-50 transition-colors"
+                      >
+                        Rechazar
+                      </button>
+                    }
+                  </div>
                 </li>
               }
             </ul>
@@ -141,16 +192,23 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
         <!-- Insignias -->
         <div class="bg-surface rounded-card shadow-card p-6">
           <h2 class="text-lg font-semibold mb-3">Insignias</h2>
+          <p class="text-xs text-ink-500 mb-3">
+            La insignia <strong>Certificaciones verificadas</strong> es automática: se enciende cuando
+            aprobás al menos una certificación (arriba). Identidad y antecedentes se marcan acá.
+          </p>
           <div class="flex flex-col gap-3">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="badge-cert"
-                [(ngModel)]="badgeCertifications"
-                class="accent-primary-600"
-              />
-              <span class="text-ink-700">Certificaciones verificadas</span>
-            </label>
+            <div class="flex items-center gap-2">
+              <span
+                class="inline-flex h-4 w-4 items-center justify-center rounded-sm"
+                [class.bg-success]="badgeCertifications"
+                [class.bg-ink-200]="!badgeCertifications"
+                aria-hidden="true"
+              ></span>
+              <span class="text-ink-700">
+                Certificaciones verificadas
+                <span class="text-xs text-ink-500">(derivada: {{ badgeCertifications ? 'sí' : 'no' }})</span>
+              </span>
+            </div>
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -262,6 +320,43 @@ const STATUS_TONE: Record<CaregiverStatus, BadgeTone> = {
         </kr-modal>
       }
 
+      <!-- Modal rechazo de una certificación (KER-52) -->
+      @if (certRejectId()) {
+        <kr-modal title="Rechazar certificación" (closed)="certRejectId.set(null)">
+          <div class="flex flex-col gap-4">
+            <label class="flex flex-col gap-1">
+              <span class="text-sm font-medium text-ink-700">Motivo (obligatorio)</span>
+              <textarea
+                name="certRejectReason"
+                rows="4"
+                maxlength="400"
+                [(ngModel)]="certRejectReason"
+                placeholder="Ej: El documento está ilegible"
+                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              ></textarea>
+              <span class="text-xs text-ink-500">{{ certRejectReason.length }}/400</span>
+            </label>
+            <div class="flex justify-end gap-3">
+              <button
+                type="button"
+                (click)="certRejectId.set(null)"
+                class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-sand-100 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="rejectCert()"
+                [disabled]="busy() || certRejectReason.trim().length === 0"
+                class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              >
+                {{ busy() ? 'Rechazando…' : 'Confirmar rechazo' }}
+              </button>
+            </div>
+          </div>
+        </kr-modal>
+      }
+
       <!-- Modal desactivación -->
       @if (deactivateOpen()) {
         <kr-modal title="Desactivar perfil" (closed)="deactivateOpen.set(false)">
@@ -320,13 +415,17 @@ export class AdminCaregiverDetailPage {
   readonly statusTone = STATUS_TONE;
   readonly formatDate = formatDate;
 
-  // Toggles de insignias (ngModel)
+  // Insignias: certificaciones es DERIVADA (solo lectura); identidad/antecedentes son toggles.
   badgeCertifications = false;
   badgeIdentity = false;
   badgeBackground = false;
 
   rejectReason = '';
   deactivateReason = '';
+
+  /** KER-52 · id de la cert que se está rechazando (abre el modal) + su motivo. */
+  readonly certRejectId = signal<string | null>(null);
+  certRejectReason = '';
 
   constructor() {
     this.load();
@@ -351,14 +450,67 @@ export class AdminCaregiverDetailPage {
   }
 
   saveBadges(): void {
+    // KER-52: la insignia `certifications` es derivada (≥1 cert aprobada); no se setea a mano.
     this.run(
       () =>
         this.api.setBadges(this.id, {
-          certifications: this.badgeCertifications,
           identity: this.badgeIdentity,
           background: this.badgeBackground,
         }),
       'Insignias guardadas.',
+    );
+  }
+
+  certStatusLabel(status: string): string {
+    return CERT_STATUS_LABEL[status] ?? status;
+  }
+
+  certStatusTone(status: string): BadgeTone {
+    return CERT_STATUS_TONE[status] ?? 'neutral';
+  }
+
+  /** KER-52 (UC-19) · Descarga el documento privado de una cert (solo admin; auditado en backend). */
+  downloadDoc(certId: string): void {
+    this.error.set(null);
+    this.api.downloadCertificationDocument(this.id, certId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+      error: (err: ApiError) => this.error.set(err.message),
+    });
+  }
+
+  /** KER-52 (UC-19) · Aprueba una cert individual (exige step-up). */
+  async approveCert(certId: string): Promise<void> {
+    const token = await this.stepUp.require();
+    if (!token) return;
+    this.run(
+      () => this.api.approveCertification(this.id, certId, token),
+      'Certificación aprobada: su insignia ya se ve en el marketplace.',
+    );
+  }
+
+  openRejectCert(certId: string): void {
+    this.certRejectReason = '';
+    this.certRejectId.set(certId);
+  }
+
+  /** KER-52 (UC-19 A2) · Rechaza una cert individual con motivo (exige step-up). */
+  async rejectCert(): Promise<void> {
+    const certId = this.certRejectId();
+    const reason = this.certRejectReason.trim();
+    if (!certId || !reason) return;
+    const token = await this.stepUp.require();
+    if (!token) return;
+    this.run(
+      () => this.api.rejectCertification(this.id, certId, reason, token),
+      'Certificación rechazada.',
+      () => {
+        this.certRejectId.set(null);
+        this.certRejectReason = '';
+      },
     );
   }
 
@@ -408,7 +560,7 @@ export class AdminCaregiverDetailPage {
   }
 
   private run(
-    action: () => ReturnType<AdminApi['approve']>,
+    action: () => Observable<unknown>,
     successMsg: string,
     onSuccess?: () => void,
   ): void {
