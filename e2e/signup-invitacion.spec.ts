@@ -11,7 +11,7 @@ import { test, expect, Page } from '@playwright/test';
  */
 
 const INVITED_EMAIL = 'invitada@e2e.keru.test';
-const TOKEN = 'tok-e2e-signup-invite';
+const TOKEN = 'tok-e2e-signup-invite'; // gitleaks:allow — placeholder de test, no es un secreto real
 const PATIENT_NAME = 'Rosa Domínguez';
 
 /** Preview determinista: pendiente, no expirado, con roleToGrant. */
