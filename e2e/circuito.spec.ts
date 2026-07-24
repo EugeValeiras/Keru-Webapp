@@ -221,19 +221,19 @@ test.describe.serial('Circuito MVP Keru', () => {
   test('f2. Mis servicios (KER-57): inicio futuro → "Comienza el", lectura habilitada, sin botón muerto', async () => {
     // La solicitud arranca MAÑANA (test e). La affordance debe reflejar la autorización real
     // (constitution §3.7): LEER va por la vida del servicio (disponible ya), REGISTRAR por la
-    // ventana (todavía no) → banner "Comienza el {fecha}" + Ver estado/Historial, sin registrar.
+    // ventana (todavía no) → banner "Comienza el {fecha}" + Estado del paciente/Historial, sin registrar.
     await caregiver.goto('/caregiver/services');
     const card = caregiver.locator('.bg-surface').filter({ hasText: PATIENT_NAME });
     await expect(card).toBeVisible({ timeout: 15_000 });
 
     await expect(card.getByText(/Comienza el/)).toBeVisible();
-    await expect(card.getByRole('link', { name: 'Ver estado' })).toBeVisible();
+    await expect(card.getByRole('link', { name: 'Estado del paciente' })).toBeVisible();
     // La escritura NO se ofrece fuera de ventana (evita el botón que la API rechazaría/cuarentena).
     await expect(card.getByRole('link', { name: 'Registrar vitales' })).toHaveCount(0);
     await expect(card.getByRole('link', { name: 'Medicación' })).toHaveCount(0);
 
-    // "Ver estado" YA autoriza la lectura (antes daba 403 "Sin acceso"): aterriza en el dashboard.
-    await card.getByRole('link', { name: 'Ver estado' }).click();
+    // "Estado del paciente" YA autoriza la lectura (antes daba 403 "Sin acceso"): aterriza en el dashboard.
+    await card.getByRole('link', { name: 'Estado del paciente' }).click();
     await expect(caregiver).toHaveURL(/\/dashboard$/, { timeout: 15_000 });
     await expect(caregiver.getByText('Sin acceso a este paciente')).toHaveCount(0);
     await expect(caregiver.getByRole('heading', { name: 'Estado actual' })).toBeVisible();
