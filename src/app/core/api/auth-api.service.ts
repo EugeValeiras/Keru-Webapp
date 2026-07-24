@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AuthResponse,
   EmailVerificationConfirmDto,
+  EmailVerificationPeekResponse,
   EmailVerificationRequestResponse,
   LoginDto,
   LogoutResponse,
@@ -59,5 +60,13 @@ export class AuthApi {
   /** KER-49 (UC-04 A5): confirma la verificación con el token del email (auto-login verificado). */
   confirmEmailVerification(dto: EmailVerificationConfirmDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/v1/auth/email-verification/confirm', dto);
+  }
+
+  /**
+   * KER-63 (UC-04 A5.2b): peek del token — devuelve el email destino SIN consumir el token, para
+   * ramificar por sesión antes de confirmar (410 si el token es inválido/expirado/usado).
+   */
+  peekEmailVerification(dto: EmailVerificationConfirmDto): Observable<EmailVerificationPeekResponse> {
+    return this.http.post<EmailVerificationPeekResponse>('/api/v1/auth/email-verification/peek', dto);
   }
 }
