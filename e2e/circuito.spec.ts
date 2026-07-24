@@ -88,10 +88,9 @@ test.describe.serial('Circuito MVP Keru', () => {
     // Sin perfil, el shell del cuidador termina en el onboarding.
     await expect(caregiver).toHaveURL(/\/caregiver\/onboarding$/, { timeout: 15_000 });
 
-    // Paso 1: datos
-    const nameInput = caregiver.getByLabel('Nombre a mostrar');
-    await expect(nameInput).toBeVisible({ timeout: 15_000 });
-    await nameInput.fill(CAREGIVER_NAME);
+    // Paso 1: datos. El nombre a mostrar es el de la cuenta (ADR-0003), no un input editable:
+    // se muestra de solo lectura y ya viene del signup (CAREGIVER_NAME).
+    await expect(caregiver.getByText(CAREGIVER_NAME).first()).toBeVisible({ timeout: 15_000 });
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
 
     // Paso 2: especialidades (>= 1)

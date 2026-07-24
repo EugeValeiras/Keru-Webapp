@@ -1509,9 +1509,15 @@ export interface components {
              * @example op-8f3a2c1e
              */
             operationId: string;
-            /** @example Laura Gómez */
-            displayName: string;
-            /** @example http://localhost:4566/keru-media/images/abc.jpg */
+            /**
+             * @deprecated
+             * @description Ignorado (ADR-0003): el nombre lo aporta la cuenta (identidad fuente única en Account).
+             */
+            displayName?: string;
+            /**
+             * @description Foto opcional; si se envía al registrar se guarda en la cuenta (ADR-0003).
+             * @example http://localhost:4566/keru-media/images/abc.jpg
+             */
             photoUrl?: string;
             /**
              * @example [
@@ -1562,8 +1568,6 @@ export interface components {
              * @example op-8f3a2c1e
              */
             operationId: string;
-            /** @example http://localhost:4566/keru-media/images/abc.jpg */
-            photoUrl?: string;
             availability?: components["schemas"]["AvailabilityDto"][];
             rates?: components["schemas"]["RatesDto"];
             /** @example Palermo, CABA */

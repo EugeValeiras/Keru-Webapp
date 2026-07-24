@@ -132,11 +132,10 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await caregiver.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(caregiver).toHaveURL(/\/caregiver\/onboarding$/, { timeout: 15_000 });
 
-    const nameInput = caregiver.getByLabel('Nombre a mostrar');
-    await expect(nameInput).toBeVisible({ timeout: 15_000 });
+    // El nombre a mostrar es el de la cuenta (ADR-0003): se muestra de solo lectura, ya con el signup.
+    await expect(caregiver.getByText(CAREGIVER_NAME).first()).toBeVisible({ timeout: 15_000 });
     await expectAxeClean(caregiver, 'caregiver/onboarding paso 1');
 
-    await nameInput.fill(CAREGIVER_NAME);
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await caregiver.getByLabel('Adultos mayores').check();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
