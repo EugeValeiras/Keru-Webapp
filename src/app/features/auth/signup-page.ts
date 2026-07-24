@@ -30,7 +30,7 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
       >
         <div>
           <h1 class="text-[1.375rem]">Creá tu cuenta</h1>
-          <p class="text-sm text-ink-500 mt-1">Unos datos y arrancamos.</p>
+          <p class="text-sm text-ink-700 mt-1">Unos datos y arrancamos.</p>
         </div>
 
         @if (error(); as err) {
@@ -66,12 +66,12 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
               </span>
-              <span class="text-sm text-ink-500 block">
+              <span class="text-sm text-ink-700 block">
                 Te sumás al círculo de cuidado de un ser querido.
               </span>
             </div>
             @if (linkRoleLabel(); as rl) {
-              <p class="text-xs text-ink-500">
+              <p class="text-xs text-ink-700">
                 Rol en el círculo:
                 <span class="font-medium text-ink-700">{{ rl }}</span>
               </p>
@@ -110,7 +110,7 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
                       </svg>
                     }
                   </span>
-                  <span class="text-sm text-ink-500 block">{{ option.hint }}</span>
+                  <span class="text-sm text-ink-700 block">{{ option.hint }}</span>
                 </button>
               }
             </div>
@@ -149,7 +149,7 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
             "
           />
           @if (invited()) {
-            <span id="email-locked-hint" class="text-xs text-ink-500">
+            <span id="email-locked-hint" class="text-xs text-ink-700">
               Es el email de tu invitación y no se puede cambiar.
             </span>
           }
@@ -164,7 +164,7 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
             autocomplete="new-password"
             [(ngModel)]="password"
           />
-          <span class="text-xs text-ink-500">Mínimo 8 caracteres</span>
+          <span class="text-xs text-ink-700">Mínimo 8 caracteres</span>
         </label>
 
         <button
@@ -175,7 +175,7 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
           {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
         </button>
 
-        <p class="text-sm text-ink-500 text-center">
+        <p class="text-sm text-ink-700 text-center">
           ¿Ya tenés cuenta?
           <a routerLink="/login" class="text-primary-600 font-medium hover:underline">
             Iniciá sesión
