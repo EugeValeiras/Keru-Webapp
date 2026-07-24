@@ -132,7 +132,7 @@ interface SlotRow {
             </div>
           </div>
 
-          <p class="text-xs text-ink-500 bg-primary-50 rounded-control px-3 py-2">
+          <p class="text-xs text-ink-700 bg-primary-50 rounded-control px-3 py-2">
             Para cambiar tu nombre, especialidades o certificaciones escribinos: requieren una
             nueva verificación.
           </p>

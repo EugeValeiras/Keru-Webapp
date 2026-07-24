@@ -93,6 +93,15 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await family.goto('/signup');
     await expect(family.getByRole('button', { name: /^Familiar/ })).toBeVisible();
     await expectAxeClean(family, 'signup');
+
+    // Landing pública de invitación con token inexistente → card "inválida"
+    // (KER-79): el ícono decorativo sobre bg-sand-100 y el texto de ayuda son
+    // muted-sobre-tono; axe cubre que su contraste no reabra el flake de color.
+    await family.goto('/invite/token-inexistente-a11y');
+    await expect(family.getByRole('heading', { name: 'Invitación inválida' })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expectAxeClean(family, 'invite-landing (inválida)');
   });
 
   test('setup familia + axe: pacientes y alta de paciente', async () => {
@@ -296,6 +305,16 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     // y queda cubierto por esta pasada axe.
     await expect(caregiver.getByRole('link', { name: /^Solicitudes,.*pendiente/ })).toBeVisible();
     await expectAxeClean(caregiver, 'caregiver/requests');
+
+    // Editar perfil (KER-79): sólo accesible con perfil aprobado (ya lo está a
+    // esta altura). El aviso "requieren nueva verificación" va sobre bg-primary-50
+    // y el editor de disponibilidad muestra el hint "Total…" (muted text-xs):
+    // ambos subieron a ink-700 para holgura AA. axe cubre el contraste.
+    await caregiver.goto('/caregiver/profile/edit');
+    await expect(caregiver.getByText(/requieren una nueva verificación/)).toBeVisible({
+      timeout: 15_000,
+    });
+    await expectAxeClean(caregiver, 'caregiver/profile/edit');
   });
 
   test('vitales con alerta + axe: registro, dashboard y panel de campana', async () => {

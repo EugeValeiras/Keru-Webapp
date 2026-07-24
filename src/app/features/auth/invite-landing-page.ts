@@ -29,7 +29,7 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
           @case ('invalid') {
             <span
               aria-hidden="true"
-              class="w-14 h-14 rounded-pill bg-sand-100 text-ink-500 flex items-center justify-center mx-auto"
+              class="w-14 h-14 rounded-pill bg-sand-100 text-ink-700 flex items-center justify-center mx-auto"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ type LandingState = 'loading' | 'invalid' | 'expired' | 'ready' | 'confirmed';
           @case ('expired') {
             <span
               aria-hidden="true"
-              class="w-14 h-14 rounded-pill bg-sand-100 text-ink-500 flex items-center justify-center mx-auto"
+              class="w-14 h-14 rounded-pill bg-sand-100 text-ink-700 flex items-center justify-center mx-auto"
             >
               <svg
                 viewBox="0 0 24 24"
