@@ -68,7 +68,7 @@ type ServicePhase = 'upcoming' | 'active' | 'ended';
 
               <!--
                 KER-57 · La affordance se alinea a la autorización de la API (constitution §3.7):
-                LEER (Ver estado / Historial) va por la VIDA del servicio → siempre disponible
+                LEER (Estado del paciente / Historial) va por la VIDA del servicio → siempre disponible
                 mientras esté vivo (aceptado/en curso); REGISTRAR (vitales/medicación/novedad) va
                 por la VENTANA (NFR-30) → solo dentro del período. Fuera de ventana no se ofrece un
                 botón que la API rechazaría/pondría en cuarentena: se comunica el estado.
@@ -84,7 +84,7 @@ type ServicePhase = 'upcoming' | 'active' | 'ended';
                       [routerLink]="['/caregiver/patients', r.patientId, 'dashboard']"
                       class="rounded-pill bg-primary-600 text-white font-semibold py-2 px-5 hover:bg-primary-700 transition-colors text-sm"
                     >
-                      Ver estado
+                      Estado del paciente
                     </a>
                     <a
                       [routerLink]="['/caregiver/patients', r.patientId, 'history']"
@@ -106,7 +106,7 @@ type ServicePhase = 'upcoming' | 'active' | 'ended';
                       [routerLink]="['/caregiver/patients', r.patientId, 'dashboard']"
                       class="rounded-pill bg-primary-600 text-white font-semibold py-2 px-5 hover:bg-primary-700 transition-colors text-sm"
                     >
-                      Ver estado
+                      Estado del paciente
                     </a>
                     <a
                       [routerLink]="['/caregiver/patients', r.patientId, 'history']"
