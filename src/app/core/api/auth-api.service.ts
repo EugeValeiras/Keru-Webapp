@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AuthResponse,
+  EmailVerificationConfirmDto,
+  EmailVerificationRequestResponse,
   LoginDto,
   LogoutResponse,
   PasswordResetConfirmDto,
@@ -44,5 +46,18 @@ export class AuthApi {
   /** KER-46 (UC-04 A4): confirma el reset con el token del email y la contraseña nueva. */
   confirmPasswordReset(dto: PasswordResetConfirmDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/v1/auth/password-reset/confirm', dto);
+  }
+
+  /**
+   * KER-49 (UC-04 A5): pide/reenvía el email de verificación. Responde SIEMPRE 200
+   * (anti-enumeración): el cliente no distingue un email registrado de uno que no lo está.
+   */
+  requestEmailVerification(email: string): Observable<EmailVerificationRequestResponse> {
+    return this.http.post<EmailVerificationRequestResponse>('/api/v1/auth/email-verification/request', { email });
+  }
+
+  /** KER-49 (UC-04 A5): confirma la verificación con el token del email (auto-login verificado). */
+  confirmEmailVerification(dto: EmailVerificationConfirmDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/v1/auth/email-verification/confirm', dto);
   }
 }
