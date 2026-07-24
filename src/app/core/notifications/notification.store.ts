@@ -2,35 +2,43 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { CareApi } from '../api/care-api.service';
 import { AppNotification } from '../api/api.types';
 import { AuthStore } from '../auth/auth-store';
+import { PushStore } from './push.store';
 import { ToastService } from '../../shared/ui/toast.service';
 
-const POLL_MS = 45_000;
+/**
+ * KER-78 (ADR-0004 Fase 1) · Cadencia del polling del badge:
+ * - sin push activo → piso corto: el polling es la única frescura del contador.
+ * - con push activo → fallback largo: el Web Push ya empuja el refetch inmediato (bridge),
+ *   así el polling queda como red de seguridad (degradación graceful, NFR-09) sin castigar la API.
+ */
+const POLL_FLOOR_MS = 45_000;
+const POLL_FALLBACK_MS = 300_000;
 
 /**
- * Campana in-app. Sin push/SSE/WS en la API: badge por polling de
- * unread-count (pausado con la pestaña oculta), lista bajo demanda.
+ * Campana in-app. El badge se refresca por polling de unread-count (pausado con la pestaña
+ * oculta, refetch on-focus) y, cuando el Web Push está activo, por un empujón inmediato al
+ * recibir el push (ADR-0004 Fase 1); el polling permanece como piso garantizado (NFR-09).
  */
 @Injectable({ providedIn: 'root' })
 export class NotificationStore {
   private readonly api = inject(CareApi);
   private readonly auth = inject(AuthStore);
+  private readonly push = inject(PushStore);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly unread = signal(0);
   readonly items = signal<AppNotification[]>([]);
-  private timer: ReturnType<typeof setInterval> | null = null;
+  /** El panel llegó a cargar la lista: un empujón por push la re-sincroniza en vivo. */
+  private readonly listLoaded = signal(false);
+  private timer: ReturnType<typeof setTimeout> | null = null;
 
   startPolling(): void {
     if (this.timer) {
       return;
     }
     this.refreshCount();
-    this.timer = setInterval(() => {
-      if (!document.hidden && this.auth.isAuthenticated()) {
-        this.refreshCount();
-      }
-    }, POLL_MS);
+    this.scheduleNext();
     const onFocus = () => this.auth.isAuthenticated() && this.refreshCount();
     document.addEventListener('visibilitychange', onFocus);
     this.destroyRef.onDestroy(() => {
@@ -39,10 +47,39 @@ export class NotificationStore {
     });
   }
 
+  /**
+   * Auto-programa el próximo poll eligiendo el intervalo según haya o no push activo, de modo
+   * que activar/desactivar el push en caliente reajusta la cadencia en el siguiente ciclo.
+   */
+  private scheduleNext(): void {
+    const delay = this.push.active() ? POLL_FALLBACK_MS : POLL_FLOOR_MS;
+    this.timer = setTimeout(() => {
+      if (!document.hidden && this.auth.isAuthenticated()) {
+        this.refreshCount();
+      }
+      this.scheduleNext();
+    }, delay);
+  }
+
   stopPolling(): void {
     if (this.timer) {
-      clearInterval(this.timer);
+      clearTimeout(this.timer);
       this.timer = null;
+    }
+  }
+
+  /**
+   * KER-78 (ADR-0004 Fase 1) · Empujón del Web Push: al recibir un push el SW avisa a la pestaña
+   * y el badge se refetchea al instante, sin esperar el ciclo de polling. Best-effort: si no hay
+   * sesión no hace nada, y cualquier fallo del fetch queda silencioso (la campana no se rompe).
+   */
+  pushRefresh(): void {
+    if (!this.auth.isAuthenticated()) {
+      return;
+    }
+    this.refreshCount();
+    if (this.listLoaded()) {
+      this.loadList();
     }
   }
 
@@ -54,7 +91,10 @@ export class NotificationStore {
   }
 
   loadList(): void {
-    this.api.getNotifications().subscribe((items) => this.items.set(items));
+    this.api.getNotifications().subscribe((items) => {
+      this.items.set(items);
+      this.listLoaded.set(true);
+    });
   }
 
   /** Optimista: marca local y dispara el POST (nunca falla con 404). */
