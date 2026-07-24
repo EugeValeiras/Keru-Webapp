@@ -241,10 +241,13 @@ export class InviteLandingPage {
     });
   }
 
-  private inviteQueryParams(): { returnUrl: string; email: string } {
+  private inviteQueryParams(): { returnUrl: string; email: string; linkRole: string } {
+    // KER-67: el registro por invitación prellena+bloquea el email y muestra el rol del vínculo.
+    // El returnUrl (/invite/:token) le indica al signup que es un alta por invitación.
     return {
       returnUrl: `/invite/${this.token}`,
       email: this.preview()?.invitedEmail ?? '',
+      linkRole: this.preview()?.roleToGrant ?? '',
     };
   }
 

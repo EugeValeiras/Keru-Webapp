@@ -153,15 +153,8 @@ export type Invitation = Schemas['InvitationResponseDto'];
 /** UC-03 · Invitación emitida (gestión: listar y revocar). */
 export type EmittedInvitation = Schemas['EmittedInvitationDto'];
 
-/** GET /invitations/:token (público, sin schema en openapi). */
-export interface InvitationPreview {
-  patientId: string;
-  patientName: string;
-  invitedEmail: string;
-  expiresAt: string;
-  /** true solo si status=pending y no expiró; false → deshabilitar confirmar. */
-  valid: boolean;
-}
+/** GET /invitations/:token (público). KER-67: expone `roleToGrant` (rol del vínculo informativo). */
+export type InvitationPreview = Schemas['InvitationPreviewDto'];
 
 export type InvitationConfirmed = Schemas['InvitationConfirmedDto'];
 

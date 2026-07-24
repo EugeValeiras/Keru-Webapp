@@ -15,3 +15,12 @@ useDefault = true
 description = "Valores placeholder (change-me, dummy, <completar>) — nunca secretos reales"
 regexTarget = "secret"
 regexes = ['''(?i)(change-?me|changeit|placeholder|dummy|your[-_].+[-_]here|<[^>]+>)''']
+
+# Tokens de invitación fabricados para los stubs de los e2e (page.route). No viajan al
+# backend ni son criptográficos: son literales deterministas con prefijo `tok-e2e-`.
+# Allowlist por contenido (regexTarget = "secret"), commit-independiente: cubre el rango
+# completo del PR aunque un commit previo no tenga el // gitleaks:allow inline.
+[[allowlists]]
+description = "Tokens de invitación de test e2e (tok-e2e-*) — placeholders de stub, no secretos"
+regexTarget = "secret"
+regexes = ['''tok-e2e-[a-z0-9-]+''']
