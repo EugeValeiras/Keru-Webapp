@@ -1573,7 +1573,7 @@ export interface components {
              * @example 1948-03-10
              */
             birthDate: string;
-            /** @example https://cdn.keru.app/p/rosa.jpg */
+            /** @example https://cdn.keru.ar/p/rosa.jpg */
             photoUrl?: string;
             /** @example Hipertensión */
             mainCondition: string;
@@ -1599,7 +1599,7 @@ export interface components {
             age: number;
             /**
              * @description Foto del paciente si tiene una cargada; ausente si no. El cliente cae al avatar de iniciales.
-             * @example https://cdn.keru.app/p/rosa.jpg
+             * @example https://cdn.keru.ar/p/rosa.jpg
              */
             photoUrl?: string;
             /**
@@ -1623,7 +1623,7 @@ export interface components {
              * @example 78
              */
             age: number;
-            /** @example https://cdn.keru.app/p/rosa.jpg */
+            /** @example https://cdn.keru.ar/p/rosa.jpg */
             photoUrl?: string;
             /** @example Hipertensión */
             mainCondition: string;
@@ -1675,7 +1675,7 @@ export interface components {
              * @example 1948-03-10
              */
             birthDate?: string;
-            /** @example https://cdn.keru.app/p/rosa.jpg */
+            /** @example https://cdn.keru.ar/p/rosa.jpg */
             photoUrl?: string;
             /** @example Hipertensión */
             mainCondition?: string;
