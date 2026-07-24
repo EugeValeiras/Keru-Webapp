@@ -49,7 +49,7 @@ const ROLE_LABELS: Record<string, string> = {
 
           <!-- Previsualización: refleja nombre/foto en vivo, igual que se verá en el header. -->
           <div class="flex items-center gap-4">
-            <kr-avatar [name]="displayName() || '—'" [seed]="accountId()" [photoUrl]="photoUrl()" [size]="72" />
+            <kr-avatar [name]="displayName() || '—'" [seed]="accountId()" [photoUrl]="displayPhoto()" [size]="72" />
             <div class="min-w-0">
               <p class="font-semibold text-ink-900 truncate">{{ displayName() || 'Sin nombre' }}</p>
               <p class="text-sm text-ink-500 truncate">{{ email() }}</p>
@@ -86,13 +86,13 @@ const ROLE_LABELS: Record<string, string> = {
 
           <div class="flex flex-col gap-1">
             <span class="text-sm font-medium text-ink-700">Foto de perfil</span>
-            <kr-photo-input [(url)]="photoUrl" />
+            <kr-photo-input [(url)]="photoUrl" [(preview)]="pendingPreview" [(uploading)]="photoUploading" />
           </div>
 
           <div class="flex justify-end mt-2">
             <button
               type="submit"
-              [disabled]="!formValid() || saving()"
+              [disabled]="!formValid() || saving() || photoUploading()"
               class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
               {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
@@ -115,7 +115,13 @@ export class AccountProfilePage {
 
   // Estado del formulario.
   readonly displayName = signal('');
+  // `photoUrl` = URL committeada del servidor (lo que se persiste). `pendingPreview` = object URL
+  // local optimista mientras la subida está en vuelo; `photoUploading` refleja esa subida (KER-69).
   readonly photoUrl = signal<string | null>(null);
+  readonly pendingPreview = signal<string | null>(null);
+  readonly photoUploading = signal(false);
+  // El preview grande muestra la foto elegida al instante; al asentar la subida cae a la del server.
+  readonly displayPhoto = computed(() => this.pendingPreview() ?? this.photoUrl());
   // Datos de solo lectura.
   readonly email = signal('');
   readonly accountId = signal('');
@@ -149,7 +155,8 @@ export class AccountProfilePage {
   }
 
   save(): void {
-    if (!this.formValid() || this.saving()) {
+    // No guardar con una subida en vuelo: `photoUrl` debe ser la URL del servidor, nunca un blob.
+    if (!this.formValid() || this.saving() || this.photoUploading()) {
       return;
     }
     const dto: UpdateAccountDto = {

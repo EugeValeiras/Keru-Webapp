@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, model, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, inject, model, signal, viewChild } from '@angular/core';
 import { ApiError } from '../../core/api/api.types';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import { KrModal } from './kr-modal';
@@ -25,7 +25,15 @@ const clamp = (v: number, min: number, max: number): number => Math.min(Math.max
  *    forma final del avatar): arrastrar para mover y zoom (accesible por teclado) para
  *    encuadrar; al confirmar se renderiza el recorte a un canvas y se sube ESE blob.
  *
- * Contrato intacto: sube a POST /files/images y expone la URL vía el model `url`.
+ * Contrato intacto: sube a POST /files/images y expone la URL COMMITTEADA del servidor
+ * vía el model `url` (lo que se persiste al guardar, nunca un blob local).
+ *
+ * Preview optimista (KER-69): al confirmar el recorte mostramos YA la imagen local (un object
+ * URL del blob recortado) vía el model `preview`, y la subida sigue en segundo plano. El propio
+ * avatar del componente pinta `preview() ?? url()`, y la página puede consumir `preview` para su
+ * preview grande. Cuando la subida resuelve, `url` pasa a la URL del servidor y `preview` se
+ * limpia (swap silencioso); si falla, `preview` se revierte al valor previo. Los object URLs se
+ * revocan al swap y al destruir para no filtrar memoria.
  */
 @Component({
   selector: 'kr-photo-input',
@@ -36,10 +44,10 @@ const clamp = (v: number, min: number, max: number): number => Math.min(Math.max
         <button
           type="button"
           (click)="pick()"
-          [attr.aria-label]="url() ? 'Cambiar foto de perfil' : 'Subir foto de perfil'"
+          [attr.aria-label]="displaySrc() ? 'Cambiar foto de perfil' : 'Subir foto de perfil'"
           class="group relative block h-20 w-20 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          @if (url(); as u) {
+          @if (displaySrc(); as u) {
             <img
               [src]="u"
               alt="Foto de perfil"
@@ -75,11 +83,12 @@ const clamp = (v: number, min: number, max: number): number => Math.min(Math.max
         </button>
 
         <div class="flex flex-col items-start gap-1 text-sm">
-          @if (url()) {
+          @if (displaySrc()) {
             <button
               type="button"
-              (click)="url.set(null)"
-              class="rounded-pill border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              (click)="remove()"
+              [disabled]="uploading()"
+              class="rounded-pill border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-primary-50 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             >
               Quitar
             </button>
@@ -178,9 +187,16 @@ const clamp = (v: number, min: number, max: number): number => Math.min(Math.max
 export class KrPhotoInput {
   private readonly api = inject(MembershipApi);
 
+  // `url` = URL committeada del servidor (lo que se guarda). `preview` = object URL local optimista
+  // mientras la subida está en vuelo (o null cuando ya asentó). `uploading` es model para que la
+  // página deshabilite "Guardar" mientras hay una subida en curso.
   readonly url = model<string | null>(null);
-  readonly uploading = signal(false);
+  readonly preview = model<string | null>(null);
+  readonly uploading = model(false);
   readonly error = signal<string | null>(null);
+
+  // Lo que se muestra en el avatar del componente: el preview optimista tiene prioridad.
+  protected readonly displaySrc = computed(() => this.preview() ?? this.url());
 
   protected readonly maxZoom = MAX_ZOOM;
 
@@ -207,6 +223,20 @@ export class KrPhotoInput {
   protected readonly imgTop = computed(() => (VIEW - this.dispH()) / 2 + this.offset().y);
   // La imagen ya cargó sus dimensiones naturales: recién ahí el recorte es correcto.
   protected readonly ready = computed(() => this.natW() > 0 && this.natH() > 0);
+
+  constructor() {
+    // No filtrar object URLs si el componente se destruye con un preview o un recorte en curso.
+    inject(DestroyRef).onDestroy(() => {
+      const p = this.preview();
+      if (p) {
+        URL.revokeObjectURL(p);
+      }
+      const c = this.cropSrc();
+      if (c) {
+        URL.revokeObjectURL(c);
+      }
+    });
+  }
 
   pick(): void {
     this.fileInput().nativeElement.click();
@@ -325,6 +355,10 @@ export class KrPhotoInput {
           this.closeCrop();
           return;
         }
+        // Preview optimista: mostramos YA el recorte local y cerramos el modal; la subida sigue
+        // en segundo plano. `url` no se toca hasta que el servidor responde (lo que se guarda).
+        this.setPreview(URL.createObjectURL(blob));
+        this.closeCrop();
         this.upload(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
       },
       'image/jpeg',
@@ -338,14 +372,31 @@ export class KrPhotoInput {
     this.api.uploadImage(file).subscribe({
       next: (res) => {
         this.uploading.set(false);
+        // Swap silencioso: la URL committeada pasa a ser la del servidor y soltamos el preview.
         this.url.set(res.url);
-        this.closeCrop();
+        this.setPreview(null);
       },
       error: (err: ApiError) => {
         this.uploading.set(false);
         this.error.set(err.message);
-        this.closeCrop();
+        // Revertir el preview optimista: displaySrc vuelve al valor previo de `url`.
+        this.setPreview(null);
       },
     });
+  }
+
+  // Quita la foto (deshabilitado mientras hay una subida en vuelo para no re-agregarla al resolver).
+  remove(): void {
+    this.setPreview(null);
+    this.url.set(null);
+  }
+
+  // Reemplaza el object URL del preview revocando el anterior para no filtrar memoria.
+  private setPreview(next: string | null): void {
+    const prev = this.preview();
+    if (prev && prev !== next) {
+      URL.revokeObjectURL(prev);
+    }
+    this.preview.set(next);
   }
 }
