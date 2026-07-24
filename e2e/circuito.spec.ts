@@ -101,9 +101,11 @@ test.describe.serial('Circuito MVP Keru', () => {
     await expect(caregiver.getByText('Sumá tus certificaciones')).toBeVisible();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
 
-    // Paso 4: disponibilidad (>= 1)
+    // Paso 4: disponibilidad (>= 1) — KER-53: elegir día(s) + rango y aplicar.
+    await caregiver.getByRole('button', { name: 'Lunes' }).click();
     await caregiver.getByLabel('Desde').fill('09:00');
     await caregiver.getByLabel('Hasta').fill('17:00');
+    await caregiver.getByRole('button', { name: 'Agregar horario' }).click();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
 
     // Paso 5: tarifa, zona y modalidad

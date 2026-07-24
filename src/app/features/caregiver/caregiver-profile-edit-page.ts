@@ -5,12 +5,13 @@ import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
   CaregiverProfile,
-  DAY_LABELS,
   MODALITY_LABELS,
   Modality,
   UpdateCaregiverProfileDto,
 } from '../../core/api/api.types';
 import { newOperationId } from '../../core/idempotency/operation-id';
+import { KrAvailabilityEditor } from '../../shared/ui/kr-availability-editor';
+import { isSlotValid } from '../../shared/ui/availability';
 
 interface SlotRow {
   dayOfWeek: number;
@@ -25,7 +26,7 @@ interface SlotRow {
  */
 @Component({
   selector: 'kr-caregiver-profile-edit-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, KrAvailabilityEditor, RouterLink],
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
@@ -60,57 +61,7 @@ interface SlotRow {
 
           <div>
             <p class="text-sm font-medium text-ink-700 mb-2">Disponibilidad (mínimo un horario)</p>
-            <div class="flex flex-col gap-3">
-              @for (slot of slots; track $index) {
-                <div class="flex items-end gap-3 rounded-control border border-ink-300 p-3">
-                  <label class="flex flex-col gap-1 flex-1">
-                    <span class="text-sm font-medium text-ink-700">Día</span>
-                    <select
-                      [name]="'slot-day-' + $index"
-                      [(ngModel)]="slot.dayOfWeek"
-                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    >
-                      @for (day of dayLabels; track $index; let i = $index) {
-                        <option [ngValue]="i">{{ day }}</option>
-                      }
-                    </select>
-                  </label>
-                  <label class="flex flex-col gap-1">
-                    <span class="text-sm font-medium text-ink-700">Desde</span>
-                    <input
-                      type="time"
-                      [name]="'slot-from-' + $index"
-                      [(ngModel)]="slot.from"
-                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    />
-                  </label>
-                  <label class="flex flex-col gap-1">
-                    <span class="text-sm font-medium text-ink-700">Hasta</span>
-                    <input
-                      type="time"
-                      [name]="'slot-to-' + $index"
-                      [(ngModel)]="slot.to"
-                      class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    (click)="removeSlot($index)"
-                    [disabled]="slots.length === 1"
-                    class="text-danger text-sm font-medium hover:underline disabled:opacity-40 pb-2.5"
-                  >
-                    Quitar
-                  </button>
-                </div>
-              }
-            </div>
-            <button
-              type="button"
-              (click)="addSlot()"
-              class="mt-2 text-primary-600 font-medium text-sm hover:underline"
-            >
-              + Agregar horario
-            </button>
+            <kr-availability-editor [(slots)]="slots" />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -218,11 +169,10 @@ export class CaregiverProfileEditPage {
   readonly error = signal<string | null>(null);
   readonly fieldErrors = signal<string[]>([]);
 
-  readonly dayLabels = DAY_LABELS;
   readonly modalityOptions = Object.entries(MODALITY_LABELS) as [Modality, string][];
 
   // Estado del formulario (ngModel). La foto/nombre no están acá: son identidad de la cuenta (ADR-0003).
-  slots: SlotRow[] = [{ dayOfWeek: 1, from: '', to: '' }];
+  slots: SlotRow[] = [];
   ratePerHour: number | null = null;
   currency = 'ARS';
   rateDescription = '';
@@ -275,23 +225,13 @@ export class CaregiverProfileEditPage {
   formValid(): boolean {
     return (
       this.slots.length > 0 &&
-      this.slots.every((s) => !!s.from && !!s.to) &&
+      this.slots.every(isSlotValid) &&
       !!this.ratePerHour &&
       this.ratePerHour > 0 &&
       this.currency.trim().length > 0 &&
       this.zone.trim().length > 0 &&
       this.selectedModalities().length > 0
     );
-  }
-
-  addSlot(): void {
-    this.slots.push({ dayOfWeek: 1, from: '', to: '' });
-  }
-
-  removeSlot(index: number): void {
-    if (this.slots.length > 1) {
-      this.slots.splice(index, 1);
-    }
   }
 
   save(): void {

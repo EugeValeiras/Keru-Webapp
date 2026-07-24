@@ -5,7 +5,6 @@ import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
   CaregiverProfile,
-  DAY_LABELS,
   MODALITY_LABELS,
   Modality,
   RegisterCaregiverDto,
@@ -15,6 +14,8 @@ import {
 import { AuthStore } from '../../core/auth/auth-store';
 import { newOperationId } from '../../core/idempotency/operation-id';
 import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
+import { KrAvailabilityEditor } from '../../shared/ui/kr-availability-editor';
+import { isSlotValid } from '../../shared/ui/availability';
 
 interface CertRow {
   type: string;
@@ -38,7 +39,7 @@ const STEP_TITLES = [
 
 @Component({
   selector: 'kr-caregiver-onboarding-page',
-  imports: [FormsModule, KrPhotoInput, RouterLink],
+  imports: [FormsModule, KrPhotoInput, KrAvailabilityEditor, RouterLink],
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
@@ -190,58 +191,10 @@ const STEP_TITLES = [
             </button>
           }
 
-          <!-- Paso 4: Disponibilidad -->
+          <!-- Paso 4: Disponibilidad (kr-availability-editor, KER-53) -->
           @if (step() === 4) {
             <p class="text-sm text-ink-700">¿Qué días y horarios podés trabajar? (mínimo uno)</p>
-            @for (slot of slots; track $index) {
-              <div class="flex items-end gap-3 rounded-control border border-ink-300 p-3">
-                <label class="flex flex-col gap-1 flex-1">
-                  <span class="text-sm font-medium text-ink-700">Día</span>
-                  <select
-                    [name]="'slot-day-' + $index"
-                    [(ngModel)]="slot.dayOfWeek"
-                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  >
-                    @for (day of dayLabels; track $index; let i = $index) {
-                      <option [ngValue]="i">{{ day }}</option>
-                    }
-                  </select>
-                </label>
-                <label class="flex flex-col gap-1">
-                  <span class="text-sm font-medium text-ink-700">Desde</span>
-                  <input
-                    type="time"
-                    [name]="'slot-from-' + $index"
-                    [(ngModel)]="slot.from"
-                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  />
-                </label>
-                <label class="flex flex-col gap-1">
-                  <span class="text-sm font-medium text-ink-700">Hasta</span>
-                  <input
-                    type="time"
-                    [name]="'slot-to-' + $index"
-                    [(ngModel)]="slot.to"
-                    class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  />
-                </label>
-                <button
-                  type="button"
-                  (click)="removeSlot($index)"
-                  [disabled]="slots.length === 1"
-                  class="text-danger text-sm font-medium hover:underline disabled:opacity-40 pb-2.5"
-                >
-                  Quitar
-                </button>
-              </div>
-            }
-            <button
-              type="button"
-              (click)="addSlot()"
-              class="self-start text-primary-600 font-medium text-sm hover:underline"
-            >
-              + Agregar horario
-            </button>
+            <kr-availability-editor [(slots)]="slots" />
           }
 
           <!-- Paso 5: Tarifa y zona -->
@@ -386,7 +339,6 @@ export class CaregiverOnboardingPage {
   readonly fieldErrors = signal<string[]>([]);
 
   readonly stepTitles = STEP_TITLES;
-  readonly dayLabels = DAY_LABELS;
   readonly specialtyOptions = Object.entries(SPECIALTY_LABELS) as [Specialty, string][];
   readonly modalityOptions = Object.entries(MODALITY_LABELS) as [Modality, string][];
 
@@ -395,7 +347,7 @@ export class CaregiverOnboardingPage {
   readonly photoUrl = signal<string | null>(null);
   specialtySel: Record<string, boolean> = {};
   certs: CertRow[] = [];
-  slots: SlotRow[] = [{ dayOfWeek: 1, from: '', to: '' }];
+  slots: SlotRow[] = [];
   ratePerHour: number | null = null;
   currency = 'ARS';
   rateDescription = '';
@@ -476,7 +428,7 @@ export class CaregiverOnboardingPage {
           (c) => c.type.trim().length > 0 && c.institution.trim().length > 0 && !!c.year,
         );
       case 4:
-        return this.slots.length > 0 && this.slots.every((s) => !!s.from && !!s.to);
+        return this.slots.length > 0 && this.slots.every(isSlotValid);
       case 5:
         return (
           !!this.ratePerHour &&
@@ -496,16 +448,6 @@ export class CaregiverOnboardingPage {
 
   removeCert(index: number): void {
     this.certs.splice(index, 1);
-  }
-
-  addSlot(): void {
-    this.slots.push({ dayOfWeek: 1, from: '', to: '' });
-  }
-
-  removeSlot(index: number): void {
-    if (this.slots.length > 1) {
-      this.slots.splice(index, 1);
-    }
   }
 
   back(): void {
