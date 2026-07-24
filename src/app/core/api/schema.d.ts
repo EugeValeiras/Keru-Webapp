@@ -89,6 +89,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/email-verification/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A5 · Pedir/reenviar el email de verificación: responde SIEMPRE 200 (anti-enumeración) */
+        post: operations["AuthController_requestEmailVerification_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/email-verification/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A5 · Confirmar verificación: marca el email verificado y auto-loguea (410 si el token es inválido/expirado/usado) */
+        post: operations["AuthController_confirmEmailVerification_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/step-up": {
         parameters: {
             query?: never;
@@ -1280,6 +1314,11 @@ export interface components {
             displayName: string;
             /** @description UC-23 · Foto de la cuenta para el avatar del header (null si no cargó una) */
             photoUrl?: string | null;
+            /**
+             * @description UC-04 A5 · Si el email de la cuenta está verificado. El self-signup arranca en false; el cliente muestra el banner y gatea acciones sensibles hasta que confirme.
+             * @example false
+             */
+            emailVerified: boolean;
         };
         LoginDto: {
             /** @example familiar@test.com */
@@ -1312,6 +1351,21 @@ export interface components {
             /** @example S3gura!123 */
             newPassword: string;
         };
+        EmailVerificationRequestDto: {
+            /** @example familiar@test.com */
+            email: string;
+        };
+        EmailVerificationRequestResponseDto: {
+            /**
+             * @description Siempre true: no revela si el email existe ni si ya está verificado (anti-enumeración, UC-04 A5).
+             * @example true
+             */
+            ok: boolean;
+        };
+        EmailVerificationConfirmDto: {
+            /** @description Token de un solo uso recibido por email */
+            token: string;
+        };
         StepUpDto: {
             /**
              * @description Password de la cuenta de la sesión
@@ -1334,6 +1388,11 @@ export interface components {
             photoUrl?: string | null;
             /** @enum {string} */
             role: "patient" | "family" | "caregiver" | "admin";
+            /**
+             * @description UC-04 A5 · Si el email de la cuenta está verificado (self-signup arranca en false).
+             * @example false
+             */
+            emailVerified: boolean;
         };
         UpdateAccountDto: {
             /** @example Juana Díaz */
@@ -2227,6 +2286,52 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PasswordResetConfirmDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_requestEmailVerification_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailVerificationRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailVerificationRequestResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_confirmEmailVerification_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailVerificationConfirmDto"];
             };
         };
         responses: {

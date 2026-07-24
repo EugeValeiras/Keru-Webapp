@@ -8,6 +8,7 @@ import { ActivePatientStore } from '../../core/patient-context/active-patient.st
 import { PushStore } from '../../core/notifications/push.store';
 import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
+import { EmailVerificationBanner } from './email-verification-banner';
 import { StepUpModal } from './step-up-modal';
 import { KrPatientPicker } from './patient-picker';
 import { KrAccountMenu } from './account-menu';
@@ -41,8 +42,10 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 
 @Component({
   selector: 'kr-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, StepUpModal, KrPatientPicker, KrAccountMenu, KrToastOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationBell, PushPromptBanner, EmailVerificationBanner, StepUpModal, KrPatientPicker, KrAccountMenu, KrToastOutlet],
   template: `
+    <!-- UC-04 A5 (KER-49): banner persistente si el email del self-signup no está verificado (cualquier rol). -->
+    <kr-email-verification-banner />
     @if (isFamily()) {
       <!-- UC-18 flujo 1: oferta de push en el primer inicio; A1 degrada a solo campana. -->
       <kr-push-prompt-banner />

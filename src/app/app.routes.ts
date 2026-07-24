@@ -51,6 +51,11 @@ export const routes: Routes = [
       import('./features/auth/password-reset-confirm-page').then((m) => m.PasswordResetConfirmPage),
   },
   {
+    // UC-04 A5 · Verificación de email del self-signup (KER-49): consume el token del link.
+    path: 'verify-email',
+    loadComponent: () => import('./features/auth/email-verify-page').then((m) => m.EmailVerifyPage),
+  },
+  {
     path: 'invite/:token',
     loadComponent: () => import('./features/auth/invite-landing-page').then((m) => m.InviteLandingPage),
   },
