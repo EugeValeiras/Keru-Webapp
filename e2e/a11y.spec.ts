@@ -289,6 +289,9 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await expect(caregiver.getByRole('button', { name: 'Aceptar' })).toBeVisible({
       timeout: 15_000,
     });
+    // KER-56 · el badge de solicitudes pendientes expone el conteo por aria-label (no solo color)
+    // y queda cubierto por esta pasada axe.
+    await expect(caregiver.getByRole('link', { name: /^Solicitudes,.*pendiente/ })).toBeVisible();
     await expectAxeClean(caregiver, 'caregiver/requests');
   });
 
