@@ -86,13 +86,18 @@ test.describe.serial('KER-51 · Círculo: cambio de rol y edición de ficha/avat
     await openFicha(page);
     await page.getByRole('button', { name: 'Editar ficha' }).click();
 
-    // Subir el avatar del paciente: preview inmediato antes de guardar.
+    // Subir el avatar del paciente: elegir la imagen abre el recorte circular (KER-48,
+    // kr-photo-input compartido); al confirmar se sube el recorte y aparece el preview.
     await page.locator('input[type="file"]').first().setInputFiles({
       name: 'avatar.png',
       mimeType: 'image/png',
       buffer: PNG_1X1,
     });
+    const cropper = page.getByRole('dialog', { name: 'Ajustá tu foto' });
+    await expect(cropper).toBeVisible({ timeout: 15_000 });
+    await cropper.getByRole('button', { name: 'Recortar y subir' }).click();
     await expect(page.getByAltText('Foto de perfil')).toBeVisible({ timeout: 15_000 });
+    await expect(cropper).toBeHidden();
 
     await page.getByLabel('Condición principal').fill(NEW_CONDITION);
     await page.getByRole('button', { name: 'Guardar', exact: true }).click();
