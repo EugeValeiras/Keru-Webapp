@@ -36,7 +36,7 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
       } @else {
         @for (c of pending(); track c.id) {
           <div class="bg-surface rounded-card shadow-card p-6 flex items-center gap-4">
-            <kr-avatar [seed]="c.id" [name]="c.displayName" [size]="48" />
+            <kr-avatar [seed]="c.id" [name]="c.displayName" [photoUrl]="c.photoUrl" [size]="48" />
             <div class="flex-1 min-w-0">
               <p class="font-semibold">{{ c.displayName }}</p>
               <p class="text-sm text-ink-500">{{ c.zone }}</p>

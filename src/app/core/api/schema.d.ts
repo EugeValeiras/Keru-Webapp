@@ -1873,6 +1873,7 @@ export interface components {
             id: string;
             accountId: string;
             displayName: string;
+            photoUrl?: string | null;
             /** @enum {string} */
             status: "pending" | "approved" | "rejected" | "deactivated";
             specialties: string[];

@@ -63,7 +63,7 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
       } @else if (detail(); as d) {
         <!-- Header -->
         <div class="bg-surface rounded-card shadow-card p-6 flex items-center gap-4">
-          <kr-avatar [seed]="d.id" [name]="d.displayName" [size]="56" />
+          <kr-avatar [seed]="d.id" [name]="d.displayName" [photoUrl]="d.photoUrl" [size]="56" />
           <div class="flex-1">
             <div class="flex items-center gap-3">
               <h1>{{ d.displayName }}</h1>
