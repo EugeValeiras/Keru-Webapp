@@ -20,10 +20,12 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
   workers: 1,
-  // Reintentos: absorben la flakiness de datos NO determinista pre-existente (p. ej.
-  // email-verification.spec axe sobre el marketplace default: qué caregivers sembrados con
-  // certificaciones caen en la página 1 varía por corrida — deuda de contraste del token
-  // 'success', no del código bajo prueba). Un test que pasa en el reintento no es un rojo real.
+  // Reintentos: red de seguridad general para flakiness de datos no determinista. NO son la
+  // cura del order-flake de email-verification.spec (KER-72): ese era axe muestreando el texto
+  // de las cards del marketplace a mitad del fade-in escalonado (.kr-stagger, opacity <1 →
+  // colores compuestos con el fondo, contraste transitorio < AA), y se arregla en el helper
+  // expectAxeClean esperando a que el fundido cierre. Un test que pasa en el reintento no es un
+  // rojo real, pero email-verification ya no debería necesitarlo.
   retries: 2,
   reporter: 'list',
   expect: { timeout: 10_000 },

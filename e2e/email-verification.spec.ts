@@ -29,16 +29,27 @@ async function expectAxeClean(page: Page, screen: string): Promise<void> {
         .map((img) => new Promise((res) => (img.onload = img.onerror = () => res(null)))),
     ),
   );
-  // Causa raíz del color-contrast falso: en ng serve (dev, también en CI) los estilos de cada
-  // componente se inyectan async; hasta que se pinta el fondo de las cards del marketplace,
-  // axe mide el texto contra un fondo equivocado. Esperar a que una card tenga fondo real.
+  // La grilla del marketplace entra con `.kr-stagger` (fade-in opacity 0→1). Hasta que ese
+  // fundido TERMINA, el texto atenuado (text-ink-500) se renderiza semitransparente: axe compone
+  // el fg con el fondo blanco y el contraste cae por debajo de AA (p. ej. #6f6779 al ~90% sobre
+  // blanco = #7d7686 → 4.33:1) → color-contrast serious TRANSITORIO. Las cards a partir de la 9ª
+  // entran con el retardo máximo (~360ms + 350ms), así que con muchos cuidadores en página el
+  // fundido no cierra en el settle viejo (400ms) → order/data-flake de KER-72 ("pasa al re-run").
+  // Esperar a que: (a) no queden skeletons, (b) toda card tenga su fondo real, y
+  // (c) toda la entrada escalonada esté en opacity:1 (fundido cerrado). Sin cards → nada que asentar.
   await page.waitForFunction(() => {
-    const card = document.querySelector('.p-6.transition-shadow');
-    if (!card) return true; // pantalla sin cards (verify-email): nada que asentar
-    const bg = getComputedStyle(card).backgroundColor;
-    return bg !== '' && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)';
+    if (document.querySelector('.kr-shimmer')) return false;
+    const cards = Array.from(document.querySelectorAll('.p-6.transition-shadow'));
+    const bgReady = cards.every((c) => {
+      const bg = getComputedStyle(c).backgroundColor;
+      return bg !== '' && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)';
+    });
+    const staggerSettled = Array.from(document.querySelectorAll('.kr-stagger > *')).every(
+      (el) => getComputedStyle(el).opacity === '1',
+    );
+    return bgReady && staggerSettled;
   });
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(200);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();

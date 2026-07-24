@@ -35,6 +35,19 @@ async function stubPreview(page: Page, roleToGrant: 'manager' | 'viewer'): Promi
 async function expectAxeClean(page: Page, screen: string): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
+  // Esperar a que las animaciones de ENTRADA (finitas: .kr-auth-enter, .kr-stagger, motion v2)
+  // TERMINEN antes de muestrear contraste. Mientras un elemento entra con opacity 0→1, axe compone
+  // su color con el fondo y el contraste cae por debajo de AA → color-contrast serious TRANSITORIO
+  // (mismo order-flake que KER-72 en email-verification: el fg observado era el texto atenuado al
+  // ~90% de opacidad). reducedMotion no apaga el motion de forma fiable en el harness, así que
+  // esperamos explícitamente al cierre del fundido. Se ignoran las animaciones INFINITAS
+  // (shimmer/breathe: decorativas, nunca "terminan").
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => {
+      const iterations = a.effect?.getComputedTiming().iterations ?? 1;
+      return iterations === Infinity || a.playState === 'finished' || a.playState === 'idle';
+    }),
+  );
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();

@@ -60,17 +60,25 @@
   --color-sand-100: #f3eee7;
 
   /* Semánticos: reservados a estado (alertas de salud, errores, éxitos),
-     nunca decorativos. Cada -600 da ≥4.5:1 sobre blanco y sobre su -50. */
+     nunca decorativos. Cada -600 da ≥4.5:1 sobre blanco y sobre su -50.
+     El -700 (más oscuro, ≥6.9:1 sobre el -50) es el texto de los chips/píldoras
+     compactas sobre el tinte -50 (kr-badge), alineado con el patrón de `primary`
+     (bg-100 + text-700). El -600 sobre -50 pasa AA en reposo pero con margen fino
+     (~4.7:1); el -700 lo lleva a holgura y así el badge sobrevive incluso a un
+     muestreo a mitad del fade-in de la card del marketplace (KER-72). */
   --color-danger-50: #fceeec;
   --color-danger-600: #c23b2e;
+  --color-danger-700: #98291f;
   --color-danger: #c23b2e;
   --color-success-50: #e9f6ef;
   --color-success-600: #1b7a55;
+  --color-success-700: #0f5a3d;
   --color-success: #1b7a55;
   /* warning-600 = #935F10: 4.9:1 sobre warning-50 y 5.4:1 sobre blanco (el
      #9C6414 original del brand book daba 4.48:1; el brand book ya adoptó este). */
   --color-warning-50: #fbf3e2;
   --color-warning-600: #935f10;
+  --color-warning-700: #6f480c;
   --color-warning: #935f10;
   --color-info-50: #edf2fa;
   --color-info-600: #3b69b0;
