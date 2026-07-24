@@ -1,10 +1,15 @@
 import { Component, computed, inject } from '@angular/core';
 import { Toast, ToastService } from './toast.service';
 
+// Tinte -50 + texto -700, mismo patrón que kr-badge. El toast entra con un
+// fade-in (`.kr-toast` → kr-rise, opacity<1 a mitad de animación), así que el
+// texto se compone con el fondo mientras aparece: el -600 sobre -50 pasa AA en
+// reposo pero con margen fino (~4.7:1) y se agota en ese muestreo (flake de
+// KER-72). El -700 da ≥6.9:1, holgado, y sobrevive al fade-in por diseño.
 const TONE_CLASSES: Record<Toast['tone'], string> = {
-  success: 'bg-success-50 text-success',
-  error: 'bg-danger-50 text-danger',
-  info: 'bg-info-50 text-info',
+  success: 'bg-success-50 text-success-700',
+  error: 'bg-danger-50 text-danger-700',
+  info: 'bg-info-50 text-info-700',
 };
 
 /**

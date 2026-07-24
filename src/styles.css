@@ -48,9 +48,18 @@
 
   /* Neutros con temperatura (greige) */
   --color-ink-900: #2b2733;
+  /* ink-700 es el gris de texto con holgura AA: ≥8:1 sobre blanco y ≥7.8:1
+     incluso sobre los tintes -50/-100/sand-100. Es el token para TEXTO muted
+     pequeño/hint apoyado sobre un relleno teñido (mismo espíritu que el -700
+     semántico de kr-badge/kr-toast). */
   --color-ink-700: #4b4454;
-  /* WCAG AA (1.4.3): ink-500 y los semánticos -600 van también sobre fondos
-     tenues (primary-50/100, sand-100 y sus -50); estos valores dan ≥4.5:1 ahí. */
+  /* ink-500 pasa AA (1.4.3) sobre blanco/canvas (≈5.1–5.4:1), pero sobre los
+     tintes tenues queda al filo: sand-100 ≈4.67:1, primary-50 ≈4.96:1,
+     primary-100 ≈4.55:1 (sand-100 es apenas MÁS claro que primary-100). Ese
+     margen fino se agota si axe muestrea el nodo a mitad de un fade-in
+     (opacity<1 → color compuesto con el fondo), el mismo flake de KER-72. Por
+     eso el muted-sobre-tono usa ink-700 (holgura), y ink-500 se reserva a texto
+     de baja jerarquía sobre superficies claras (blanco/canvas). */
   --color-ink-500: #6f6779;
   --color-ink-300: #d9d4de;
   --color-ink-200: #e9e5ec;
@@ -82,6 +91,7 @@
   --color-warning: #935f10;
   --color-info-50: #edf2fa;
   --color-info-600: #3b69b0;
+  --color-info-700: #2c5089; /* 7.1:1 sobre info-50, 8.0:1 sobre blanco */
   --color-info: #3b69b0;
 
   /* Radios — forma blanda, esquinas generosas */

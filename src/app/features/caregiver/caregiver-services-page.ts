@@ -75,7 +75,7 @@ type ServicePhase = 'upcoming' | 'active' | 'ended';
               -->
               @switch (phase(r)) {
                 @case ('upcoming') {
-                  <p class="text-sm text-ink-500 bg-primary-50 rounded-control px-3 py-2">
+                  <p class="text-sm text-ink-700 bg-primary-50 rounded-control px-3 py-2">
                     📅 Comienza el {{ formatDate(r.startDate) }}. Vas a poder registrar datos del
                     paciente cuando arranque el servicio.
                   </p>

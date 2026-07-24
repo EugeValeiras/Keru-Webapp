@@ -127,11 +127,11 @@ import {
         <div class="flex items-baseline justify-between mb-2">
           <p class="text-sm font-medium text-ink-700">Tus horarios</p>
           @if (slots().length > 0) {
-            <p class="text-xs text-ink-500">Total: {{ weeklyTotalLabel() }} por semana</p>
+            <p class="text-xs text-ink-700">Total: {{ weeklyTotalLabel() }} por semana</p>
           }
         </div>
         @if (sorted().length === 0) {
-          <p class="text-sm text-ink-500 bg-sand-100 rounded-control px-3 py-2.5">
+          <p class="text-sm text-ink-700 bg-sand-100 rounded-control px-3 py-2.5">
             Todavía no agregaste horarios. Elegí uno o más días, poné un rango y tocá «Agregar
             horario».
           </p>
