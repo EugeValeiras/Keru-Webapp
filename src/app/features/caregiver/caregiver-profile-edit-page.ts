@@ -11,7 +11,6 @@ import {
   UpdateCaregiverProfileDto,
 } from '../../core/api/api.types';
 import { newOperationId } from '../../core/idempotency/operation-id';
-import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 
 interface SlotRow {
   dayOfWeek: number;
@@ -26,7 +25,7 @@ interface SlotRow {
  */
 @Component({
   selector: 'kr-caregiver-profile-edit-page',
-  imports: [FormsModule, KrPhotoInput, RouterLink],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
@@ -53,9 +52,10 @@ interface SlotRow {
             </div>
           }
 
-          <div class="flex flex-col gap-1">
-            <span class="text-sm font-medium text-ink-700">Foto de perfil</span>
-            <kr-photo-input [(url)]="photoUrl" />
+          <div class="rounded-control bg-ink-50 px-3 py-2 text-sm text-ink-600">
+            Tu <strong>nombre</strong> y tu <strong>foto</strong> son los de tu cuenta y se ven igual
+            en el buscador. Para cambiarlos, andá a
+            <a routerLink="/perfil" class="text-primary-600 underline">Mi perfil</a>.
           </div>
 
           <div>
@@ -221,8 +221,7 @@ export class CaregiverProfileEditPage {
   readonly dayLabels = DAY_LABELS;
   readonly modalityOptions = Object.entries(MODALITY_LABELS) as [Modality, string][];
 
-  // Estado del formulario (ngModel)
-  readonly photoUrl = signal<string | null>(null);
+  // Estado del formulario (ngModel). La foto/nombre no están acá: son identidad de la cuenta (ADR-0003).
   slots: SlotRow[] = [{ dayOfWeek: 1, from: '', to: '' }];
   ratePerHour: number | null = null;
   currency = 'ARS';
@@ -253,7 +252,6 @@ export class CaregiverProfileEditPage {
   }
 
   private prefill(profile: CaregiverProfile): void {
-    this.photoUrl.set(profile.photoUrl ?? null);
     if (profile.availability.length > 0) {
       this.slots = profile.availability.map((a) => ({
         dayOfWeek: a.dayOfWeek,
@@ -303,7 +301,6 @@ export class CaregiverProfileEditPage {
 
     const dto: UpdateCaregiverProfileDto = {
       operationId: this.operationId,
-      ...(this.photoUrl() !== null ? { photoUrl: this.photoUrl()! } : {}),
       availability: this.slots.map((s) => ({
         dayOfWeek: Number(s.dayOfWeek),
         from: s.from,

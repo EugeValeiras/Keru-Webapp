@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MembershipApi } from '../../core/api/membership-api.service';
 import {
   ApiError,
@@ -38,7 +38,7 @@ const STEP_TITLES = [
 
 @Component({
   selector: 'kr-caregiver-onboarding-page',
-  imports: [FormsModule, KrPhotoInput],
+  imports: [FormsModule, KrPhotoInput, RouterLink],
   template: `
     <div class="max-w-2xl mx-auto flex flex-col gap-6">
       <div>
@@ -88,25 +88,23 @@ const STEP_TITLES = [
             </div>
           }
 
-          <!-- Paso 1: Datos -->
+          <!-- Paso 1: Datos. Nombre y foto son la identidad de tu cuenta (ADR-0003): las ven las
+               familias en el marketplace igual que en el encabezado; se editan en "Mi perfil". -->
           @if (step() === 1) {
-            <label class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1">
               <span class="text-sm font-medium text-ink-700">Nombre a mostrar</span>
-              <input
-                type="text"
-                name="displayName"
-                required
-                [(ngModel)]="displayName"
-                placeholder="Ej: Laura Gómez"
-                class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-              />
-              <span class="text-xs text-ink-500"
-                >Así te van a ver las familias en el marketplace.</span
-              >
-            </label>
+              <p class="rounded-control bg-ink-50 px-3 py-2 text-ink-700">{{ displayName }}</p>
+              <span class="text-xs text-ink-500">
+                Es el nombre de tu cuenta; así te van a ver las familias. Lo cambiás en
+                <a routerLink="/perfil" class="text-primary-600 underline">Mi perfil</a>.
+              </span>
+            </div>
             <div class="flex flex-col gap-1">
               <span class="text-sm font-medium text-ink-700">Foto de perfil</span>
               <kr-photo-input [(url)]="photoUrl" />
+              <span class="text-xs text-ink-500"
+                >Es el avatar de tu cuenta: se ve en el marketplace y en el encabezado.</span
+              >
             </div>
           }
 

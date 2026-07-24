@@ -147,9 +147,8 @@ test.describe.serial('KER-40 · Selector de paciente filtra "Mis contrataciones"
     await caregiver.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(caregiver).toHaveURL(/\/caregiver\/onboarding$/, { timeout: 15_000 });
 
-    const nameInput = caregiver.getByLabel('Nombre a mostrar');
-    await expect(nameInput).toBeVisible({ timeout: 15_000 });
-    await nameInput.fill(CAREGIVER_NAME);
+    // El nombre a mostrar es el de la cuenta (ADR-0003): de solo lectura, ya viene del signup.
+    await expect(caregiver.getByText(CAREGIVER_NAME).first()).toBeVisible({ timeout: 15_000 });
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await caregiver.getByLabel('Adultos mayores').check();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
