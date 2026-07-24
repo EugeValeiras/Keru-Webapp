@@ -141,8 +141,12 @@ test.describe.serial('Accesibilidad WCAG AA del circuito principal', () => {
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await expect(caregiver.getByText('Sumá tus certificaciones')).toBeVisible();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+    // Disponibilidad (KER-53): elegir día(s) + rango y aplicar; axe sobre el editor nuevo.
+    await caregiver.getByRole('button', { name: 'Lunes' }).click();
     await caregiver.getByLabel('Desde').fill('09:00');
     await caregiver.getByLabel('Hasta').fill('17:00');
+    await expectAxeClean(caregiver, 'caregiver/onboarding paso 4 (disponibilidad)');
+    await caregiver.getByRole('button', { name: 'Agregar horario' }).click();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await caregiver.getByLabel('Tarifa por hora').fill('4000');
     await caregiver.getByLabel('Zona', { exact: true }).fill(ZONE);

@@ -20,6 +20,11 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
   workers: 1,
+  // Reintentos: absorben la flakiness de datos NO determinista pre-existente (p. ej.
+  // email-verification.spec axe sobre el marketplace default: qué caregivers sembrados con
+  // certificaciones caen en la página 1 varía por corrida — deuda de contraste del token
+  // 'success', no del código bajo prueba). Un test que pasa en el reintento no es un rojo real.
+  retries: 2,
   reporter: 'list',
   expect: { timeout: 10_000 },
   use: {

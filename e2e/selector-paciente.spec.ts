@@ -154,8 +154,11 @@ test.describe.serial('KER-40 · Selector de paciente filtra "Mis contrataciones"
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await expect(caregiver.getByText('Sumá tus certificaciones')).toBeVisible();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
+    // Disponibilidad (KER-53): elegir día + rango y aplicar.
+    await caregiver.getByRole('button', { name: 'Lunes' }).click();
     await caregiver.getByLabel('Desde').fill('09:00');
     await caregiver.getByLabel('Hasta').fill('17:00');
+    await caregiver.getByRole('button', { name: 'Agregar horario' }).click();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     await caregiver.getByLabel('Tarifa por hora').fill('4000');
     await caregiver.getByLabel('Zona', { exact: true }).fill(ZONE);

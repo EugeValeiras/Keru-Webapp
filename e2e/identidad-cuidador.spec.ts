@@ -68,9 +68,11 @@ test.describe.serial('KER-54 · Identidad unificada cuenta↔perfil de cuidador 
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     // Paso 3: certificaciones (ninguna)
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
-    // Paso 4: disponibilidad
+    // Paso 4: disponibilidad (KER-53) — elegir un día, poner el rango y aplicarlo.
+    await caregiver.getByRole('button', { name: 'Lunes' }).click();
     await caregiver.getByLabel('Desde').fill('09:00');
     await caregiver.getByLabel('Hasta').fill('17:00');
+    await caregiver.getByRole('button', { name: 'Agregar horario' }).click();
     await caregiver.getByRole('button', { name: 'Siguiente' }).click();
     // Paso 5: tarifa, zona y modalidad
     await caregiver.getByLabel('Tarifa por hora').fill('4000');
