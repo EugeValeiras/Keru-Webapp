@@ -1780,7 +1780,12 @@ export interface components {
              */
             label: string;
             /**
-             * @description Ícono de la insignia (catálogo)
+             * @description KER-77 · Clave estable del ícono SVG de la insignia (set Lucide); la webapp la mapea a un SVG local
+             * @example stethoscope
+             */
+            iconKey: string;
+            /**
+             * @description Ícono de la insignia (catálogo, emoji). Fallback textual de iconKey
              * @example 🩺
              */
             badgeIcon: string;
@@ -1842,7 +1847,15 @@ export interface components {
             key: string;
             /** @example Título de Enfermería */
             label: string;
-            /** @example 🩺 */
+            /**
+             * @description KER-77 · Clave estable del ícono SVG (set Lucide); la webapp la mapea a un SVG local
+             * @example stethoscope
+             */
+            iconKey: string;
+            /**
+             * @description Emoji, fallback textual de iconKey
+             * @example 🩺
+             */
             badgeIcon: string;
         };
         AddCertificationDto: {
