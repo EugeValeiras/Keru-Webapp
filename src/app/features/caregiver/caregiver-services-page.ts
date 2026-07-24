@@ -14,6 +14,9 @@ import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { formatDate } from '../../shared/utils/dates';
 import { ReviewModal } from '../reputation/review-modal';
 
+/** KER-57 · Fase del servicio según su ventana temporal. */
+type ServicePhase = 'upcoming' | 'active' | 'ended';
+
 @Component({
   selector: 'kr-caregiver-services-page',
   imports: [RouterLink, KrAvatar, KrBadge, KrEmptyState, ReviewModal],
@@ -63,38 +66,75 @@ import { ReviewModal } from '../reputation/review-modal';
                 </p>
               }
 
-              <div class="flex flex-wrap gap-2">
-                <a
-                  [routerLink]="['/caregiver/patients', r.patientId, 'dashboard']"
-                  class="rounded-pill bg-primary-600 text-white font-semibold py-2 px-5 hover:bg-primary-700 transition-colors text-sm"
-                >
-                  Ver estado
-                </a>
-                <a
-                  [routerLink]="['/caregiver/patients', r.patientId, 'history']"
-                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
-                >
-                  Historial
-                </a>
-                <a
-                  [routerLink]="['/caregiver/patients', r.patientId, 'record', 'vitals']"
-                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
-                >
-                  Registrar vitales
-                </a>
-                <a
-                  [routerLink]="['/caregiver/patients', r.patientId, 'record', 'medication']"
-                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
-                >
-                  Medicación
-                </a>
-                <a
-                  [routerLink]="['/caregiver/patients', r.patientId, 'record', 'note']"
-                  class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
-                >
-                  Novedad
-                </a>
-              </div>
+              <!--
+                KER-57 · La affordance se alinea a la autorización de la API (constitution §3.7):
+                LEER (Ver estado / Historial) va por la VIDA del servicio → siempre disponible
+                mientras esté vivo (aceptado/en curso); REGISTRAR (vitales/medicación/novedad) va
+                por la VENTANA (NFR-30) → solo dentro del período. Fuera de ventana no se ofrece un
+                botón que la API rechazaría/pondría en cuarentena: se comunica el estado.
+              -->
+              @switch (phase(r)) {
+                @case ('upcoming') {
+                  <p class="text-sm text-ink-500 bg-primary-50 rounded-control px-3 py-2">
+                    📅 Comienza el {{ formatDate(r.startDate) }}. Vas a poder registrar datos del
+                    paciente cuando arranque el servicio.
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'dashboard']"
+                      class="rounded-pill bg-primary-600 text-white font-semibold py-2 px-5 hover:bg-primary-700 transition-colors text-sm"
+                    >
+                      Ver estado
+                    </a>
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'history']"
+                      class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      Historial
+                    </a>
+                  </div>
+                }
+                @case ('ended') {
+                  <p class="text-sm text-ink-500 bg-ink-50 rounded-control px-3 py-2">
+                    ✅ Finalizó el {{ formatDate(r.endDate) }}. El servicio terminó; ya no podés
+                    ver ni registrar datos de este paciente.
+                  </p>
+                }
+                @default {
+                  <div class="flex flex-wrap gap-2">
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'dashboard']"
+                      class="rounded-pill bg-primary-600 text-white font-semibold py-2 px-5 hover:bg-primary-700 transition-colors text-sm"
+                    >
+                      Ver estado
+                    </a>
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'history']"
+                      class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      Historial
+                    </a>
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'record', 'vitals']"
+                      class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      Registrar vitales
+                    </a>
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'record', 'medication']"
+                      class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      Medicación
+                    </a>
+                    <a
+                      [routerLink]="['/caregiver/patients', r.patientId, 'record', 'note']"
+                      class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      Novedad
+                    </a>
+                  </div>
+                }
+              }
             </div>
           }
         }
@@ -167,6 +207,22 @@ export class CaregiverServicesPage {
 
   modalityLabel(m: string): string {
     return MODALITY_LABELS[m as Modality] ?? m;
+  }
+
+  /**
+   * KER-57 · Fase del servicio derivada de la ventana (startDate/endDate), para alinear la
+   * affordance a la autorización de la API (constitution §3.7):
+   *   - `upcoming` (aún no arrancó): la lectura ya está disponible por vida del servicio, pero la
+   *     escritura no (queda para cuando arranque) → solo botones de lectura + "Comienza el {fecha}".
+   *   - `active` (dentro de ventana): lectura + escritura → todos los botones.
+   *   - `ended` (ya venció): el servicio terminó (se cerrará/venció la asignación) → sin botones,
+   *     estado coherente "Finalizó el {fecha}", así ningún botón cae en un 403 garantizado.
+   */
+  phase(r: HiringRequest): ServicePhase {
+    const now = Date.now();
+    if (now < new Date(r.startDate).getTime()) return 'upcoming';
+    if (now > new Date(r.endDate).getTime()) return 'ended';
+    return 'active';
   }
 
   /** Pares clave→valor de contactData; la API solo lo manda en accepted/in-progress. */
