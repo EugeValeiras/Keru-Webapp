@@ -49,6 +49,8 @@ export type PatientLinkRole = PatientRecord['linkRole'];
 export type UpdatePatientDto = Schemas['UpdatePatientDto'];
 /** UC-22 · Miembro del círculo: cuenta vinculada al paciente + rol del vínculo. */
 export type PatientCircleMember = Schemas['PatientLinkDto'];
+/** UC-22 A3 · Nuevo rol de un vínculo del círculo (solo consent-holder puede cambiarlo). */
+export type ChangeLinkRoleDto = Schemas['ChangeLinkRoleDto'];
 
 export type Specialty = Schemas['RegisterCaregiverDto']['specialties'][number];
 export type Modality = Schemas['CreateRequestDto']['modality'];

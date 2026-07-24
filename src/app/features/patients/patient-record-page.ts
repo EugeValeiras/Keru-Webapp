@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MembershipApi } from '../../core/api/membership-api.service';
@@ -12,10 +12,20 @@ import {
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrMenu } from '../../shared/ui/kr-menu';
+import { KrModal } from '../../shared/ui/kr-modal';
 import { KrPhotoInput } from '../../shared/ui/kr-photo-input';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { ToastService } from '../../shared/ui/toast.service';
 import { formatDate } from '../../shared/utils/dates';
+
+const ALL_LINK_ROLES: PatientLinkRole[] = ['consent-holder', 'manager', 'viewer'];
+
+const LINK_ROLE_HINTS: Record<PatientLinkRole, string> = {
+  'consent-holder': 'Un titular puede editar la ficha, gestionar el círculo y cambiar roles.',
+  manager: 'Un gestor puede editar la ficha del paciente, pero no cambiar roles del círculo.',
+  viewer: 'Solo lectura: podrá ver la ficha y el círculo, pero no editarlos.',
+};
 
 const LINK_ROLE_LABELS: Record<PatientLinkRole, string> = {
   'consent-holder': 'Titular',
@@ -32,7 +42,17 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
 /** UC-22 · Ficha del paciente: vista para cualquier vinculado, edición solo titular/gestor. */
 @Component({
   selector: 'kr-patient-record-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrPhotoInput, KrSkeleton],
+  imports: [
+    FormsModule,
+    RouterLink,
+    KrAvatar,
+    KrBadge,
+    KrEmptyState,
+    KrMenu,
+    KrModal,
+    KrPhotoInput,
+    KrSkeleton,
+  ],
   template: `
     <div class="max-w-2xl mx-auto">
       <a routerLink="/app/patients" class="text-sm text-primary-600 font-medium hover:underline">
@@ -120,6 +140,13 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                   Editar ficha
                 </button>
               </div>
+            } @else {
+              <!-- UC-22 · Un viewer solo lee: feedback claro en vez de un botón muerto. -->
+              <p class="text-sm text-ink-600 bg-primary-50 rounded-control px-4 py-3">
+                Tenés acceso de <span class="font-semibold text-ink-800">solo lectura</span> a esta
+                ficha: podés verla pero no editarla. Pedile a un titular del círculo que te dé
+                permiso de gestión.
+              </p>
             }
           </div>
 
@@ -143,6 +170,26 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
                       <p class="text-sm text-ink-500 truncate">{{ m.email }}</p>
                     </div>
                     <kr-badge [tone]="roleTone(m.role)">{{ roleLabel(m.role) }}</kr-badge>
+                    @if (canManageRoles()) {
+                      <kr-menu
+                        #rm="krMenu"
+                        [triggerLabel]="'Cambiar el rol de ' + m.displayName"
+                        menuLabel="Elegí el nuevo rol"
+                        triggerClass="rounded-full w-9 h-9 grid place-items-center text-ink-500 hover:text-ink-900 hover:bg-ink-200/60 text-xl leading-none"
+                      >
+                        <span menu-trigger aria-hidden="true">⋮</span>
+                        @for (role of assignableRoles(m.role); track role) {
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="askRoleChange(m, role); rm.close(true)"
+                            class="w-full text-left px-4 py-2.5 text-sm text-ink-900 hover:bg-primary-50"
+                          >
+                            Cambiar a {{ roleLabel(role) }}
+                          </button>
+                        }
+                      </kr-menu>
+                    }
                   </li>
                 }
               </ul>
@@ -310,6 +357,36 @@ const LINK_ROLE_TONES: Record<PatientLinkRole, BadgeTone> = {
           </form>
         }
       }
+
+      <!-- UC-22 A3 · Confirmación de cambio de rol de un miembro del círculo. -->
+      @if (roleChange(); as rc) {
+        <kr-modal title="Cambiar rol del círculo" (closed)="cancelRoleChange()">
+          <p class="text-ink-700">
+            ¿Querés cambiar el rol de
+            <span class="font-semibold text-ink-900">{{ rc.member.displayName }}</span>
+            a <span class="font-semibold text-ink-900">{{ roleLabel(rc.newRole) }}</span>?
+          </p>
+          <p class="text-sm text-ink-500 mt-2">{{ roleHint(rc.newRole) }}</p>
+          <div class="flex gap-3 mt-6">
+            <button
+              type="button"
+              (click)="confirmRoleChange()"
+              [disabled]="changingRole()"
+              class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            >
+              {{ changingRole() ? 'Cambiando…' : 'Sí, cambiar' }}
+            </button>
+            <button
+              type="button"
+              (click)="cancelRoleChange()"
+              [disabled]="changingRole()"
+              class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2.5 px-6 hover:bg-primary-50 disabled:opacity-50 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </kr-modal>
+      }
     </div>
   `,
 })
@@ -330,6 +407,11 @@ export class PatientRecordPage {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
 
+  // UC-22 A3 · Solo el titular (consent-holder) gestiona los roles del círculo.
+  readonly canManageRoles = computed(() => this.record()?.linkRole === 'consent-holder');
+  readonly roleChange = signal<{ member: PatientCircleMember; newRole: PatientLinkRole } | null>(null);
+  readonly changingRole = signal(false);
+
   // Estado del form de edición (ngModel)
   fullName = '';
   birthDate = '';
@@ -343,6 +425,11 @@ export class PatientRecordPage {
   contactRelationship = '';
 
   constructor() {
+    this.loadRecord();
+    this.loadCircle();
+  }
+
+  private loadRecord(): void {
     this.api.getPatientRecord(this.patientId).subscribe({
       next: (record) => {
         this.loading.set(false);
@@ -357,6 +444,9 @@ export class PatientRecordPage {
         }
       },
     });
+  }
+
+  private loadCircle(): void {
     this.api.getPatientLinks(this.patientId).subscribe({
       next: (members) => this.circle.set(members),
       // El 403 sin vínculo ya lo cubre la ficha; acá solo señalamos el fallo de carga.
@@ -370,6 +460,50 @@ export class PatientRecordPage {
 
   roleTone(role: PatientLinkRole): BadgeTone {
     return LINK_ROLE_TONES[role];
+  }
+
+  roleHint(role: PatientLinkRole): string {
+    return LINK_ROLE_HINTS[role];
+  }
+
+  /** Los otros dos roles asignables (el actual no se re-ofrece). */
+  assignableRoles(current: PatientLinkRole): PatientLinkRole[] {
+    return ALL_LINK_ROLES.filter((role) => role !== current);
+  }
+
+  askRoleChange(member: PatientCircleMember, newRole: PatientLinkRole): void {
+    this.roleChange.set({ member, newRole });
+  }
+
+  cancelRoleChange(): void {
+    if (this.changingRole()) {
+      return;
+    }
+    this.roleChange.set(null);
+  }
+
+  confirmRoleChange(): void {
+    const change = this.roleChange();
+    if (!change || this.changingRole()) {
+      return;
+    }
+    this.changingRole.set(true);
+    this.api.changeLinkRole(this.patientId, change.member.accountId, { role: change.newRole }).subscribe({
+      next: () => {
+        this.changingRole.set(false);
+        this.roleChange.set(null);
+        this.toast.success('Rol actualizado.');
+        // Refrescar círculo y ficha: el cambio puede afectar mi propio rol (p. ej. auto-degradarme).
+        this.loadCircle();
+        this.loadRecord();
+      },
+      error: (err: ApiError) => {
+        this.changingRole.set(false);
+        this.roleChange.set(null);
+        // El backend devuelve el motivo (p. ej. 409 "no se puede dejar al paciente sin titular").
+        this.toast.error(err.message);
+      },
+    });
   }
 
   /** birthDate llega como fecha-solo (YYYY-MM-DD): anclarla a hora local evita el corrimiento de día. */
