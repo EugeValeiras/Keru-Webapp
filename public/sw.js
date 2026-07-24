@@ -11,13 +11,23 @@ self.addEventListener('push', (event) => {
     /* payload no-JSON: se muestra genérica */
   }
   const title = data.title || 'Keru';
+  const type = data.type || 'alert';
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: data.body || '',
-      icon: '/favicon-192.png',
-      badge: '/favicon-192.png',
-      data: { patientId: data.patientId || null, type: data.type || 'alert' },
-    }),
+    (async () => {
+      await self.registration.showNotification(title, {
+        body: data.body || '',
+        icon: '/favicon-192.png',
+        badge: '/favicon-192.png',
+        data: { patientId: data.patientId || null, type },
+      });
+      // KER-78 (ADR-0004 Fase 1): empujón a las pestañas abiertas para que refetcheen el
+      // unread-count al instante, sin esperar el ciclo de polling (NFR-42). El polling sigue
+      // como piso (NFR-09); esto es aditivo y best-effort.
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of windows) {
+        client.postMessage({ source: 'keru-sw', kind: 'push', type });
+      }
+    })(),
   );
 });
 

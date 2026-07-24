@@ -39,6 +39,14 @@ export class PushStore {
   readonly subscribed = signal(false);
   readonly busy = signal(false);
 
+  /**
+   * KER-78 (ADR-0004 Fase 1) · El push está activo: hay una suscripción viva, así que los
+   * eventos llegan por Web Push y disparan el refetch inmediato (bridge). Mientras esté activo,
+   * el polling del badge se relaja a un fallback largo (la frescura la da el push); si se apaga,
+   * el polling vuelve al piso corto. Best-effort: si no hay push, el polling sigue solo.
+   */
+  readonly active = computed(() => this.subscribed());
+
   private readonly promptDismissed = signal(false);
   private publicKey: string | null = null;
   private registration: ServiceWorkerRegistration | null = null;

@@ -6,6 +6,7 @@ import { AuthStore } from '../../core/auth/auth-store';
 import { StepUpStore } from '../../core/auth/step-up.store';
 import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
 import { PushStore } from '../../core/notifications/push.store';
+import { PushRefreshBridge } from '../../core/notifications/push-refresh.bridge';
 import { CaregiverRequestsStore } from '../../core/hiring/caregiver-requests.store';
 import { NotificationBell } from './notification-bell';
 import { PushPromptBanner } from './push-prompt-banner';
@@ -115,6 +116,7 @@ export class AppShell {
   protected readonly store = inject(AuthStore);
   protected readonly patients = inject(ActivePatientStore);
   private readonly push = inject(PushStore);
+  private readonly pushRefresh = inject(PushRefreshBridge);
   private readonly caregiverRequests = inject(CaregiverRequestsStore);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
@@ -139,6 +141,8 @@ export class AppShell {
       // El push acompaña a la campana: solo cuentas de familia/paciente (UC-18).
       if (this.isFamily()) {
         void this.push.init();
+        // KER-78 (ADR-0004 Fase 1): al recibir un push, refetch inmediato del badge de la campana.
+        this.pushRefresh.start();
       }
     });
     effect(() => {
