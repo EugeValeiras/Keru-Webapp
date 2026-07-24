@@ -49,3 +49,9 @@ Thumbs.db
 /playwright/.cache
 .e2e-base-url
 serve-*.log
+
+# Verificación aislada por tarea (KER-60): proxy.conf y log de ng serve generados al vuelo
+# por scripts/verify-isolated.mjs del paraguas. Se borran en el teardown; esto los cubre
+# por si una corrida con --keep los deja.
+proxy.conf.keru-*.json
+.ng-serve.*.log
