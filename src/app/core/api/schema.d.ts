@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/email-verification/peek": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** UC-04 A5.2b (KER-63) · Peek del token: devuelve el email destino SIN consumir el token, para ramificar por sesión antes de confirmar (410 si el token es inválido/expirado/usado) */
+        post: operations["AuthController_peekEmailVerification_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/email-verification/confirm": {
         parameters: {
             query?: never;
@@ -1494,6 +1511,13 @@ export interface components {
             /** @description Token de un solo uso recibido por email */
             token: string;
         };
+        EmailVerificationPeekResponseDto: {
+            /**
+             * @description UC-04 A5.2b · Email destino del token, para que el cliente compare con la sesión activa ANTES de consumir el token (sin cambiar de cuenta en silencio). Solo se devuelve para un token válido/pendiente; inválido/expirado/reusado → 410.
+             * @example familiar@test.com
+             */
+            email: string;
+        };
         StepUpDto: {
             /**
              * @description Password de la cuenta de la sesión
@@ -2533,6 +2557,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmailVerificationRequestResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_peekEmailVerification_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailVerificationConfirmDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailVerificationPeekResponseDto"];
                 };
             };
         };

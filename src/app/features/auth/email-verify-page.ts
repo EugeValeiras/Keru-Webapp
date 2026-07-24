@@ -7,11 +7,14 @@ import { ToastService } from '../../shared/ui/toast.service';
 import { AuthShell } from './auth-shell';
 
 /**
- * UC-04 A5 (KER-49) · Confirmación de la verificación de email: el token llega en el query param
- * del link del email. La pantalla lo consume al cargar (sin pedir nada más). Con token válido la
- * API marca la cuenta verificada y devuelve una sesión nueva (auto-login) → guardamos la sesión y
- * redirigimos al home del rol. Con token inválido/expirado/usado (410) mostramos el error con la
- * salida de reenviar desde la app.
+ * UC-04 A5 (KER-49 + KER-63) · Confirmación de la verificación de email según la sesión del browser.
+ * El token llega en el query param del link. Antes de consumirlo, hacemos un `peek` (sin efecto) que
+ * devuelve el email destino del token, y ramificamos:
+ *   - Sin sesión, o sesión de la MISMA cuenta del token → `confirm` (auto-login/renovación) + feedback.
+ *   - Sesión de OTRA cuenta → NO cambiamos de identidad en silencio: cerramos sesión y mandamos a
+ *     login con el email destino prefilleado + `returnUrl` que retoma la verificación, avisando el
+ *     porqué. Al loguearse con la cuenta correcta, vuelve acá —ahora "misma cuenta"— y confirma.
+ * Token inválido/expirado/usado (410) → error con la salida de reenviar.
  */
 @Component({
   selector: 'kr-email-verify-page',
@@ -67,6 +70,41 @@ export class EmailVerifyPage {
       this.error.set('El enlace de verificación es inválido o expiró.');
       return;
     }
+    // Peek (sin efecto): conocemos el email destino ANTES de consumir el token, para ramificar por sesión.
+    this.api.peekEmailVerification({ token: this.token }).subscribe({
+      next: ({ email }) => this.branchOnSession(email),
+      error: (err: ApiError) => {
+        this.verifying.set(false);
+        this.error.set(this.errorMessage(err));
+      },
+    });
+  }
+
+  /** Ramifica según la sesión activa vs el email destino del token. */
+  private branchOnSession(targetEmail: string): void {
+    const sessionEmail = this.store.email();
+    const sameOrNoSession =
+      !this.store.isAuthenticated() || normalizeEmail(sessionEmail) === normalizeEmail(targetEmail);
+
+    if (sameOrNoSession) {
+      // Sin sesión → auto-login (KER-49); misma cuenta → renueva la sesión, sin pedir credenciales.
+      this.confirmAndEnter();
+      return;
+    }
+
+    // Otra cuenta: NO cambiamos de identidad en silencio. Cerramos sesión y pedimos credenciales de
+    // la cuenta correcta; el returnUrl retoma la verificación tras loguearse (ahí ya será "misma cuenta").
+    this.store.clear();
+    void this.router.navigate(['/login'], {
+      queryParams: {
+        email: targetEmail,
+        returnUrl: `/verify-email?token=${this.token}`,
+        notice: 'Este enlace es de otra cuenta. Iniciá sesión con esa cuenta para verificar el email.',
+      },
+    });
+  }
+
+  private confirmAndEnter(): void {
     this.api.confirmEmailVerification({ token: this.token }).subscribe({
       next: (auth) => {
         this.store.setSession(auth);
@@ -92,4 +130,9 @@ export class EmailVerifyPage {
         return err.message;
     }
   }
+}
+
+/** Comparación de emails tolerante a mayúsculas/espacios para decidir "misma cuenta". */
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
 }

@@ -23,6 +23,8 @@ export type PasswordResetConfirmDto = Schemas['PasswordResetConfirmDto'];
 // KER-49 · UC-04 A5 · verificación de email del self-signup
 export type EmailVerificationRequestResponse = Schemas['EmailVerificationRequestResponseDto'];
 export type EmailVerificationConfirmDto = Schemas['EmailVerificationConfirmDto'];
+// KER-63 · UC-04 A5.2b · peek del token: email destino sin consumir el token
+export type EmailVerificationPeekResponse = Schemas['EmailVerificationPeekResponseDto'];
 
 export type Role = AuthResponse['role'];
 

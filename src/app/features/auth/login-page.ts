@@ -21,6 +21,12 @@ import { KrPasswordInput } from '../../shared/ui/kr-password-input';
           <p class="text-sm text-ink-500 mt-1">Entrá para seguir acompañando a los tuyos.</p>
         </div>
 
+        @if (notice(); as info) {
+          <p role="status" class="text-sm text-ink-700 bg-primary-50 rounded-control px-3 py-2">
+            {{ info }}
+          </p>
+        }
+
         @if (error(); as err) {
           <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
             {{ err }}
@@ -84,12 +90,19 @@ export class LoginPage {
   password = '';
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  /** KER-63 · Aviso contextual (p.ej. "este enlace es de otra cuenta") que llega por query param. */
+  readonly notice = signal<string | null>(null);
 
   constructor() {
-    // Deep link de invitación: precargar el email invitado si viene por query.
-    const email = this.route.snapshot.queryParamMap.get('email');
+    // Deep link de invitación / verificación de otra cuenta: precargar email y aviso si vienen por query.
+    const params = this.route.snapshot.queryParamMap;
+    const email = params.get('email');
     if (email) {
       this.email = email;
+    }
+    const notice = params.get('notice');
+    if (notice) {
+      this.notice.set(notice);
     }
   }
 
