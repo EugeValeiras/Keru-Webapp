@@ -6,6 +6,7 @@ import {
   AccountProfile,
   ApiError,
   CaregiverProfile,
+  ChangeLinkRoleDto,
   CreateInvitationDto,
   EmittedInvitation,
   Invitation,
@@ -56,6 +57,21 @@ export class MembershipApi {
   /** UC-22 · Círculo del paciente. Cualquier vinculado lee; 403 = sin vínculo. */
   getPatientLinks(id: string): Observable<PatientCircleMember[]> {
     return this.http.get<PatientCircleMember[]>(`/api/v1/patients/${id}/links`);
+  }
+
+  /**
+   * UC-22 A3 · Cambiar el rol de un miembro del círculo. Solo consent-holder (403 otro rol),
+   * 404 objetivo no vinculado, 409 LAST_CONSENT_HOLDER si dejaría al paciente sin titular. Sin operationId.
+   */
+  changeLinkRole(
+    patientId: string,
+    accountId: string,
+    dto: ChangeLinkRoleDto,
+  ): Observable<PatientCircleMember> {
+    return this.http.patch<PatientCircleMember>(
+      `/api/v1/patients/${patientId}/links/${accountId}`,
+      dto,
+    );
   }
 
   /** 404 = "todavía no tiene perfil profesional" (estado, no error) → null. */

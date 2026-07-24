@@ -172,8 +172,8 @@ export interface paths {
         get: operations["MembershipController_myPatients_v1"];
         put?: never;
         /**
-         * UC-01 · Registrar paciente
-         * @description Crea el perfil del paciente y vincula al creador como consent-holder. Idempotente por operationId (NFR-34).
+         * UC-01 · Registrar paciente (solo rol family)
+         * @description Crea el perfil del paciente y vincula al creador como consent-holder. Idempotente por operationId (NFR-34). Requiere rol de cuenta `family` (KER-50): caregiver/admin → 403.
          */
         post: operations["MembershipController_registerPatient_v1"];
         delete?: never;
@@ -224,6 +224,26 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/links/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * UC-22 · Cambiar el rol de un miembro del círculo
+         * @description Re-asigna el rol de un vínculo existente. Solo el titular (consent-holder), decidido por el PermissionEngine (no inline): un manager/viewer recibe 403, un objetivo no vinculado 404. Nunca deja al paciente sin consent-holder (degradar al único titular → 409 LAST_CONSENT_HOLDER). Naturalmente idempotente (sin operationId); queda auditado (actor, objetivo, rol anterior→nuevo).
+         */
+        patch: operations["MembershipController_changeLinkRole_v1"];
         trace?: never;
     };
     "/api/v1/caregivers": {
@@ -468,7 +488,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** UC-03 · Confirmar invitación y crear el vínculo */
+        /** UC-03 · Confirmar invitación y crear el vínculo (solo rol family) */
         post: operations["InvitationController_confirm_v1"];
         delete?: never;
         options?: never;
@@ -1532,6 +1552,13 @@ export interface components {
             allergies?: string[];
             emergencyContact?: components["schemas"]["EmergencyContactDto"];
         };
+        ChangeLinkRoleDto: {
+            /**
+             * @description Nuevo rol del vínculo con el paciente.
+             * @enum {string}
+             */
+            role: "consent-holder" | "manager" | "viewer";
+        };
         CertificationDto: {
             /** @example Enfermería */
             type: string;
@@ -1570,13 +1597,10 @@ export interface components {
             operationId: string;
             /**
              * @deprecated
-             * @description Ignorado (ADR-0003): el nombre lo aporta la cuenta (identidad fuente única en Account).
+             * @description Ignorado (ADR-0003): el nombre lo aporta la cuenta.
              */
             displayName?: string;
-            /**
-             * @description Foto opcional; si se envía al registrar se guarda en la cuenta (ADR-0003).
-             * @example http://localhost:4566/keru-media/images/abc.jpg
-             */
+            /** @example http://localhost:4566/keru-media/images/abc.jpg */
             photoUrl?: string;
             /**
              * @example [
@@ -2515,6 +2539,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientLinkDto"][];
+                };
+            };
+        };
+    };
+    MembershipController_changeLinkRole_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLinkRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientLinkDto"];
                 };
             };
         };
