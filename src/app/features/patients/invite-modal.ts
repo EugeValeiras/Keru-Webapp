@@ -54,7 +54,7 @@ const ROLE_LABELS: Record<string, string> = {
               <input
                 type="text"
                 readonly
-                [value]="localLink()"
+                [value]="shareLink()"
                 class="flex-1 min-w-0 rounded-control border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-700"
               />
               <button
@@ -217,11 +217,10 @@ export class InviteModal implements OnInit {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private tickId: ReturnType<typeof setInterval> | null = null;
 
-  readonly localLink = computed(() => {
-    const inv = this.invitation();
-    // El campo `link` del backend apunta a keru.app: en dev usamos el origin local.
-    return inv ? `${location.origin}/invite/${inv.token}` : '';
-  });
+  // KER-71: el backend arma el `link` con APP_BASE_URL del ambiente (dev.keru.ar / keru.ar),
+  // así que es el deep link canónico para compartir con el invitado — ya no se reconstruye
+  // desde location.origin (que filtraría el host interno/preview del que emite la invitación).
+  readonly shareLink = computed(() => this.invitation()?.link ?? '');
 
   readonly countdown = computed(() => {
     const total = Math.max(0, this.remaining());
@@ -325,7 +324,7 @@ export class InviteModal implements OnInit {
   }
 
   copy(): void {
-    void navigator.clipboard.writeText(this.localLink()).then(() => {
+    void navigator.clipboard.writeText(this.shareLink()).then(() => {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     });
