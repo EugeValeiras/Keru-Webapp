@@ -23,7 +23,7 @@ import { KrMenu } from '../../shared/ui/kr-menu';
       panelClass="absolute right-0 top-full mt-2 min-w-[15rem] max-w-[18rem] bg-surface rounded-card shadow-card-hover z-20 py-1.5 overflow-hidden"
     >
       <ng-container ngProjectAs="[menu-trigger]">
-        <kr-avatar [name]="activeName()" [seed]="activeId() ?? ''" [size]="28" />
+        <kr-avatar [name]="activeName()" [seed]="activeId() ?? ''" [size]="28" [photoUrl]="activePhoto()" />
         <span class="truncate">{{ activeName() }}</span>
         <!-- Chevron (Lucide "chevron-down"): lineal, currentColor. -->
         <svg
@@ -50,7 +50,7 @@ import { KrMenu } from '../../shared/ui/kr-menu';
           class="w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-primary-50 focus:bg-primary-50 focus:outline-none transition-colors"
           [class.bg-primary-50]="p.id === activeId()"
         >
-          <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="28" />
+          <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="28" [photoUrl]="p.photoUrl" />
           <span class="min-w-0 flex-1 truncate font-medium text-ink-900">{{ p.fullName }}</span>
           @if (p.id === activeId()) {
             <!-- Check (Lucide "check") del perfil activo. -->
@@ -79,6 +79,10 @@ export class KrPatientPicker {
 
   readonly activeName = computed(
     () => this.patients().find((p) => p.id === this.activeId())?.fullName ?? '',
+  );
+
+  readonly activePhoto = computed(
+    () => this.patients().find((p) => p.id === this.activeId())?.photoUrl,
   );
 
   /** Índice del perfil activo: el `kr-menu` lo enfoca al abrir. */

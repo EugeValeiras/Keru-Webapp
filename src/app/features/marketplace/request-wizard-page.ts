@@ -90,7 +90,7 @@ const STEP_TITLES = ['¿Para quién?', 'Modalidad y fechas', 'Detalles', 'Resume
                     [(ngModel)]="patientId"
                     class="accent-primary-600"
                   />
-                  <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="40" />
+                  <kr-avatar [name]="p.fullName" [seed]="p.id" [size]="40" [photoUrl]="p.photoUrl" />
                   <span>
                     <span class="block font-medium text-ink-900">{{ p.fullName }}</span>
                     <span class="block text-sm text-ink-500">{{ p.age }} años</span>
