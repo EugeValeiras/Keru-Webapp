@@ -43,7 +43,7 @@ const FOCUSABLE =
             type="button"
             (click)="closed.emit()"
             class="rounded-full p-1.5 -m-1.5 text-ink-700 hover:text-ink-900 hover:bg-ink-200/60 active:bg-ink-200 text-xl leading-none"
-            aria-label="Cerrar"
+            [attr.aria-label]="title() ? 'Cerrar ' + title() : 'Cerrar'"
           >
             ✕
           </button>

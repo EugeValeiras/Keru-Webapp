@@ -35,9 +35,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
         [autocomplete]="autocomplete()"
         [value]="value()"
         [disabled]="disabled()"
+        [attr.aria-invalid]="invalid() ? 'true' : null"
+        [attr.aria-describedby]="describedBy()"
         (input)="onInput($event)"
         (blur)="onTouched()"
         class="w-full rounded-control border border-ink-300 bg-surface px-3 py-2 pr-11 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
+        [class.input-error]="invalid()"
       />
       <button
         type="button"
@@ -90,6 +93,13 @@ export class KrPasswordInput implements ControlValueAccessor {
   readonly autocomplete = input('current-password');
   readonly required = input(false, { transform: booleanAttribute });
   readonly minlength = input<number | null>(null);
+  /**
+   * KER-80 · A11y del error de validación reflejado en el <input> interno (el focusable), no en el
+   * host: cuando el control quedó inválido al enviar, el padre pasa `invalid` (→ aria-invalid +
+   * borde danger) y `describedBy` con el id del [[kr-field-error]] para que el lector lea el motivo.
+   */
+  readonly invalid = input(false, { transform: booleanAttribute });
+  readonly describedBy = input<string | null>(null);
 
   protected readonly visible = signal(false);
   protected readonly value = signal('');

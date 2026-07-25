@@ -56,9 +56,10 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
             class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             [class.input-error]="fullNameCtrl.invalid && f.submitted"
             [attr.aria-invalid]="fullNameCtrl.invalid && f.submitted ? 'true' : null"
+            [attr.aria-describedby]="fullNameCtrl.invalid && f.submitted ? 'err-fullName' : null"
           />
           @if (fullNameCtrl.invalid && f.submitted) {
-            <kr-field-error>Ingresá el nombre completo.</kr-field-error>
+            <kr-field-error id="err-fullName">Ingresá el nombre completo.</kr-field-error>
           }
         </label>
 
@@ -78,9 +79,10 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
               class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
               [class.input-error]="birthDateCtrl.invalid && f.submitted"
               [attr.aria-invalid]="birthDateCtrl.invalid && f.submitted ? 'true' : null"
+              [attr.aria-describedby]="birthDateCtrl.invalid && f.submitted ? 'err-birthDate' : null"
             />
             @if (birthDateCtrl.invalid && f.submitted) {
-              <kr-field-error>Ingresá la fecha de nacimiento.</kr-field-error>
+              <kr-field-error id="err-birthDate">Ingresá la fecha de nacimiento.</kr-field-error>
             }
           </label>
 
@@ -111,9 +113,10 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
             class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             [class.input-error]="mainConditionCtrl.invalid && f.submitted"
             [attr.aria-invalid]="mainConditionCtrl.invalid && f.submitted ? 'true' : null"
+            [attr.aria-describedby]="mainConditionCtrl.invalid && f.submitted ? 'err-mainCondition' : null"
           />
           @if (mainConditionCtrl.invalid && f.submitted) {
-            <kr-field-error>Ingresá la condición principal.</kr-field-error>
+            <kr-field-error id="err-mainCondition">Ingresá la condición principal.</kr-field-error>
           }
         </label>
 
@@ -182,9 +185,10 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
                 class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 [class.input-error]="contactNameCtrl.invalid && f.submitted"
                 [attr.aria-invalid]="contactNameCtrl.invalid && f.submitted ? 'true' : null"
+                [attr.aria-describedby]="contactNameCtrl.invalid && f.submitted ? 'err-contactName' : null"
               />
               @if (contactNameCtrl.invalid && f.submitted) {
-                <kr-field-error>Ingresá el nombre del contacto.</kr-field-error>
+                <kr-field-error id="err-contactName">Ingresá el nombre del contacto.</kr-field-error>
               }
             </label>
             <label class="flex flex-col gap-1">
@@ -202,9 +206,10 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
                 class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                 [class.input-error]="contactPhoneCtrl.invalid && f.submitted"
                 [attr.aria-invalid]="contactPhoneCtrl.invalid && f.submitted ? 'true' : null"
+                [attr.aria-describedby]="contactPhoneCtrl.invalid && f.submitted ? 'err-contactPhone' : null"
               />
               @if (contactPhoneCtrl.invalid && f.submitted) {
-                <kr-field-error>Ingresá el teléfono del contacto.</kr-field-error>
+                <kr-field-error id="err-contactPhone">Ingresá el teléfono del contacto.</kr-field-error>
               }
             </label>
           </div>
