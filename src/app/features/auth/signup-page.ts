@@ -1,11 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthApi } from '../../core/api/auth-api.service';
 import { ApiError, SignupDto, homeForRole } from '../../core/api/api.types';
 import { AuthStore } from '../../core/auth/auth-store';
 import { AuthShell } from './auth-shell';
 import { KrPasswordInput } from '../../shared/ui/kr-password-input';
+import { KrFieldError } from '../../shared/ui/kr-field-error';
 
 type SignupRole = SignupDto['role'];
 type LinkRoleToGrant = 'manager' | 'viewer';
@@ -18,28 +19,34 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
 
 @Component({
   selector: 'kr-signup-page',
-  imports: [FormsModule, RouterLink, AuthShell, KrPasswordInput],
+  imports: [FormsModule, RouterLink, AuthShell, KrPasswordInput, KrFieldError],
   template: `
     <kr-auth-shell
       tagline="Sumate al círculo: acá el cuidado se acompaña de cerca."
       subline="Creá tu cuenta en un minuto."
     >
       <form
+        #formEl
+        #f="ngForm"
         class="bg-surface rounded-card shadow-card p-8 flex flex-col gap-4"
-        (ngSubmit)="submit()"
+        (ngSubmit)="submit(f)"
       >
         <div>
           <h1 class="text-[1.375rem]">Creá tu cuenta</h1>
           <p class="text-sm text-ink-700 mt-1">Unos datos y arrancamos.</p>
         </div>
 
-        @if (error(); as err) {
-          <p role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
-            {{ err }}
-          </p>
-        }
-        @for (fieldError of fieldErrors(); track fieldError) {
-          <p class="text-xs text-danger">{{ fieldError }}</p>
+        @if (error() || fieldErrors().length) {
+          <!-- KER-80 · El error del servidor (y sus mensajes por campo, que llegan como texto suelto
+               sin mapa a un input) viven en UNA región assertive para que el lector los anuncie. -->
+          <div role="alert" class="text-sm text-danger bg-danger-50 rounded-control px-3 py-2">
+            @if (error(); as err) {
+              <p>{{ err }}</p>
+            }
+            @for (fieldError of fieldErrors(); track fieldError) {
+              <p class="mt-1">{{ fieldError }}</p>
+            }
+          </div>
         }
 
         @if (invited()) {
@@ -120,13 +127,20 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium text-ink-700">Nombre y apellido</span>
           <input
+            #displayNameCtrl="ngModel"
             type="text"
             name="displayName"
             required
             autocomplete="name"
             [(ngModel)]="displayName"
             class="rounded-control border border-ink-300 bg-surface px-3 py-2 hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            [class.input-error]="displayNameCtrl.invalid && f.submitted"
+            [attr.aria-invalid]="displayNameCtrl.invalid && f.submitted ? 'true' : null"
+            [attr.aria-describedby]="displayNameCtrl.invalid && f.submitted ? 'err-displayName' : null"
           />
+          @if (displayNameCtrl.invalid && f.submitted) {
+            <kr-field-error id="err-displayName">Ingresá tu nombre y apellido.</kr-field-error>
+          }
         </label>
 
         <label class="flex flex-col gap-1">
@@ -134,37 +148,55 @@ const LINK_ROLE_LABELS: Record<LinkRoleToGrant, string> = {
           <!-- KER-67 · Por invitación: readonly (envía su valor y se anuncia como solo-lectura,
                a diferencia de un disabled mudo) — el email es el objetivo de la invitación (NFR-19). -->
           <input
+            #emailCtrl="ngModel"
             type="email"
             name="email"
             required
             autocomplete="email"
             [(ngModel)]="email"
             [readonly]="invited()"
-            [attr.aria-describedby]="invited() ? 'email-locked-hint' : null"
+            [attr.aria-invalid]="!invited() && emailCtrl.invalid && f.submitted ? 'true' : null"
+            [attr.aria-describedby]="
+              invited()
+                ? 'email-locked-hint'
+                : emailCtrl.invalid && f.submitted
+                  ? 'err-email'
+                  : null
+            "
             class="rounded-control border border-ink-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
             [class]="
               invited()
                 ? 'bg-sand-100 cursor-not-allowed'
                 : 'bg-surface hover:border-ink-500'
             "
+            [class.input-error]="!invited() && emailCtrl.invalid && f.submitted"
           />
           @if (invited()) {
             <span id="email-locked-hint" class="text-xs text-ink-700">
               Es el email de tu invitación y no se puede cambiar.
             </span>
+          } @else if (emailCtrl.invalid && f.submitted) {
+            <kr-field-error id="err-email">Ingresá un email válido.</kr-field-error>
           }
         </label>
 
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium text-ink-700">Contraseña</span>
           <kr-password-input
+            #passwordCtrl="ngModel"
             name="password"
             required
             [minlength]="8"
             autocomplete="new-password"
             [(ngModel)]="password"
+            [invalid]="passwordCtrl.invalid && f.submitted"
+            [describedBy]="passwordCtrl.invalid && f.submitted ? 'err-password' : null"
           />
-          <span class="text-xs text-ink-700">Mínimo 8 caracteres</span>
+          @if (passwordCtrl.invalid && f.submitted) {
+            <kr-field-error id="err-password">Ingresá una contraseña de al menos 8 caracteres.</kr-field-error>
+          } @else {
+            <span class="text-xs text-ink-700">Mínimo 8 caracteres</span>
+          }
         </label>
 
         <button
@@ -190,6 +222,8 @@ export class SignupPage {
   private readonly store = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+
+  private readonly formEl = viewChild<ElementRef<HTMLFormElement>>('formEl');
 
   // KER-50: el self-signup ofrece solo family y caregiver. Administrar perfiles de paciente es
   // capacidad de `family` (para vos o un ser querido); el rol `patient` quedó fuera del signup
@@ -240,8 +274,16 @@ export class SignupPage {
     }
   }
 
-  submit(): void {
-    if (this.loading() || !this.email || !this.password || !this.displayName) {
+  submit(form: NgForm): void {
+    if (this.loading()) {
+      return;
+    }
+    // KER-80: validación por-campo (WCAG 3.3.1). Los `required`/minlength ya declarados marcan cada
+    // control inválido; el template pinta borde rojo + mensaje inline vinculado (aria-describedby)
+    // sobre (ctrl.invalid && form.submitted). Acá solo frenamos el envío y llevamos el foco al primer
+    // inválido en orden del DOM. No cambia QUÉ se valida, solo dónde se anuncia.
+    if (form.invalid) {
+      this.focusFirstInvalid();
       return;
     }
     this.loading.set(true);
@@ -272,5 +314,13 @@ export class SignupPage {
           }
         },
       });
+  }
+
+  /** Enfoca el primer control inválido en orden del DOM tras un envío fallido (WCAG 3.3.1 / 2.4.3). */
+  private focusFirstInvalid(): void {
+    const first = this.formEl()?.nativeElement.querySelector<HTMLElement>(
+      'input:invalid, select:invalid, textarea:invalid',
+    );
+    first?.focus();
   }
 }
