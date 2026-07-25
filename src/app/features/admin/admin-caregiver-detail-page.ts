@@ -7,17 +7,16 @@ import {
   AdminCaregiverDetail,
   ApiError,
   CaregiverStatus,
-  CertificationView,
   DAY_LABELS,
   MODALITY_LABELS,
   Modality,
-  SPECIALTY_LABELS,
-  Specialty,
 } from '../../core/api/api.types';
 import { StepUpStore } from '../../core/auth/step-up.store';
+import { specialtyInsignias } from '../../shared/ui/caregiver-insignias';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge, BadgeTone } from '../../shared/ui/kr-badge';
 import { KrCertIcon } from '../../shared/ui/kr-cert-icon';
+import { KrInsignias } from '../../shared/ui/kr-insignias';
 import { KrModal } from '../../shared/ui/kr-modal';
 import { formatDate } from '../../shared/utils/dates';
 
@@ -43,13 +42,13 @@ const CERT_STATUS_LABEL: Record<string, string> = {
 };
 const CERT_STATUS_TONE: Record<string, BadgeTone> = {
   pending: 'warning',
-  approved: 'success',
+  approved: 'gold', // KER-87 · verificada = dorado (mismo realce que marketplace/listado).
   rejected: 'danger',
 };
 
 @Component({
   selector: 'kr-admin-caregiver-detail-page',
-  imports: [FormsModule, KrAvatar, KrBadge, KrCertIcon, KrModal],
+  imports: [FormsModule, KrAvatar, KrBadge, KrCertIcon, KrInsignias, KrModal],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       @if (error(); as err) {
@@ -86,14 +85,10 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
           </div>
         }
 
-        <!-- Especialidades -->
+        <!-- Especialidades (KER-87: mismo estilo de insignia que marketplace y listado) -->
         <div class="bg-surface rounded-card shadow-card p-6">
           <h2 class="text-lg font-semibold mb-3">Especialidades</h2>
-          <div class="flex flex-wrap gap-2">
-            @for (s of d.specialties; track s) {
-              <kr-badge tone="primary">{{ specialtyLabel(s) }}</kr-badge>
-            }
-          </div>
+          <kr-insignias [insignias]="specialtyInsignias(d.specialties)" [max]="99" />
         </div>
 
         <!-- Certificaciones (KER-52: revisión por-cert con documento privado) -->
@@ -417,6 +412,8 @@ export class AdminCaregiverDetailPage {
   readonly statusLabel = STATUS_LABEL;
   readonly statusTone = STATUS_TONE;
   readonly formatDate = formatDate;
+  // KER-87 · Especialidades como insignias unificadas (mismo estilo que marketplace y listado).
+  protected readonly specialtyInsignias = specialtyInsignias;
 
   // Insignias: certificaciones es DERIVADA (solo lectura); identidad/antecedentes son toggles.
   badgeCertifications = false;
@@ -589,10 +586,6 @@ export class AdminCaregiverDetailPage {
         this.error.set(err.message);
       },
     });
-  }
-
-  specialtyLabel(s: string): string {
-    return SPECIALTY_LABELS[s as Specialty] ?? s;
   }
 
   modalityLabel(m: string): string {

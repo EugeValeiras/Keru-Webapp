@@ -2,16 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/api/admin-api.service';
-import {
-  AdminCaregiverList,
-  ApiError,
-  CaregiverStatus,
-  SPECIALTY_LABELS,
-} from '../../core/api/api.types';
+import { AdminCaregiverList, ApiError, CaregiverStatus } from '../../core/api/api.types';
+import { specialtyInsignias, trustInsignias } from '../../shared/ui/caregiver-insignias';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
-import { KrCertInsignias } from '../../shared/ui/kr-cert-insignias';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrInsignias } from '../../shared/ui/kr-insignias';
 
 const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
   { value: null, label: 'Todos' },
@@ -23,7 +19,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
 
 @Component({
   selector: 'kr-admin-caregivers-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrCertInsignias, KrEmptyState],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrInsignias, KrEmptyState],
   template: `
     <h1 class="mb-6">Cuidadores</h1>
 
@@ -99,77 +95,20 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                       </div>
                     </td>
                     <td class="px-4 py-3 text-ink-700">{{ c.zone }}</td>
-                    <td class="px-4 py-3 text-ink-700">{{ specialtiesOf(c.specialties) }}</td>
+                    <td class="px-4 py-3">
+                      <kr-insignias [insignias]="specialtyInsignias(c.specialties)" [max]="3" />
+                    </td>
                     <td class="px-4 py-3">
                       <kr-badge [tone]="statusTone(c.status)">{{ statusLabel(c.status) }}</kr-badge>
                     </td>
                     <td class="px-4 py-3">
-                     <div class="flex flex-col gap-2">
-                      <!-- Iconografía de línea del brand book (§5), no emoji: heredan
-                           currentColor y se atenúan cuando la insignia falta. -->
-                      <span class="inline-flex items-center gap-1.5 text-ink-700 align-middle">
-                        <svg
-                          [class.opacity-25]="!c.badges.certifications"
-                          role="img"
-                          aria-label="Certificaciones"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.75"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <title>Certificaciones</title>
-                          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-                          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-                          <path d="m9 15 2 2 4-4" />
-                        </svg>
-                        <svg
-                          [class.opacity-25]="!c.badges.identity"
-                          role="img"
-                          aria-label="Identidad"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.75"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <title>Identidad</title>
-                          <rect x="2" y="5" width="20" height="14" rx="2" />
-                          <path d="M16 10h2" />
-                          <path d="M16 14h2" />
-                          <circle cx="9" cy="10.5" r="2" />
-                          <path d="M6.2 15.5a3 3 0 0 1 5.6 0" />
-                        </svg>
-                        <svg
-                          [class.opacity-25]="!c.badges.background"
-                          role="img"
-                          aria-label="Antecedentes"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.75"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <title>Antecedentes</title>
-                          <path
-                            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"
-                          />
-                          <path d="m9 12 2 2 4-4" />
-                        </svg>
-                      </span>
-
-                      <!-- KER-82 · Insignias por-certificación (todas, con su estado — vista de gestión, UC-19). -->
-                      <kr-cert-insignias [certifications]="c.certifications ?? []" [showStatus]="true" />
-                     </div>
+                      <!-- KER-87 · Insignias de confianza unificadas (certificaciones con su estado +
+                           identidad/antecedentes). Mismo componente/estilo que el marketplace; las
+                           aprobadas van doradas, pendientes/rechazadas por estado. Solo las que tiene. -->
+                      <kr-insignias
+                        [insignias]="trustInsignias({ certifications: c.certifications ?? [], badges: c.badges }, 'admin')"
+                        [max]="5"
+                      />
                     </td>
                     <td class="px-4 py-3 text-right">
                       <a
@@ -214,6 +153,9 @@ export class AdminCaregiversPage {
   private readonly api = inject(AdminApi);
 
   readonly statusChips = STATUS_CHIPS;
+  // KER-87 · Mappers de insignias expuestos al template (mismo estilo que card y ficha).
+  protected readonly specialtyInsignias = specialtyInsignias;
+  protected readonly trustInsignias = trustInsignias;
   readonly status = signal<CaregiverStatus | null>(null);
   query = '';
   readonly result = signal<AdminCaregiverList | null>(null);
@@ -260,15 +202,6 @@ export class AdminCaregiversPage {
 
   totalPages(res: AdminCaregiverList): number {
     return Math.max(1, Math.ceil(res.total / res.pageSize));
-  }
-
-  specialtiesOf(specialties: string[]): string {
-    const labels = specialties.map(
-      (s) => SPECIALTY_LABELS[s as keyof typeof SPECIALTY_LABELS] ?? s,
-    );
-    return labels.length > 2
-      ? `${labels.slice(0, 2).join(', ')} +${labels.length - 2}`
-      : labels.join(', ');
   }
 
   statusLabel(status: CaregiverStatus): string {

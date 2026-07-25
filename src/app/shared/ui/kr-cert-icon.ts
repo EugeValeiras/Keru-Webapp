@@ -15,6 +15,11 @@ import { Component, input } from '@angular/core';
  *
  * Alta de un ícono nuevo: sumá su `iconKey` como `@case` acá y en `certification-catalog.ts` (backend).
  * Un `iconKey` desconocido cae al genérico `award` (mismo default que el backend).
+ *
+ * KER-87 · Además del catálogo de certificaciones, mapea las claves de las insignias de VERIFICACIÓN
+ * agregada (`identity`, `background`) para que la fila unificada (`kr-insignias`) las muestre con el
+ * mismo tratamiento. Por defecto el glifo es violeta de marca (§5); con [inherit] hereda el color del
+ * texto del contenedor (p.ej. el dorado de una insignia verificada, o el tono de estado en admin).
  */
 @Component({
   selector: 'kr-cert-icon',
@@ -22,7 +27,8 @@ import { Component, input } from '@angular/core';
     '[style.width.px]': 'size()',
     '[style.height.px]': 'size()',
     '[attr.data-cert-icon]': 'iconKey()',
-    class: 'inline-flex shrink-0 align-text-bottom text-primary-600',
+    '[class.text-primary-600]': '!inherit()',
+    class: 'inline-flex shrink-0 align-text-bottom',
   },
   template: `
     <svg
@@ -106,6 +112,19 @@ import { Component, input } from '@angular/core';
           <path d="M12 6.528V3a1 1 0 0 1 1-1h0" />
           <path d="M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21" />
         }
+        @case ('identity') {
+          <!-- Lucide 'contact-round': verificación de identidad (KER-87). -->
+          <path d="M16 2v2" />
+          <path d="M17.915 22a6 6 0 0 0-12 0" />
+          <path d="M8 2v2" />
+          <circle cx="12" cy="12" r="4" />
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+        }
+        @case ('background') {
+          <!-- Lucide 'shield-check': antecedentes verificados (KER-87). -->
+          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+          <path d="m9 12 2 2 4-4" />
+        }
         @default {
           <!-- award: genérico de certificación (fallback, mismo default que el backend) -->
           <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
@@ -120,4 +139,9 @@ export class KrCertIcon {
   readonly iconKey = input.required<string>();
   /** Lado en px. Brand book §5: 20px en líneas de texto, 24px en headers. */
   readonly size = input(20);
+  /**
+   * KER-87 · Heredar el color del texto del contenedor (`currentColor`) en vez del violeta de marca.
+   * Lo usa `kr-insignias` para que el glifo tome el dorado de "verificada" (o el tono de estado).
+   */
+  readonly inherit = input(false);
 }

@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
-export type BadgeTone = 'primary' | 'neutral' | 'success' | 'warning' | 'danger';
+export type BadgeTone = 'primary' | 'neutral' | 'success' | 'warning' | 'danger' | 'gold';
 
 // Tinte -50 + texto -700 en cada tono, alineado con el patrón de `primary`
 // (bg-100 + text-700): el par -50/-700 da ≥6.9:1, holgado AA. El -600 sobre -50
@@ -15,6 +15,9 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
   success: 'bg-success-50 text-success-700',
   warning: 'bg-warning-50 text-warning-700',
   danger: 'bg-danger-50 text-danger-700',
+  // KER-87 · Dorado de "verificada": gold-700 sobre gold-50 = 6.4:1 (AA holgado).
+  // Es la variante estática del realce; el brillo (shine) vive en `kr-insignias`.
+  gold: 'bg-gold-50 text-gold-700 border border-gold-300',
 };
 
 @Component({

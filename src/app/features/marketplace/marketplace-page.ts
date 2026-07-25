@@ -10,19 +10,13 @@ import {
   Specialty,
 } from '../../core/api/api.types';
 import { HiringApi, MarketplaceFilters } from '../../core/api/hiring-api.service';
+import { specialtyInsignias, trustInsignias } from '../../shared/ui/caregiver-insignias';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
-import { KrBadge } from '../../shared/ui/kr-badge';
-import { KrCertInsignias } from '../../shared/ui/kr-cert-insignias';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrInsignias } from '../../shared/ui/kr-insignias';
 import { KrRating } from '../../shared/ui/kr-rating';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { ToastService } from '../../shared/ui/toast.service';
-
-const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
-  ['certifications', 'Certificaciones'],
-  ['identity', 'Identidad'],
-  ['background', 'Antecedentes'],
-];
 
 @Component({
   selector: 'kr-marketplace-page',
@@ -30,8 +24,7 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
     FormsModule,
     RouterLink,
     KrAvatar,
-    KrBadge,
-    KrCertInsignias,
+    KrInsignias,
     KrEmptyState,
     KrRating,
     KrSkeleton,
@@ -180,14 +173,8 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-1.5">
-              @for (s of c.specialties.slice(0, 3); track s) {
-                <kr-badge tone="primary">{{ specialtyLabel(s) }}</kr-badge>
-              }
-              @if (c.specialties.length > 3) {
-                <kr-badge tone="neutral">+{{ c.specialties.length - 3 }}</kr-badge>
-              }
-            </div>
+            <!-- KER-87 · Especialidades como insignias (mismo estilo que las de confianza). -->
+            <kr-insignias [insignias]="specialtyInsignias(c.specialties)" [max]="3" />
 
             <p class="text-sm text-ink-500">
               @for (m of c.modalities; track m; let last = $last) {
@@ -203,18 +190,9 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
               <span class="text-sm font-medium text-ink-500">{{ c.currency }}/hora</span>
             </p>
 
-            @if (c.badges.certifications || c.badges.identity || c.badges.background) {
-              <div class="flex flex-wrap gap-1.5">
-                @for (b of badgeLabels; track b[0]) {
-                  @if (c.badges[b[0]]) {
-                    <kr-badge tone="success">✓ {{ b[1] }}</kr-badge>
-                  }
-                }
-              </div>
-            }
-
-            <!-- KER-82 · Insignias por-certificación (solo aprobadas; UC-06). Compactas + overflow "+N". -->
-            <kr-cert-insignias [certifications]="c.certifications ?? []" />
+            <!-- KER-87 · Insignias de CONFIANZA (certificaciones aprobadas + identidad/antecedentes),
+                 doradas, con el mismo estilo tipográfico. Solo las que el cuidador tiene; vacío → nada. -->
+            <kr-insignias [insignias]="trustInsignias({ certifications: c.certifications ?? [], badges: c.badges }, 'public')" [max]="4" />
           </a>
         }
       </div>
@@ -238,7 +216,9 @@ export class MarketplacePage {
 
   protected readonly specialtyOptions = Object.entries(SPECIALTY_LABELS);
   protected readonly modalityOptions = Object.entries(MODALITY_LABELS);
-  protected readonly badgeLabels = BADGE_LABELS;
+  // KER-87 · Mappers de insignias expuestos al template (mismo estilo en card, ficha y admin).
+  protected readonly specialtyInsignias = specialtyInsignias;
+  protected readonly trustInsignias = trustInsignias;
 
   careType = '';
   modality = '';
@@ -338,10 +318,6 @@ export class MarketplacePage {
       // Revert de un quitado en la vista favoritos: recargar la lista del server.
       this.fetch(this.api.getFavorites(), true);
     }
-  }
-
-  specialtyLabel(s: string): string {
-    return SPECIALTY_LABELS[s as Specialty] ?? s;
   }
 
   modalityLabel(m: string): string {
