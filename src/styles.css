@@ -159,6 +159,22 @@ body {
   border-radius: 4px;
 }
 
+/* KER-61 · Estado de error de un campo de formulario (requerido vacío al enviar).
+   SIN @layer a propósito: así gana por cascada a las utilities de Tailwind
+   (p.ej. `border-ink-300`), que viven en una cascade layer y por eso pierden
+   contra CSS sin capa, sin pelear especificidad. El borde danger es refuerzo
+   VISUAL; el estado accesible lo dan `required`/`aria-invalid` + el "*" + el
+   mensaje inline (no depende solo del color → WCAG 1.4.1). La transición de
+   border-color/box-shadow ya existe en la base de estados suaves (KER-21), así
+   que el rojo entra con un fundido sutil. */
+.input-error {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px var(--color-danger);
+}
+.input-error:focus {
+  outline-color: var(--color-danger);
+}
+
 /* ============================================================
    Motion v2 (KER-21). Regla de oro: TODO movimiento vive dentro de
    @media (prefers-reduced-motion: no-preference) — con la preferencia
