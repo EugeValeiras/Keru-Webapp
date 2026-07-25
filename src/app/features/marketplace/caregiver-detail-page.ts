@@ -6,26 +6,22 @@ import {
   MODALITY_LABELS,
   MarketplaceProfile,
   Modality,
-  SPECIALTY_LABELS,
-  Specialty,
 } from '../../core/api/api.types';
 import { HiringApi } from '../../core/api/hiring-api.service';
+import {
+  certInsigniaOf,
+  specialtyInsignias,
+  verificationInsignias,
+} from '../../shared/ui/caregiver-insignias';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
-import { KrBadge } from '../../shared/ui/kr-badge';
-import { KrCertIcon } from '../../shared/ui/kr-cert-icon';
+import { KrInsignias } from '../../shared/ui/kr-insignias';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { ToastService } from '../../shared/ui/toast.service';
 import { ReputationPanel } from '../reputation/reputation-panel';
 
-const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: string][] = [
-  ['certifications', 'Certificaciones'],
-  ['identity', 'Identidad'],
-  ['background', 'Antecedentes'],
-];
-
 @Component({
   selector: 'kr-caregiver-detail-page',
-  imports: [RouterLink, KrAvatar, KrBadge, KrCertIcon, KrSkeleton, ReputationPanel],
+  imports: [RouterLink, KrAvatar, KrInsignias, KrSkeleton, ReputationPanel],
   template: `
     @if (notFound()) {
       <div class="bg-surface rounded-card shadow-card p-12 text-center max-w-lg mx-auto">
@@ -87,43 +83,32 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
                   }
                 }
               </p>
-              <div class="flex flex-wrap justify-center sm:justify-start gap-1.5 mt-3">
-                @for (b of badgeLabels; track b[0]) {
-                  @if (p.badges[b[0]]) {
-                    <kr-badge tone="success">✓ {{ b[1] }}</kr-badge>
-                  }
-                }
+              <!-- KER-87 · Verificaciones (identidad/antecedentes) como insignias doradas. -->
+              <div class="mt-3">
+                <kr-insignias [insignias]="verificationInsignias(p.badges)" [max]="9" />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Especialidades -->
+        <!-- Especialidades (KER-87: mismo estilo de insignia que las de confianza) -->
         <section class="bg-surface rounded-card shadow-card p-6">
           <h2 class="font-semibold mb-3">Especialidades</h2>
-          <div class="flex flex-wrap gap-1.5">
-            @for (s of p.specialties; track s) {
-              <kr-badge tone="primary">{{ specialtyLabel(s) }}</kr-badge>
-            }
-          </div>
+          <kr-insignias [insignias]="specialtyInsignias(p.specialties)" [max]="99" />
         </section>
 
-        <!-- Certificaciones verificadas (KER-52: solo las aprobadas, con su insignia del catálogo) -->
+        <!-- Certificaciones verificadas (KER-52/87: solo aprobadas, cada una como insignia DORADA
+             con su ícono del catálogo + institución y año) -->
         <section class="bg-surface rounded-card shadow-card p-6">
           <h2 class="font-semibold mb-3">Certificaciones verificadas</h2>
-          @if (p.certifications.length === 0) {
+          @if (certRows().length === 0) {
             <p class="text-sm text-ink-500">Sin certificaciones verificadas.</p>
           } @else {
             <ul class="flex flex-col gap-2">
-              @for (cert of p.certifications; track cert.id) {
-                <li class="flex items-center justify-between gap-3 text-sm">
-                  <span>
-                    <span class="font-medium text-ink-900 inline-flex items-center gap-1.5">
-                      <kr-cert-icon [iconKey]="cert.iconKey" />{{ cert.label }}
-                    </span>
-                    <span class="text-ink-500"> — {{ cert.institution }}, {{ cert.year }}</span>
-                  </span>
-                  <kr-badge tone="success">Verificada</kr-badge>
+              @for (row of certRows(); track row.cert.id) {
+                <li class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <kr-insignias [insignias]="row.chip" />
+                  <span class="text-ink-500">{{ row.cert.institution }}, {{ row.cert.year }}</span>
                 </li>
               }
             </ul>
@@ -190,8 +175,15 @@ export class CaregiverDetailPage {
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly badgeLabels = BADGE_LABELS;
   protected readonly dayLabels = DAY_LABELS;
+  // KER-87 · Mappers de insignias expuestos al template (mismo estilo que card y admin).
+  protected readonly specialtyInsignias = specialtyInsignias;
+  protected readonly verificationInsignias = verificationInsignias;
+
+  /** Cada certificación aprobada + su insignia dorada (precomputada para no re-alocar en cada CD). */
+  readonly certRows = computed(() =>
+    (this.profile()?.certifications ?? []).map((cert) => ({ cert, chip: [certInsigniaOf(cert)] })),
+  );
 
   private readonly caregiverId = this.route.snapshot.paramMap.get('caregiverId')!;
 
@@ -250,10 +242,6 @@ export class CaregiverDetailPage {
         this.toast.error(err.message);
       },
     });
-  }
-
-  specialtyLabel(s: string): string {
-    return SPECIALTY_LABELS[s as Specialty] ?? s;
   }
 
   modalityLabel(m: string): string {

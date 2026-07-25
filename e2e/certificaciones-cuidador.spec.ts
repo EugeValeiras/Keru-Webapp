@@ -161,19 +161,22 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
       admin.getByText('Certificación aprobada: su insignia ya se ve en el marketplace.'),
     ).toBeVisible({ timeout: 15_000 });
 
-    // KER-82: el LISTADO de gestión (/admin/caregivers) muestra la insignia por-certificación
-    // (con su estado) además de las 3 de verificación — el bug "las extras no aparecen" queda resuelto.
+    // KER-82/87: el LISTADO de gestión (/admin/caregivers) muestra la insignia por-certificación
+    // (con su estado) además de las de verificación, en el componente UNIFICADO kr-insignias.
     await admin.goto('/admin/caregivers');
     await admin.getByPlaceholder('Nombre o zona…').fill(CAREGIVER_NAME);
     await admin.getByRole('button', { name: 'Buscar' }).click();
     const adminRow = admin.locator('tr').filter({ hasText: CAREGIVER_NAME });
     await expect(adminRow).toBeVisible({ timeout: 15_000 });
-    // La insignia por-cert se ve en la fila (ícono SVG del catálogo + etiqueta), en el componente compartido.
+    // La insignia por-cert se ve en la fila (ícono SVG del catálogo + etiqueta), en el componente unificado.
     await expect(
-      adminRow.locator('kr-cert-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
+      adminRow.locator('kr-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
     ).toBeVisible();
-    await expect(adminRow.locator('kr-cert-insignias').getByText(CERT_LABEL)).toBeVisible();
-    await expectAxeClean(admin, 'admin · listado cuidadores (insignias por-certificación)');
+    // KER-87: la certificación aprobada es una insignia VERIFICADA (dorada), con su aria-label propio.
+    await expect(
+      adminRow.locator(`[aria-label="Certificación verificada: ${CERT_LABEL}"]`),
+    ).toBeVisible();
+    await expectAxeClean(admin, 'admin · listado cuidadores (insignias unificadas)');
   });
 
   test('c. la familia ve la certificación verificada con su insignia en la ficha del marketplace', async () => {
@@ -194,12 +197,14 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     const cardLink = family.getByRole('link', { name: new RegExp(CAREGIVER_NAME) });
     await expect(cardLink).toBeVisible({ timeout: 15_000 });
 
-    // KER-82: la CARD del listado ya muestra la insignia por-certificación aprobada (compacta),
-    // no solo el detalle. Ícono SVG del catálogo + etiqueta, en el componente compartido kr-cert-insignias.
+    // KER-82/87: la CARD del listado muestra la certificación aprobada como insignia VERIFICADA
+    // (dorada) en el componente unificado kr-insignias: ícono SVG del catálogo + etiqueta + aria-label.
     await expect(
-      cardLink.locator('kr-cert-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
+      cardLink.locator('kr-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
     ).toBeVisible();
-    await expect(cardLink.locator('kr-cert-insignias').getByText(CERT_LABEL)).toBeVisible();
+    await expect(
+      cardLink.locator(`[aria-label="Certificación verificada: ${CERT_LABEL}"]`),
+    ).toBeVisible();
     // Esperar que la entrada (kr-stagger) asiente antes de axe: mid-fade el color se compone con el
     // fondo y el contraste cae (flake KER-72). Los chips usan tinte -50/texto-700 (holgura AA).
     await expect
@@ -210,10 +215,13 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     await cardLink.click();
     await expect(family).toHaveURL(/\/app\/marketplace\/[0-9a-f-]{36}/);
 
-    // La certificación aprobada aparece con su etiqueta del catálogo y la insignia "Verificada".
+    // La certificación aprobada aparece como insignia VERIFICADA (dorada, KER-87) con su etiqueta del
+    // catálogo, más institución y año. El realce "verificada" queda en el aria-label (no solo color).
     const certRow = family.locator('li').filter({ hasText: CERT_LABEL });
     await expect(certRow).toBeVisible({ timeout: 15_000 });
-    await expect(certRow.getByText('Verificada')).toBeVisible();
+    await expect(
+      certRow.locator(`[aria-label="Certificación verificada: ${CERT_LABEL}"]`),
+    ).toBeVisible();
     // KER-77: la insignia pública es el ÍCONO SVG diseñado del catálogo (no emoji).
     await expect(certRow.locator('kr-cert-icon[data-cert-icon="stethoscope"] svg')).toBeVisible();
     // El ícono es decorativo (aria-hidden) y el nombre de la certificación lo acompaña como texto → axe verde.

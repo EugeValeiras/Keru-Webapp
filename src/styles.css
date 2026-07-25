@@ -94,6 +94,18 @@
   --color-info-700: #2c5089; /* 7.1:1 sobre info-50, 8.0:1 sobre blanco */
   --color-info: #3b69b0;
 
+  /* Dorado de CONFIANZA (KER-87) — realce de "verificada": único uso decorativo
+     con significado (respaldo profesional, brand book §2). NO es semántico de
+     estado clínico ni reemplaza al violeta de marca; se reserva a las insignias
+     de verificación completada (certificación aprobada, identidad, antecedentes)
+     para que resalten por sobre las especialidades. gold-700 sobre gold-50 da
+     6.4:1 y sobre blanco 7.2:1 (AA holgado; no repite el bug de contraste
+     KER-72/79). gold-300 es el borde/acento y gold-500 el brillo decorativo. */
+  --color-gold-50: #fbf3d9;
+  --color-gold-300: #e2c574;
+  --color-gold-500: #b8901f;
+  --color-gold-700: #6e5410;
+
   /* Radios — forma blanda, esquinas generosas */
   --radius-tag: 8px;
   --radius-control: 12px;
@@ -235,6 +247,34 @@ body {
   .kr-pulse {
     animation: kr-pulse 0.45s ease-out;
   }
+  /* Insignia de verificación dorada (KER-87): un leve barrido de brillo la hace
+     "brillar" sin gritar. Es puramente decorativo (::after, aria-hidden por
+     naturaleza, pointer-events:none) y vive SOLO acá dentro: con
+     prefers-reduced-motion:reduce la insignia queda dorada ESTÁTICA y su realce
+     lo dan el fondo/texto/borde dorados (contraste AA, no el movimiento). El
+     desfase por nth-child evita que todas barran al unísono. */
+  .kr-insignia-verified {
+    position: relative;
+    overflow: hidden;
+  }
+  .kr-insignia-verified::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 42%,
+      rgb(255 255 255 / 0.5) 50%,
+      transparent 58%
+    );
+    transform: translateX(-120%);
+    animation: kr-shine 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .kr-insignia-verified:nth-child(2)::after { animation-delay: 0.7s; }
+  .kr-insignia-verified:nth-child(3)::after { animation-delay: 1.4s; }
+  .kr-insignia-verified:nth-child(4)::after { animation-delay: 2.1s; }
+  .kr-insignia-verified:nth-child(5)::after { animation-delay: 2.8s; }
   /* Primera impresión (KER-22): la card de las pantallas de auth entra con
      el mismo rise de las listas, y el punto terracota del panel de marca
      respira despacio (la persona cuidada, viva, arriba del abrazo). */
@@ -316,5 +356,16 @@ body {
   }
   100% {
     transform: scale(1);
+  }
+}
+/* Brillo de la insignia dorada (KER-87): el reflejo entra, cruza y descansa
+   la mayor parte del ciclo fuera de la píldora (sin parpadeo constante). */
+@keyframes kr-shine {
+  0% {
+    transform: translateX(-120%);
+  }
+  22%,
+  100% {
+    transform: translateX(120%);
   }
 }
