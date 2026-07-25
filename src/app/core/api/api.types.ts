@@ -136,6 +136,12 @@ export type AppNotification = Omit<Schemas['NotificationDto'], 'type'> & {
   type: 'alert' | 'note' | 'quarantine';
 };
 
+/** KER-86 · Página de la campana: notificaciones + cursor a la siguiente (null si es la última). */
+export interface NotificationPage {
+  items: AppNotification[];
+  nextCursor: string | null;
+}
+
 /** UC-18 · Web Push (adicional a la campana). */
 export type PushConfig = Schemas['PushConfigDto'];
 export type SubscribePushDto = Schemas['SubscribePushDto'];
