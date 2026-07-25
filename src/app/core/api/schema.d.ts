@@ -2022,6 +2022,8 @@ export interface components {
             ratingAverage?: number;
             /** @description Cantidad de reseñas reveladas */
             ratingCount?: number;
+            /** @description KER-82: SOLO las certificaciones aprobadas (insignias por-cert del catálogo, UC-06). Las pendientes/rechazadas y la key privada del documento NO se exponen al público. La card las muestra junto a las insignias de verificación (`badges`). */
+            certifications: components["schemas"]["CertificationView"][];
         };
         CaregiverProfileDto: {
             /** Format: uuid */
@@ -2041,7 +2043,7 @@ export interface components {
             ratingAverage?: number;
             /** @description Cantidad de reseñas reveladas */
             ratingCount?: number;
-            /** @description KER-52: SOLO las certificaciones aprobadas, cada una con su insignia (catálogo). Las pendientes/rechazadas y la key privada del documento NO se exponen al público. */
+            /** @description KER-82: SOLO las certificaciones aprobadas (insignias por-cert del catálogo, UC-06). Las pendientes/rechazadas y la key privada del documento NO se exponen al público. La card las muestra junto a las insignias de verificación (`badges`). */
             certifications: components["schemas"]["CertificationView"][];
             availability: Record<string, never>[];
         };

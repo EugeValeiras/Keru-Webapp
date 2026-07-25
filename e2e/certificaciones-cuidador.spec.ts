@@ -160,6 +160,20 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     await expect(
       admin.getByText('Certificación aprobada: su insignia ya se ve en el marketplace.'),
     ).toBeVisible({ timeout: 15_000 });
+
+    // KER-82: el LISTADO de gestión (/admin/caregivers) muestra la insignia por-certificación
+    // (con su estado) además de las 3 de verificación — el bug "las extras no aparecen" queda resuelto.
+    await admin.goto('/admin/caregivers');
+    await admin.getByPlaceholder('Nombre o zona…').fill(CAREGIVER_NAME);
+    await admin.getByRole('button', { name: 'Buscar' }).click();
+    const adminRow = admin.locator('tr').filter({ hasText: CAREGIVER_NAME });
+    await expect(adminRow).toBeVisible({ timeout: 15_000 });
+    // La insignia por-cert se ve en la fila (ícono SVG del catálogo + etiqueta), en el componente compartido.
+    await expect(
+      adminRow.locator('kr-cert-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
+    ).toBeVisible();
+    await expect(adminRow.locator('kr-cert-insignias').getByText(CERT_LABEL)).toBeVisible();
+    await expectAxeClean(admin, 'admin · listado cuidadores (insignias por-certificación)');
   });
 
   test('c. la familia ve la certificación verificada con su insignia en la ficha del marketplace', async () => {
@@ -179,6 +193,20 @@ test.describe.serial('KER-52 · Catálogo + adjunto privado + aprobación por-ce
     await family.getByRole('button', { name: 'Buscar' }).click();
     const cardLink = family.getByRole('link', { name: new RegExp(CAREGIVER_NAME) });
     await expect(cardLink).toBeVisible({ timeout: 15_000 });
+
+    // KER-82: la CARD del listado ya muestra la insignia por-certificación aprobada (compacta),
+    // no solo el detalle. Ícono SVG del catálogo + etiqueta, en el componente compartido kr-cert-insignias.
+    await expect(
+      cardLink.locator('kr-cert-insignias kr-cert-icon[data-cert-icon="stethoscope"] svg'),
+    ).toBeVisible();
+    await expect(cardLink.locator('kr-cert-insignias').getByText(CERT_LABEL)).toBeVisible();
+    // Esperar que la entrada (kr-stagger) asiente antes de axe: mid-fade el color se compone con el
+    // fondo y el contraste cae (flake KER-72). Los chips usan tinte -50/texto-700 (holgura AA).
+    await expect
+      .poll(async () => cardLink.evaluate((el) => getComputedStyle(el).opacity))
+      .toBe('1');
+    await expectAxeClean(family, 'marketplace · card con insignia por-certificación');
+
     await cardLink.click();
     await expect(family).toHaveURL(/\/app\/marketplace\/[0-9a-f-]{36}/);
 
