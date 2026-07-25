@@ -12,6 +12,7 @@ import {
 import { HiringApi, MarketplaceFilters } from '../../core/api/hiring-api.service';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
+import { KrCertInsignias } from '../../shared/ui/kr-cert-insignias';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 import { KrRating } from '../../shared/ui/kr-rating';
 import { KrSkeleton } from '../../shared/ui/kr-skeleton';
@@ -25,7 +26,16 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
 
 @Component({
   selector: 'kr-marketplace-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState, KrRating, KrSkeleton],
+  imports: [
+    FormsModule,
+    RouterLink,
+    KrAvatar,
+    KrBadge,
+    KrCertInsignias,
+    KrEmptyState,
+    KrRating,
+    KrSkeleton,
+  ],
   template: `
     <h1 class="mb-4">Encontrá cuidadores</h1>
 
@@ -202,6 +212,9 @@ const BADGE_LABELS: [key: 'certifications' | 'identity' | 'background', label: s
                 }
               </div>
             }
+
+            <!-- KER-82 · Insignias por-certificación (solo aprobadas; UC-06). Compactas + overflow "+N". -->
+            <kr-cert-insignias [certifications]="c.certifications ?? []" />
           </a>
         }
       </div>

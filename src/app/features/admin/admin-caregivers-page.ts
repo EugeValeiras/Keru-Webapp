@@ -10,6 +10,7 @@ import {
 } from '../../core/api/api.types';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrBadge } from '../../shared/ui/kr-badge';
+import { KrCertInsignias } from '../../shared/ui/kr-cert-insignias';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
 
 const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
@@ -22,7 +23,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
 
 @Component({
   selector: 'kr-admin-caregivers-page',
-  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrEmptyState],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrCertInsignias, KrEmptyState],
   template: `
     <h1 class="mb-6">Cuidadores</h1>
 
@@ -103,6 +104,7 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                       <kr-badge [tone]="statusTone(c.status)">{{ statusLabel(c.status) }}</kr-badge>
                     </td>
                     <td class="px-4 py-3">
+                     <div class="flex flex-col gap-2">
                       <!-- Iconografía de línea del brand book (§5), no emoji: heredan
                            currentColor y se atenúan cuando la insignia falta. -->
                       <span class="inline-flex items-center gap-1.5 text-ink-700 align-middle">
@@ -164,6 +166,10 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
                           <path d="m9 12 2 2 4-4" />
                         </svg>
                       </span>
+
+                      <!-- KER-82 · Insignias por-certificación (todas, con su estado — vista de gestión, UC-19). -->
+                      <kr-cert-insignias [certifications]="c.certifications ?? []" [showStatus]="true" />
+                     </div>
                     </td>
                     <td class="px-4 py-3 text-right">
                       <a
