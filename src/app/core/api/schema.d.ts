@@ -1096,7 +1096,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** UC-18 · Mis notificaciones */
+        /** UC-18 · Mis notificaciones (paginado) */
         get: operations["NotificationController_list_v1"];
         put?: never;
         post?: never;
@@ -2371,6 +2371,11 @@ export interface components {
             read: boolean;
             /** Format: date-time */
             createdAt: string;
+        };
+        NotificationPageDto: {
+            items: components["schemas"]["NotificationDto"][];
+            /** @description Cursor opaco de la página siguiente; null si esta es la última. Reenviar como ?cursor=. */
+            nextCursor?: string | null;
         };
         MarkAllReadResponseDto: {
             /** @example true */
@@ -4007,7 +4012,12 @@ export interface operations {
     };
     NotificationController_list_v1: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Tamaño de página (1–100, default 20). */
+                limit?: number;
+                /** @description Cursor opaco de la página previa (nextCursor). Omitir para la primera. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4019,7 +4029,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotificationDto"][];
+                    "application/json": components["schemas"]["NotificationPageDto"];
                 };
             };
         };

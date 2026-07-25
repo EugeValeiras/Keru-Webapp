@@ -81,14 +81,14 @@ import { KrIllustration } from '../../shared/ui/kr-illustration';
               Reintentar
             </button>
           </div>
-        } @else if (visible().length === 0) {
+        } @else if (filtered().length === 0) {
           <div class="flex flex-col items-center py-8">
             <kr-illustration scene="notifications" [size]="88" />
             <p class="text-ink-500 text-sm mt-2">Sin notificaciones</p>
           </div>
         } @else {
           <div class="kr-stagger">
-            @for (n of visible(); track n.id) {
+            @for (n of filtered(); track n.id) {
               <button
                 type="button"
                 (click)="openItem(n)"
@@ -111,14 +111,15 @@ import { KrIllustration } from '../../shared/ui/kr-illustration';
           </div>
         }
 
-        @if (filtered().length > showCount()) {
+        @if (store.hasMore()) {
           <div class="px-4 py-3 text-center border-t border-ink-300">
             <button
               type="button"
-              (click)="showMore()"
-              class="text-primary-600 text-sm font-medium hover:underline"
+              (click)="store.loadMore()"
+              [disabled]="store.loadingMore()"
+              class="text-primary-600 text-sm font-medium hover:underline disabled:opacity-50"
             >
-              Mostrar más ({{ filtered().length - showCount() }} restantes)
+              {{ store.loadingMore() ? 'Cargando…' : 'Mostrar más' }}
             </button>
           </div>
         }
@@ -177,16 +178,12 @@ export class NotificationBell {
   readonly badgePulse = signal(false);
   readonly timeAgo = timeAgo;
 
+  /* KER-86 · La API pagina la campana por cursor (createdAt DESC): la lista que renderiza el panel
+     son las páginas ya traídas (loadList + "mostrar más" → loadMore). "Solo no leídas" filtra sobre
+     lo cargado; traer más páginas revela más para filtrar. */
   readonly filtered = computed(() =>
     this.onlyUnread() ? this.store.items().filter((n) => !n.read) : this.store.items(),
   );
-
-  /* La API no pagina las notificaciones: render incremental de a 50 para que
-     una campana con cientos de entradas no cuelgue el DOM. Abrir el panel o
-     cambiar el filtro resetea. */
-  private static readonly PAGE = 50;
-  readonly showCount = signal(NotificationBell.PAGE);
-  readonly visible = computed(() => this.filtered().slice(0, this.showCount()));
 
   constructor() {
     this.store.startPolling();
@@ -201,13 +198,8 @@ export class NotificationBell {
     });
   }
 
-  showMore(): void {
-    this.showCount.update((n) => n + NotificationBell.PAGE);
-  }
-
   toggleOnlyUnread(): void {
     this.onlyUnread.update((v) => !v);
-    this.showCount.set(NotificationBell.PAGE);
   }
 
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
@@ -215,7 +207,6 @@ export class NotificationBell {
   toggle(): void {
     this.open.update((o) => !o);
     if (this.open()) {
-      this.showCount.set(NotificationBell.PAGE);
       this.store.loadList();
     }
   }

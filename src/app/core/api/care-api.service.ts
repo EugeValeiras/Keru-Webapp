@@ -1,10 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  AppNotification,
   HistoryItem,
   MetricKey,
+  NotificationPage,
   PatientState,
   PushConfig,
   PushSubscriptionInfo,
@@ -68,8 +68,20 @@ export class CareApi {
     return this.http.post<QuarantinedRecord>(`/api/v1/patients/${patientId}/quarantine/${id}/discard`, {});
   }
 
-  getNotifications(): Observable<AppNotification[]> {
-    return this.http.get<AppNotification[]>('/api/v1/notifications');
+  /**
+   * KER-86 · Página de la campana (UC-18), cursor DESC por createdAt. Sin `cursor` trae la primera
+   * página; con `nextCursor` de la respuesta previa, la siguiente (el panel appendea). El contador
+   * de no leídas es endpoint aparte (badge), no se toca acá.
+   */
+  getNotifications(opts?: { limit?: number; cursor?: string }): Observable<NotificationPage> {
+    let params = new HttpParams();
+    if (opts?.limit !== undefined) {
+      params = params.set('limit', String(opts.limit));
+    }
+    if (opts?.cursor) {
+      params = params.set('cursor', opts.cursor);
+    }
+    return this.http.get<NotificationPage>('/api/v1/notifications', { params });
   }
 
   getUnreadCount(): Observable<{ unread: number }> {

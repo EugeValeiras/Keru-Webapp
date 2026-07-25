@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { CareApi } from '../api/care-api.service';
 import { AppNotification } from '../api/api.types';
 import { AuthStore } from '../auth/auth-store';
@@ -13,6 +13,9 @@ import { ToastService } from '../../shared/ui/toast.service';
  */
 const POLL_FLOOR_MS = 45_000;
 const POLL_FALLBACK_MS = 300_000;
+
+/** KER-86 · Tamaño de página de la campana (coincide con el default del API). */
+const PAGE_SIZE = 20;
 
 /**
  * Campana in-app. El badge se refresca por polling de unread-count (pausado con la pestaña
@@ -33,6 +36,12 @@ export class NotificationStore {
   private readonly listLoaded = signal(false);
   /** La última carga de la lista falló: el panel muestra feedback con reintento (no queda colgado). */
   readonly listError = signal(false);
+  /** KER-86 · Cursor de la página siguiente de la campana; null = no hay más para traer. */
+  private readonly nextCursor = signal<string | null>(null);
+  /** Hay más páginas por traer con "mostrar más". */
+  readonly hasMore = computed(() => this.nextCursor() !== null);
+  /** Una carga incremental ("mostrar más") está en vuelo: evita doble-submit y da feedback. */
+  readonly loadingMore = signal(false);
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   startPolling(): void {
@@ -92,11 +101,17 @@ export class NotificationStore {
     });
   }
 
+  /**
+   * KER-86 · Carga (o recarga) la PRIMERA página de la campana y resetea el cursor. Abrir el panel
+   * o un empujón por push re-sincronizan desde arriba (lo más nuevo); "mostrar más" appendea con
+   * loadMore. El contador de no leídas (badge) va por su propio endpoint, intacto.
+   */
   loadList(): void {
     this.listError.set(false);
-    this.api.getNotifications().subscribe({
-      next: (items) => {
-        this.items.set(items);
+    this.api.getNotifications({ limit: PAGE_SIZE }).subscribe({
+      next: (page) => {
+        this.items.set(page.items);
+        this.nextCursor.set(page.nextCursor);
         this.listLoaded.set(true);
         this.listError.set(false);
       },
@@ -104,6 +119,32 @@ export class NotificationStore {
         // No dejar la campana colgada: marcá el intento como resuelto y avisá con reintento.
         this.listLoaded.set(true);
         this.listError.set(true);
+      },
+    });
+  }
+
+  /**
+   * KER-86 · "Mostrar más": trae la página siguiente por cursor y la appendea (de-dup por id por si
+   * un push intercaló algo). Sin cursor o ya cargando, no hace nada. Un fallo no rompe la lista:
+   * deja lo cargado y el botón queda para reintentar.
+   */
+  loadMore(): void {
+    const cursor = this.nextCursor();
+    if (!cursor || this.loadingMore()) {
+      return;
+    }
+    this.loadingMore.set(true);
+    this.api.getNotifications({ limit: PAGE_SIZE, cursor }).subscribe({
+      next: (page) => {
+        this.items.update((current) => {
+          const seen = new Set(current.map((n) => n.id));
+          return [...current, ...page.items.filter((n) => !seen.has(n.id))];
+        });
+        this.nextCursor.set(page.nextCursor);
+        this.loadingMore.set(false);
+      },
+      error: () => {
+        this.loadingMore.set(false);
       },
     });
   }
