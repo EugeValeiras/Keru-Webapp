@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, Catalogs, HistoryItem, MetricValue } from '../../core/api/api.types';
@@ -199,7 +200,9 @@ export class PatientHistoryPage {
   }
 
   constructor() {
-    this.catalogService.catalogs$.subscribe((cat) => this.catalogs.set(cat));
+    this.catalogService.catalogs$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cat) => this.catalogs.set(cat));
     this.api.getHistory(this.patientId).subscribe({
       next: (items) => {
         this.items.set(items);

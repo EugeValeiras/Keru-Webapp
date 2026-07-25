@@ -70,7 +70,18 @@ import { KrIllustration } from '../../shared/ui/kr-illustration';
           </label>
         </div>
 
-        @if (visible().length === 0) {
+        @if (store.listError()) {
+          <div class="flex flex-col items-center py-8 px-4 text-center">
+            <p class="text-ink-700 text-sm">No pudimos cargar las notificaciones.</p>
+            <button
+              type="button"
+              (click)="store.loadList()"
+              class="mt-2 text-primary-600 text-sm font-medium hover:underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (visible().length === 0) {
           <div class="flex flex-col items-center py-8">
             <kr-illustration scene="notifications" [size]="88" />
             <p class="text-ink-500 text-sm mt-2">Sin notificaciones</p>

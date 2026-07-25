@@ -1,4 +1,5 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, CatalogMetric, Catalogs, PatientState } from '../../core/api/api.types';
@@ -166,7 +167,9 @@ export class PatientDashboardPage {
   });
 
   constructor() {
-    this.catalogService.catalogs$.subscribe((cat) => this.catalogs.set(cat));
+    this.catalogService.catalogs$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cat) => this.catalogs.set(cat));
     this.refresh();
 
     const handle = setInterval(() => {

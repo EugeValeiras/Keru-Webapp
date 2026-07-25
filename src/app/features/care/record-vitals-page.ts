@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
@@ -142,7 +143,9 @@ export class RecordVitalsPage {
   });
 
   constructor() {
-    this.catalogService.catalogs$.subscribe((cat) => this.metrics.set(cat.metrics));
+    this.catalogService.catalogs$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cat) => this.metrics.set(cat.metrics));
   }
 
   setValue(key: string, value: number | null): void {
