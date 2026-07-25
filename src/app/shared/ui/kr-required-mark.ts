@@ -8,18 +8,23 @@ import { Component } from '@angular/core';
  *
  * Es DECORATIVO para tecnologías de asistencia (`aria-hidden`): el "requerido" que anuncia
  * el lector de pantalla lo aporta el atributo `required` nativo del input (equivalente ARIA de
- * `aria-required`), que ya viven en el markup. A propósito el "*" NO entra en el accessible name
- * del control — así los `getByLabel('Nombre', { exact: true })` de los specs siguen matcheando.
+ * `aria-required`), que ya vive en el markup.
  *
- * Uso: dentro del <span> del label de un campo requerido, junto al texto.
- *   <span>Condición principal <kr-required-mark /></span>
+ * IMPORTANTE — el "*" NO debe entrar en el accessible name del control (si no, rompe los
+ * `getByLabel('Nombre', { exact: true })` de los specs). OJO: `aria-hidden` NO alcanza cuando el
+ * "*" está dentro del `<label>` implícito — Chromium igual concatena su texto al name-from-content.
+ * Por eso el input debe fijar su nombre con `aria-labelledby` apuntando a un `<span id>` que
+ * contenga SOLO el texto del campo, dejando el "*" fuera de ese span:
+ *   <label>
+ *     <span><span id="cond-label">Condición principal</span> <kr-required-mark /></span>
+ *     <input aria-labelledby="cond-label" required … />
+ *   </label>
  */
 @Component({
   selector: 'kr-required-mark',
   host: {
     'aria-hidden': 'true',
     class: 'text-danger font-semibold select-none',
-    title: 'Requerido',
   },
   template: `*`,
 })

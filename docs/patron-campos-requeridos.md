@@ -15,11 +15,15 @@ faltaba. `FormsModule` agrega `novalidate`, así que la validación nativa del b
 
 1. **`<kr-required-mark />`** (`shared/ui/kr-required-mark.ts`) — el glifo `*` en el label.
    - Es un indicador de **forma** (un carácter visible), no solo color → cumple WCAG **1.4.1**.
-   - Es `aria-hidden`: **no** entra en el _accessible name_ del control. El "requerido" que anuncia
-     el lector de pantalla lo aporta el atributo **`required`** nativo del input (equivalente ARIA de
-     `aria-required`). **Importante:** por eso NO se agrega texto sr-only "(requerido)" al label —
-     contaminaría el accessible name y rompería los `getByLabel('Nombre', { exact: true })` de los
-     specs e2e.
+   - Es `aria-hidden` y decorativo. El "requerido" que anuncia el lector de pantalla lo aporta el
+     atributo **`required`** nativo del input (equivalente ARIA de `aria-required`). Por eso NO se
+     agrega texto sr-only "(requerido)" al label.
+   - **El "*" NO debe entrar en el _accessible name_ del control** (si no, rompe los
+     `getByLabel('Nombre', { exact: true })` de los specs e2e). **`aria-hidden` NO alcanza**: cuando
+     el "*" vive dentro del `<label>` implícito, Chromium igual concatena su texto al name-from-content
+     (el accessible name pasa a `"Nombre *"` y el matcher exacto ya no matchea — verificado por e2e).
+     El fix determinista: el input fija su nombre con **`aria-labelledby`** apuntando a un `<span id>`
+     que contiene SOLO el texto del campo, con el `<kr-required-mark />` FUERA de ese span.
 
 2. **`.input-error`** (`styles.css`, **sin `@layer`**) — el borde danger del input.
    - Va sin cascade layer a propósito: así gana por cascada a las utilities de Tailwind
@@ -34,10 +38,14 @@ faltaba. `FormsModule` agrega `novalidate`, así que la validación nativa del b
 ```html
 <form #f="ngForm" (ngSubmit)="submit(f)">
   <label class="flex flex-col gap-1">
-    <span class="text-sm font-medium text-ink-700">Condición principal <kr-required-mark /></span>
+    <!-- El texto del campo va en un <span id>; el "*" queda FUERA de ese span. -->
+    <span class="text-sm font-medium text-ink-700"
+      ><span id="mainCondition-label">Condición principal</span> <kr-required-mark /></span
+    >
     <input
       #conditionCtrl="ngModel"
       name="mainCondition"
+      aria-labelledby="mainCondition-label"
       required
       [(ngModel)]="mainCondition"
       class="... border border-ink-300 ..."

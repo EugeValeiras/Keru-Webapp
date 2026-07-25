@@ -42,11 +42,14 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
         }
 
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium text-ink-700">Nombre completo <kr-required-mark /></span>
+          <span class="text-sm font-medium text-ink-700"
+            ><span id="fullName-label">Nombre completo</span> <kr-required-mark /></span
+          >
           <input
             #fullNameCtrl="ngModel"
             type="text"
             name="fullName"
+            aria-labelledby="fullName-label"
             required
             [(ngModel)]="fullName"
             placeholder="Rosa Díaz"
@@ -62,12 +65,13 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
         <div class="grid sm:grid-cols-2 gap-4">
           <label class="flex flex-col gap-1">
             <span class="text-sm font-medium text-ink-700"
-              >Fecha de nacimiento <kr-required-mark /></span
+              ><span id="birthDate-label">Fecha de nacimiento</span> <kr-required-mark /></span
             >
             <input
               #birthDateCtrl="ngModel"
               type="date"
               name="birthDate"
+              aria-labelledby="birthDate-label"
               required
               [max]="today"
               [(ngModel)]="birthDate"
@@ -94,12 +98,13 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
 
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium text-ink-700"
-            >Condición principal <kr-required-mark /></span
+            ><span id="mainCondition-label">Condición principal</span> <kr-required-mark /></span
           >
           <input
             #mainConditionCtrl="ngModel"
             type="text"
             name="mainCondition"
+            aria-labelledby="mainCondition-label"
             required
             [(ngModel)]="mainCondition"
             placeholder="Hipertensión"
@@ -163,11 +168,14 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
           <legend class="text-sm font-semibold text-ink-900 pr-3">Contacto de emergencia</legend>
           <div class="grid sm:grid-cols-2 gap-4">
             <label class="flex flex-col gap-1">
-              <span class="text-sm font-medium text-ink-700">Nombre <kr-required-mark /></span>
+              <span class="text-sm font-medium text-ink-700"
+                ><span id="contactName-label">Nombre</span> <kr-required-mark /></span
+              >
               <input
                 #contactNameCtrl="ngModel"
                 type="text"
                 name="contactName"
+                aria-labelledby="contactName-label"
                 required
                 [(ngModel)]="contactName"
                 placeholder="María Díaz"
@@ -180,11 +188,14 @@ import { KrFieldError } from '../../shared/ui/kr-field-error';
               }
             </label>
             <label class="flex flex-col gap-1">
-              <span class="text-sm font-medium text-ink-700">Teléfono <kr-required-mark /></span>
+              <span class="text-sm font-medium text-ink-700"
+                ><span id="contactPhone-label">Teléfono</span> <kr-required-mark /></span
+              >
               <input
                 #contactPhoneCtrl="ngModel"
                 type="tel"
                 name="contactPhone"
+                aria-labelledby="contactPhone-label"
                 required
                 [(ngModel)]="contactPhone"
                 placeholder="+54 11 5555-5555"
