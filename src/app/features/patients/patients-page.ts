@@ -4,11 +4,12 @@ import { Patient } from '../../core/api/api.types';
 import { ActivePatientStore } from '../../core/patient-context/active-patient.store';
 import { KrAvatar } from '../../shared/ui/kr-avatar';
 import { KrEmptyState } from '../../shared/ui/kr-empty-state';
+import { KrSkeleton } from '../../shared/ui/kr-skeleton';
 import { InviteModal } from './invite-modal';
 
 @Component({
   selector: 'kr-patients-page',
-  imports: [RouterLink, KrAvatar, KrEmptyState, InviteModal],
+  imports: [RouterLink, KrAvatar, KrEmptyState, KrSkeleton, InviteModal],
   template: `
     <div class="flex items-center justify-between mb-6">
       <h1>Mis pacientes</h1>
@@ -21,7 +22,7 @@ import { InviteModal } from './invite-modal';
     </div>
 
     @if (!store.loaded()) {
-      <p class="text-ink-500 text-sm">Cargando pacientes…</p>
+      <kr-skeleton variant="cards" [count]="3" />
     } @else if (store.patients().length === 0) {
       <kr-empty-state
         scene="patients"

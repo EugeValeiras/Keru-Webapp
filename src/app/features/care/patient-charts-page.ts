@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CareApi } from '../../core/api/care-api.service';
@@ -183,7 +184,7 @@ export class PatientChartsPage {
   protected readonly hasData = computed(() => this.chartLines().some((l) => l.points.length > 0));
 
   constructor() {
-    this.catalogService.catalogs$.subscribe({
+    this.catalogService.catalogs$.pipe(takeUntilDestroyed()).subscribe({
       next: (cat) => {
         this.catalogs.set(cat);
         if (!this.selected()) {

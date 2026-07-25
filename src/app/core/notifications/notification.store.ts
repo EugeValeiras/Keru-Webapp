@@ -31,6 +31,8 @@ export class NotificationStore {
   readonly items = signal<AppNotification[]>([]);
   /** El panel llegó a cargar la lista: un empujón por push la re-sincroniza en vivo. */
   private readonly listLoaded = signal(false);
+  /** La última carga de la lista falló: el panel muestra feedback con reintento (no queda colgado). */
+  readonly listError = signal(false);
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   startPolling(): void {
@@ -91,9 +93,18 @@ export class NotificationStore {
   }
 
   loadList(): void {
-    this.api.getNotifications().subscribe((items) => {
-      this.items.set(items);
-      this.listLoaded.set(true);
+    this.listError.set(false);
+    this.api.getNotifications().subscribe({
+      next: (items) => {
+        this.items.set(items);
+        this.listLoaded.set(true);
+        this.listError.set(false);
+      },
+      error: () => {
+        // No dejar la campana colgada: marcá el intento como resuelto y avisá con reintento.
+        this.listLoaded.set(true);
+        this.listError.set(true);
+      },
     });
   }
 

@@ -53,9 +53,10 @@ const STATUS_CHIPS: { value: CaregiverStatus | null; label: string }[] = [
         />
         <button
           type="submit"
-          class="rounded-pill bg-primary-600 text-white text-sm font-semibold px-5 hover:bg-primary-700 transition-colors"
+          [disabled]="loading()"
+          class="rounded-pill bg-primary-600 text-white text-sm font-semibold px-5 hover:bg-primary-700 transition-colors disabled:opacity-50"
         >
-          Buscar
+          {{ loading() ? 'Buscando…' : 'Buscar' }}
         </button>
       </form>
     </div>
@@ -240,6 +241,10 @@ export class AdminCaregiversPage {
   }
 
   search(): void {
+    // Anti doble-submit: el botón se deshabilita, pero Enter en el input igual dispara ngSubmit.
+    if (this.loading()) {
+      return;
+    }
     this.fetch(1);
   }
 

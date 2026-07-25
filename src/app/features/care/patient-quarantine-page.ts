@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CareApi } from '../../core/api/care-api.service';
 import { ApiError, Catalogs, MetricValue, QuarantinedRecord } from '../../core/api/api.types';
@@ -229,7 +230,9 @@ export class PatientQuarantinePage {
   protected readonly shown = computed(() => (this.tab() === 'pending' ? this.pending() : this.resolved()));
 
   constructor() {
-    this.catalogService.catalogs$.subscribe((cat) => this.catalogs.set(cat));
+    this.catalogService.catalogs$
+      .pipe(takeUntilDestroyed())
+      .subscribe((cat) => this.catalogs.set(cat));
     this.load();
   }
 
