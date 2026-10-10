@@ -4,9 +4,12 @@ import { Observable } from 'rxjs';
 import {
   AdminCaregiverDetail,
   AdminCaregiverList,
+  AdminUpdateCaregiverDto,
+  AdminUpdateCertificationDto,
   Badges,
   CaregiverProfile,
   CaregiverStatus,
+  CertificationCatalogItem,
   SweepResult,
 } from './api.types';
 
@@ -85,6 +88,44 @@ export class AdminApi {
       { reason },
       { headers: stepUpHeaders(stepUpToken) },
     );
+  }
+
+  /**
+   * #49 (UC-19 A3) · Editar los datos del cuidador (identidad + perfil, set parcial: mandar SOLO lo que
+   * cambia). Funciona en cualquier estado y no toca status/insignias. Exige step-up (NFR-33); la tarifa
+   * es efectivo-fechada, por eso el DTO lleva operationId.
+   */
+  update(id: string, patch: AdminUpdateCaregiverDto, stepUpToken: string): Observable<AdminCaregiverDetail> {
+    return this.http.patch<AdminCaregiverDetail>(`/api/v1/admin/caregivers/${id}`, patch, {
+      headers: stepUpHeaders(stepUpToken),
+    });
+  }
+
+  /** #49 (UC-19 A3) · Corregir tipo/institución/año de una certificación existente. Exige step-up. */
+  updateCertification(
+    id: string,
+    certId: string,
+    patch: AdminUpdateCertificationDto,
+    stepUpToken: string,
+  ): Observable<AdminCaregiverDetail> {
+    return this.http.patch<AdminCaregiverDetail>(
+      `/api/v1/admin/caregivers/${id}/certifications/${certId}`,
+      patch,
+      { headers: stepUpHeaders(stepUpToken) },
+    );
+  }
+
+  /** #49 (UC-19 A3) · Dar de baja una certificación existente (recalcula la insignia derivada). Exige step-up. */
+  removeCertification(id: string, certId: string, stepUpToken: string): Observable<AdminCaregiverDetail> {
+    return this.http.delete<AdminCaregiverDetail>(
+      `/api/v1/admin/caregivers/${id}/certifications/${certId}`,
+      { headers: stepUpHeaders(stepUpToken) },
+    );
+  }
+
+  /** #49 · Catálogo finito de certificaciones, expuesto al admin para elegir el tipo al editar. */
+  getCertificationCatalog(): Observable<CertificationCatalogItem[]> {
+    return this.http.get<CertificationCatalogItem[]>('/api/v1/admin/caregivers/certification-catalog');
   }
 
   deactivate(id: string, reason?: string): Observable<CaregiverProfile> {

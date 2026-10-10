@@ -379,6 +379,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/caregivers/certification-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * #49 (UC-19 A3) · Catálogo finito de tipos de certificación (para elegir el tipo al editar)
+         * @description Mismo catálogo que GET /caregivers/certification-catalog (UC-02), expuesto al rol admin.
+         */
+        get: operations["AdminCaregiverController_certificationCatalog_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/caregivers/{id}": {
         parameters: {
             query?: never;
@@ -393,7 +413,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * #49 (UC-19 A3) · Editar los datos del cuidador (identidad + perfil, set parcial). Exige step-up
+         * @description Corrige cualquier dato que el cuidador declaró: nombre/foto (viven en su cuenta, ADR-0003), especialidades, disponibilidad, tarifas, zona y modalidades. Funciona en cualquier estado y no toca status, insignias ni provenance. Solo las claves presentes se escriben; un body vacío no escribe ni audita. La tarifa es efectivo-fechada (NFR-03/23). Auditado.
+         */
+        patch: operations["AdminCaregiverController_update_v1"];
         trace?: never;
     };
     "/api/v1/admin/caregivers/{id}/approve": {
@@ -482,6 +506,30 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/caregivers/{id}/certifications/{certId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * #49 (UC-19 A3) · Dar de baja una certificación existente. Exige step-up
+         * @description Quita la certificación del perfil (cualquier estado) y recalcula la insignia derivada `certificaciones` (≥1 aprobada). Identidad/antecedentes no se tocan. Auditado.
+         */
+        delete: operations["AdminCaregiverController_removeCertification_v1"];
+        options?: never;
+        head?: never;
+        /**
+         * #49 (UC-19 A3) · Corregir una certificación existente (tipo/institución/año). Exige step-up
+         * @description Set parcial. No cambia el estado de la certificación ni su documento privado (agregar una nueva o reemplazar el documento sigue siendo UC-02 A4, lo hace el cuidador). Auditado.
+         */
+        patch: operations["AdminCaregiverController_updateCertification_v1"];
         trace?: never;
     };
     "/api/v1/admin/caregivers/{id}/badges": {
@@ -1096,7 +1144,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** UC-18 · Mis notificaciones (paginado) */
+        /**
+         * UC-18 · Mis notificaciones (paginado)
+         * @description KER-86 · Página de la campana ordenada DESC por createdAt con cursor keyset. Omitir `cursor` para la primera página; reenviar `nextCursor` para la siguiente (el panel appendea). Default limit 20, máx 100. El contador de no leídas es endpoint aparte.
+         */
         get: operations["NotificationController_list_v1"];
         put?: never;
         post?: never;
@@ -1902,6 +1953,38 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        AdminUpdateCaregiverDto: {
+            /**
+             * @description Identidad de operación provista por el cliente (NFR-34). Un reintento con el mismo valor no duplica el efecto.
+             * @example op-8f3a2c1e
+             */
+            operationId: string;
+            availability?: components["schemas"]["AvailabilityDto"][];
+            rates?: components["schemas"]["RatesDto"];
+            /** @example Palermo, CABA */
+            zone?: string;
+            /**
+             * @example [
+             *       "home",
+             *       "hospital"
+             *     ]
+             */
+            modalities?: ("home" | "hospital")[];
+            /** @example Laura Gómez */
+            displayName?: string;
+            /**
+             * @description URL devuelta por POST /files/images (se valida contra su patrón); null quita la foto.
+             * @example /media/images/3f2c1a9e-7d4b-4a1c-9d2e-5b6f7a8c9d0e.jpg
+             */
+            photoUrl?: string | null;
+            /**
+             * @example [
+             *       "elder-care",
+             *       "palliative"
+             *     ]
+             */
+            specialties?: ("elder-care" | "post-surgical" | "chronic-illness" | "disability" | "palliative" | "pediatric" | "rehabilitation" | "companionship")[];
+        };
         RejectCaregiverDto: {
             /** @example Certificación de RCP ilegible */
             reason: string;
@@ -1909,6 +1992,17 @@ export interface components {
         RejectCertificationDto: {
             /** @example El documento está ilegible */
             reason: string;
+        };
+        AdminUpdateCertificationDto: {
+            /**
+             * @example cpr
+             * @enum {string}
+             */
+            catalogKey?: "nursing-degree" | "nursing-assistant" | "cpr" | "first-aid" | "geriatric-care" | "palliative-care" | "dementia-care" | "physical-therapy" | "therapeutic-companion" | "pediatric-nursing" | "diabetes-nutrition";
+            /** @example Cruz Roja Argentina */
+            institution?: string;
+            /** @example 2021 */
+            year?: number;
         };
         SetBadgesDto: {
             /** @example true */
@@ -3024,6 +3118,25 @@ export interface operations {
             };
         };
     };
+    AdminCaregiverController_certificationCatalog_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificationCatalogItemDto"][];
+                };
+            };
+        };
+    };
     AdminCaregiverController_detail_v1: {
         parameters: {
             query?: never;
@@ -3034,6 +3147,34 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDetailDto"];
+                };
+            };
+        };
+    };
+    AdminCaregiverController_update_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUpdateCaregiverDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3158,6 +3299,60 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RejectCertificationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDetailDto"];
+                };
+            };
+        };
+    };
+    AdminCaregiverController_removeCertification_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
+            path: {
+                id: string;
+                certId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDetailDto"];
+                };
+            };
+        };
+    };
+    AdminCaregiverController_updateCertification_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token corto de re-confirmación (POST /auth/step-up) */
+                "x-step-up-token": string;
+            };
+            path: {
+                id: string;
+                certId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUpdateCertificationDto"];
             };
         };
         responses: {
