@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, concat, toArray } from 'rxjs';
+import { Observable, concat, tap, toArray } from 'rxjs';
 import { AdminApi } from '../../core/api/admin-api.service';
 import {
   AdminCaregiverDetail,
@@ -450,8 +450,14 @@ export class AdminCaregiverEditPage {
   private readonly toasts = inject(ToastService);
 
   private readonly id = this.route.snapshot.paramMap.get('id')!;
-  /** Un solo operationId por edición: los reintentos del submit no duplican la versión de tarifa. */
-  private readonly operationId = newOperationId();
+  /**
+   * operationId del PRÓXIMO PATCH del perfil (NFR-34). Un guardado que falló lo reusa, así el reintento
+   * es idempotente (no duplica la versión de tarifa); pero cuando el PATCH resolvió con éxito se acuña
+   * uno nuevo: si la página sigue abierta (p. ej. falló una operación posterior sobre una certificación)
+   * y el admin vuelve a corregir la tarifa, es OTRA versión efectivo-fechada (NFR-03/23) — con el id
+   * viejo `createRateVersion` devolvería la versión anterior y la vigente quedaría sin historial.
+   */
+  private operationId = newOperationId();
 
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
@@ -672,7 +678,7 @@ export class AdminCaregiverEditPage {
     const availability = sortSlots(
       this.slots.map((s) => ({ dayOfWeek: Number(s.dayOfWeek), from: s.from, to: s.to })),
     );
-    if (JSON.stringify(availability) !== JSON.stringify(sortSlots(d.availability))) {
+    if (!sameSlots(availability, sortSlots(d.availability))) {
       patch.availability = availability;
     }
     const rate = Number(this.ratePerHour);
@@ -748,7 +754,12 @@ export class AdminCaregiverEditPage {
 
     const ops: Observable<AdminCaregiverDetail>[] = [];
     if (Object.keys(patch).length > 0) {
-      ops.push(this.api.update(this.id, { operationId: this.operationId, ...patch }, token));
+      ops.push(
+        this.api
+          .update(this.id, { operationId: this.operationId, ...patch }, token)
+          // Resolvió: el próximo PATCH del perfil es otra operación (ver `operationId`).
+          .pipe(tap(() => (this.operationId = newOperationId()))),
+      );
     }
     for (const { certId, patch: certPatch } of certPatches) {
       ops.push(this.api.updateCertification(this.id, certId, certPatch, token));
@@ -794,6 +805,20 @@ export class AdminCaregiverEditPage {
         },
       });
   }
+}
+
+/**
+ * Igualdad slot a slot de dos listas YA ordenadas (`sortSlots`). No sirve stringificar: la API devuelve
+ * el jsonb con las claves en el orden que normaliza Postgres (`{to, from, dayOfWeek}`), distinto del
+ * que arma el formulario, y una disponibilidad sin cambios figuraría siempre como cambiada.
+ */
+function sameSlots(a: readonly DaySlot[], b: readonly DaySlot[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (s, i) => Number(s.dayOfWeek) === Number(b[i].dayOfWeek) && s.from === b[i].from && s.to === b[i].to,
+    )
+  );
 }
 
 /** Igualdad de conjuntos (el orden de los chips no importa). */

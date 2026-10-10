@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
+import { test, expect, Browser, BrowserContext, Page, Request } from '@playwright/test';
 import { E2E_CONTEXT } from './context-options';
 
 /**
@@ -10,11 +10,15 @@ import { E2E_CONTEXT } from './context-options';
  *   b. el admin aprueba la cuenta y la certificación (step-up);
  *   c. desde el detalle, «Editar» abre el formulario precargado (nombre, especialidad, certificación,
  *      disponibilidad, tarifa, zona, modalidad) — axe sin violaciones serias;
+ *   c2. guardar SIN tocar nada no manda ningún PATCH ni pide step-up (toast «No había cambios»): el diff
+ *      de disponibilidad compara slot a slot, no el jsonb con otro orden de claves;
  *   d. un intento con nombre vacío y tarifa 0 se señala en los campos y no persiste;
  *   e. el admin corrige nombre, zona, tarifa, especialidad y la institución de la certificación; al
  *      guardar, re-confirma la contraseña (step-up, contexto nuevo sin token cacheado), ve el toast y
  *      vuelve al detalle con los datos nuevos y el estado todavía «Aprobado»;
- *   f. la familia ve en la card y la ficha pública el nombre, la zona y la tarifa nuevos (UC-06/07).
+ *   e2. reintento tras un fallo parcial (el PATCH del perfil persistió, el de la certificación falló):
+ *      el segundo guardado de tarifa viaja con OTRO operationId (versión nueva, NFR-03/23);
+ *   f. la familia ve en la card y la ficha pública el nombre, la zona y la tarifa finales (UC-06/07).
  */
 const run = Date.now();
 const PASSWORD = 'S3gura!123';
@@ -26,9 +30,12 @@ const CAREGIVER_NEW_NAME = `Cuidador Corregido ${run}`;
 const ZONE = `Villa Crespo Edit ${run}`;
 const NEW_ZONE = `Colegiales Edit ${run}`;
 const NEW_RATE = '6100';
+const RETRY_RATE_1 = '5000';
+const RETRY_RATE_2 = '5500';
 const CERT_LABEL = 'Título de Enfermería';
 const CERT_INSTITUTION = 'UBA';
 const CERT_NEW_INSTITUTION = `Universidad Corregida ${run}`;
+const CERT_RETRY_INSTITUTION = `Instituto Reintento ${run}`;
 
 const PDF = Buffer.from('%PDF-1.4\n#49 certificado de prueba\n%%EOF', 'latin1');
 
@@ -195,6 +202,30 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
     await expectAxeClean(editor, 'admin/caregivers/:id/edit');
   });
 
+  test('c2. guardar sin cambios no manda ningún PATCH ni pide step-up: toast «No había cambios» y vuelta al detalle', async () => {
+    const patches: string[] = [];
+    const onRequest = (req: Request) => {
+      if (req.method() === 'PATCH' && req.url().includes('/api/v1/admin/caregivers/')) {
+        patches.push(req.url());
+      }
+    };
+    editor.on('request', onRequest);
+
+    await editor.getByRole('button', { name: 'Guardar cambios' }).click();
+
+    await expect(editor.getByText('No había cambios para guardar.')).toBeVisible({ timeout: 15_000 });
+    await expect(editor).toHaveURL(new RegExp(`/admin/caregivers/${caregiverId}$`), { timeout: 15_000 });
+    editor.off('request', onRequest);
+    // Ni un PATCH (la disponibilidad sin tocar NO cuenta como cambio) ni re-confirmación de contraseña.
+    expect(patches).toEqual([]);
+    await expect(editor.getByRole('dialog', { name: 'Confirmá tu identidad' })).toHaveCount(0);
+
+    // De vuelta a la edición para los pasos siguientes.
+    await editor.getByRole('link', { name: 'Editar' }).click();
+    await expect(editor.getByRole('heading', { name: 'Editar cuidador' })).toBeVisible({ timeout: 15_000 });
+    await expect(editor.getByLabel('Tarifa por hora')).toHaveValue('4000');
+  });
+
   test('d. nombre vacío y tarifa 0 se señalan en el campo y no persisten', async () => {
     await editor.getByLabel('Nombre y apellido').fill('');
     await editor.getByLabel('Tarifa por hora').fill('0');
@@ -238,7 +269,53 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
     await expect(editor.getByText('Adultos mayores').first()).toBeVisible();
   });
 
-  test('f. la familia ve el nombre, la zona y la tarifa nuevos en la card y la ficha del marketplace', async () => {
+  test('e2. reintento tras un fallo parcial: el segundo guardado de tarifa usa OTRO operationId (versión nueva, NFR-03/23)', async () => {
+    const operationIds: string[] = [];
+    const profilePatch = new RegExp(`/api/v1/admin/caregivers/${caregiverId}$`);
+    const onRequest = (req: Request) => {
+      if (req.method() === 'PATCH' && profilePatch.test(req.url())) {
+        operationIds.push((req.postDataJSON() as { operationId: string }).operationId);
+      }
+    };
+    editor.on('request', onRequest);
+
+    await editor.getByRole('link', { name: 'Editar' }).click();
+    await expect(editor.getByRole('heading', { name: 'Editar cuidador' })).toBeVisible({ timeout: 15_000 });
+
+    // Guardado #1: el PATCH del perfil (tarifa) persiste; el PATCH de la certificación falla (simulado).
+    const certRoute = /\/api\/v1\/admin\/caregivers\/[^/]+\/certifications\//;
+    await editor.route(certRoute, (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ statusCode: 500, code: 'INTERNAL_ERROR', message: 'Fallo simulado por el test' }),
+      }),
+    );
+    await editor.getByLabel('Tarifa por hora').fill(RETRY_RATE_1);
+    await editor.getByLabel('Institución').fill(CERT_RETRY_INSTITUTION);
+    await editor.getByRole('button', { name: 'Guardar cambios' }).click();
+    // El step-up quedó cacheado en este contexto (paso e): no hay modal. El error se muestra y la página
+    // sigue en edición con lo que el admin tenía cargado.
+    await expect(editor.getByText('Fallo simulado por el test')).toBeVisible({ timeout: 15_000 });
+    await expect(editor).toHaveURL(/\/edit$/);
+    await editor.unroute(certRoute);
+
+    // Guardado #2: corrige la tarifa otra vez. Tiene que viajar con un operationId NUEVO (si reusara el
+    // del guardado #1, la API devolvería la versión anterior y la tarifa vigente quedaría sin historial).
+    await editor.getByLabel('Tarifa por hora').fill(RETRY_RATE_2);
+    await editor.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(editor.getByText('Datos del cuidador actualizados.')).toBeVisible({ timeout: 15_000 });
+    await expect(editor).toHaveURL(new RegExp(`/admin/caregivers/${caregiverId}$`), { timeout: 15_000 });
+    editor.off('request', onRequest);
+
+    expect(operationIds).toHaveLength(2);
+    expect(operationIds[0]).not.toBe(operationIds[1]);
+    await expect(editor.getByText(`$ ${RETRY_RATE_2}/hora`)).toBeVisible();
+    await expect(editor.getByText(`— ${CERT_RETRY_INSTITUTION}, 2015`)).toBeVisible();
+    await expect(editor.getByText('Aprobado', { exact: true })).toBeVisible();
+  });
+
+  test('f. la familia ve el nombre, la zona y la tarifa finales en la card y la ficha del marketplace', async () => {
     familyCtx = await browser.newContext(E2E_CONTEXT);
     family = await familyCtx.newPage();
 
@@ -261,7 +338,7 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
     await cardLink.click();
     await expect(family.getByRole('heading', { name: CAREGIVER_NEW_NAME })).toBeVisible({ timeout: 15_000 });
     await expect(family.getByText(NEW_ZONE).first()).toBeVisible();
-    await expect(family.getByText(`$ ${NEW_RATE}`).first()).toBeVisible();
-    await expect(family.getByText(CERT_NEW_INSTITUTION)).toBeVisible();
+    await expect(family.getByText(`$ ${RETRY_RATE_2}`).first()).toBeVisible();
+    await expect(family.getByText(CERT_RETRY_INSTITUTION)).toBeVisible();
   });
 });
