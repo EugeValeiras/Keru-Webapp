@@ -183,14 +183,14 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
 
     // Precarga: identidad, especialidad, certificación, disponibilidad, tarifa, zona, modalidad.
     await expect(editor.getByLabel('Nombre y apellido')).toHaveValue(CAREGIVER_NAME);
-    await expect(editor.getByLabel('Adultos mayores')).toBeChecked();
+    await expect(editor.getByRole('checkbox', { name: 'Adultos mayores' })).toBeChecked();
     await expect(editor.getByLabel('Institución')).toHaveValue(CERT_INSTITUTION);
     await expect(editor.getByLabel('Año')).toHaveValue('2015');
     await expect(editor.getByText('Verificada')).toBeVisible();
     await expect(editor.getByText(/Lunes/).first()).toBeVisible();
     await expect(editor.getByLabel('Tarifa por hora')).toHaveValue('4000');
     await expect(editor.getByLabel('Zona')).toHaveValue(ZONE);
-    await expect(editor.getByLabel('A domicilio')).toBeChecked();
+    await expect(editor.getByRole('checkbox', { name: 'A domicilio' })).toBeChecked();
 
     await expectAxeClean(editor, 'admin/caregivers/:id/edit');
   });
@@ -213,7 +213,8 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
 
   test('e. el admin corrige nombre, zona, tarifa, especialidad y la certificación; guarda con step-up y vuelve al detalle actualizado', async () => {
     await editor.getByLabel('Nombre y apellido').fill(CAREGIVER_NEW_NAME);
-    await editor.getByLabel('Cuidados paliativos').check();
+    // Checkbox por rol: «Cuidados paliativos» también aparece como opción del catálogo de certificaciones.
+    await editor.getByRole('checkbox', { name: 'Cuidados paliativos' }).check();
     await editor.getByLabel('Institución').fill(CERT_NEW_INSTITUTION);
     await editor.getByLabel('Tarifa por hora').fill(NEW_RATE);
     await editor.getByLabel('Zona').fill(NEW_ZONE);
