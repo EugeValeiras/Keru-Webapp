@@ -102,6 +102,15 @@ const MAX_YEAR = 2100;
                   }
                 </ul>
               }
+              @if (reloadRequired()) {
+                <button
+                  type="button"
+                  (click)="reload()"
+                  class="mt-2 rounded-pill border border-danger text-danger text-sm font-medium py-1.5 px-4 hover:bg-danger-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                >
+                  Recargar la página
+                </button>
+              }
             </div>
           }
 
@@ -431,10 +440,10 @@ const MAX_YEAR = 2100;
             </a>
             <button
               type="submit"
-              [disabled]="saving() || photoUploading()"
+              [disabled]="saving() || refreshing() || reloadRequired() || photoUploading()"
               class="rounded-pill bg-primary-600 text-white font-semibold py-2.5 px-6 hover:bg-primary-700 disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             >
-              {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+              {{ saving() ? 'Guardando…' : refreshing() ? 'Actualizando…' : 'Guardar cambios' }}
             </button>
           </div>
         </form>
@@ -462,6 +471,14 @@ export class AdminCaregiverEditPage {
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
   readonly saving = signal(false);
+  /**
+   * Tras un guardado que falló a mitad de camino, la base del diff (`original`) se refresca del backend;
+   * hasta que resuelva, guardar sigue bloqueado: un reintento con la base vieja mandaría de nuevo lo que
+   * ya persistió (otra versión de tarifa idéntica con el operationId nuevo, otro audit).
+   */
+  readonly refreshing = signal(false);
+  /** El refresco falló: sin base confiable para el diff no se habilita el reintento a ciegas. */
+  readonly reloadRequired = signal(false);
   readonly error = signal<string | null>(null);
   readonly fieldErrors = signal<string[]>([]);
   /** Tras el primer intento de guardar, los errores se muestran en vivo junto a cada campo. */
@@ -730,7 +747,14 @@ export class AdminCaregiverEditPage {
   async save(): Promise<void> {
     this.submitted.set(true);
     const d = this.original();
-    if (!d || this.saving() || this.photoUploading() || !this.formValid()) {
+    if (
+      !d ||
+      this.saving() ||
+      this.refreshing() ||
+      this.reloadRequired() ||
+      this.photoUploading() ||
+      !this.formValid()
+    ) {
       return;
     }
 
@@ -787,7 +811,10 @@ export class AdminCaregiverEditPage {
           this.error.set(err.message);
           this.fieldErrors.set(err.fields);
           // Algunas operaciones pueden haber persistido: refrescamos la base del diff (sin pisar lo
-          // que el admin tiene en el formulario) para que el reintento mande solo lo que falta.
+          // que el admin tiene en el formulario) para que el reintento mande solo lo que falta. Hasta
+          // que resuelva, guardar queda bloqueado (`refreshing`); si falla, no hay base confiable y se
+          // pide recargar en vez de habilitar un reintento a ciegas (`reloadRequired`).
+          this.refreshing.set(true);
           this.api.getDetail(this.id).subscribe({
             next: (fresh) => {
               this.original.set(fresh);
@@ -799,11 +826,23 @@ export class AdminCaregiverEditPage {
                     return { ...c, original: { catalogKey: fc.catalogKey, institution: fc.institution, year: fc.year } };
                   }),
               );
+              this.refreshing.set(false);
             },
-            error: () => undefined,
+            error: (refreshErr: ApiError) => {
+              this.refreshing.set(false);
+              this.reloadRequired.set(true);
+              this.error.set(
+                `${err.message} Además no pudimos actualizar los datos del cuidador (${refreshErr.message}): recargá la página antes de volver a guardar.`,
+              );
+            },
           });
         },
       });
+  }
+
+  /** Sin base confiable para el diff (falló el refresco tras un error): se vuelve a cargar todo. */
+  reload(): void {
+    window.location.reload();
   }
 }
 

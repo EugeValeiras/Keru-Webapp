@@ -17,7 +17,9 @@ import { E2E_CONTEXT } from './context-options';
  *      guardar, re-confirma la contraseña (step-up, contexto nuevo sin token cacheado), ve el toast y
  *      vuelve al detalle con los datos nuevos y el estado todavía «Aprobado»;
  *   e2. reintento tras un fallo parcial (el PATCH del perfil persistió, el de la certificación falló):
- *      el segundo guardado de tarifa viaja con OTRO operationId (versión nueva, NFR-03/23);
+ *      mientras se refresca la base del diff (GET demorado) el botón sigue bloqueado y un click impaciente
+ *      no manda ningún PATCH de perfil; el segundo guardado de tarifa viaja con OTRO operationId
+ *      (versión nueva, NFR-03/23);
  *   f. la familia ve en la card y la ficha pública el nombre, la zona y la tarifa finales (UC-06/07).
  */
 const run = Date.now();
@@ -283,7 +285,10 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
     await expect(editor.getByRole('heading', { name: 'Editar cuidador' })).toBeVisible({ timeout: 15_000 });
 
     // Guardado #1: el PATCH del perfil (tarifa) persiste; el PATCH de la certificación falla (simulado).
+    // Además el GET del detalle que refresca la base del diff tras el error se DEMORA: mientras tanto el
+    // botón tiene que seguir bloqueado, o un reintento mandaría otra vez 4000→5000 con otro operationId.
     const certRoute = /\/api\/v1\/admin\/caregivers\/[^/]+\/certifications\//;
+    const REFRESH_DELAY_MS = 3_000;
     await editor.route(certRoute, (route) =>
       route.fulfill({
         status: 500,
@@ -291,14 +296,33 @@ test.describe.serial('#49 · El administrador edita los datos de un cuidador apr
         body: JSON.stringify({ statusCode: 500, code: 'INTERNAL_ERROR', message: 'Fallo simulado por el test' }),
       }),
     );
+    await editor.route(profilePatch, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, REFRESH_DELAY_MS));
+      await route.continue();
+    });
     await editor.getByLabel('Tarifa por hora').fill(RETRY_RATE_1);
     await editor.getByLabel('Institución').fill(CERT_RETRY_INSTITUTION);
-    await editor.getByRole('button', { name: 'Guardar cambios' }).click();
-    // El step-up quedó cacheado en este contexto (paso e): no hay modal. El error se muestra y la página
-    // sigue en edición con lo que el admin tenía cargado.
+    const saveButton = editor.getByRole('button', { name: /^(Guardar cambios|Actualizando…|Guardando…)$/ });
+    await saveButton.click();
+    // El step-up quedó cacheado en este contexto (paso e): no hay modal. El error se muestra, la página
+    // sigue en edición con lo que el admin tenía cargado y guardar queda bloqueado hasta el refresco.
     await expect(editor.getByText('Fallo simulado por el test')).toBeVisible({ timeout: 15_000 });
     await expect(editor).toHaveURL(/\/edit$/);
     await editor.unroute(certRoute);
+    await expect(saveButton).toBeDisabled();
+    await expect(saveButton).toHaveText('Actualizando…');
+    // Reintento impaciente durante la demora: no debe salir ningún PATCH de perfil adicional.
+    await saveButton.click({ force: true });
+    await editor.waitForTimeout(1_000);
+    expect(operationIds).toHaveLength(1);
+    await expect(saveButton).toBeEnabled({ timeout: 15_000 });
+    await expect(saveButton).toHaveText('Guardar cambios');
+    expect(operationIds).toHaveLength(1);
+    await editor.unroute(profilePatch);
 
     // Guardado #2: corrige la tarifa otra vez. Tiene que viajar con un operationId NUEVO (si reusara el
     // del guardado #1, la API devolvería la versión anterior y la tarifa vigente quedaría sin historial).
