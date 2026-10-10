@@ -185,6 +185,12 @@ export const routes: Routes = [
           import('./features/admin/admin-caregiver-detail-page').then((m) => m.AdminCaregiverDetailPage),
       },
       {
+        // #49 · UC-19 A3: el admin corrige los datos que el cuidador declaró (identidad + perfil).
+        path: 'caregivers/:id/edit',
+        loadComponent: () =>
+          import('./features/admin/admin-caregiver-edit-page').then((m) => m.AdminCaregiverEditPage),
+      },
+      {
         path: 'ops',
         loadComponent: () => import('./features/admin/admin-ops-page').then((m) => m.AdminOpsPage),
       },

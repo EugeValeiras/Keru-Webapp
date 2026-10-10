@@ -68,6 +68,14 @@ export type CertificationView = Schemas['CertificationView'];
 export type CertificationCatalogItem = Schemas['CertificationCatalogItemDto'];
 /** KER-52 · Agregar una certificación (UC-02 A4). */
 export type AddCertificationDto = Schemas['AddCertificationDto'];
+/**
+ * #49 · UC-19 A3 · Edición de datos del cuidador por el admin: set parcial de identidad (nombre/foto,
+ * viven en la cuenta — ADR-0003) + perfil (especialidades, disponibilidad, tarifa, zona, modalidades).
+ * Lleva operationId porque un cambio de tarifa agrega una versión efectivo-fechada. Exige step-up.
+ */
+export type AdminUpdateCaregiverDto = Schemas['AdminUpdateCaregiverDto'];
+/** #49 · UC-19 A3 · Corrección de una certificación existente (tipo/institución/año). Exige step-up. */
+export type AdminUpdateCertificationDto = Schemas['AdminUpdateCertificationDto'];
 /** KER-52 · Respuesta de la subida del documento privado: la key opaca (no una URL). */
 export type UploadedDocument = Schemas['UploadedDocumentDto'];
 export type Availability = Schemas['AvailabilityDto'];

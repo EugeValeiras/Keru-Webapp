@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AdminApi } from '../../core/api/admin-api.service';
 import {
@@ -48,7 +48,7 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
 
 @Component({
   selector: 'kr-admin-caregiver-detail-page',
-  imports: [FormsModule, KrAvatar, KrBadge, KrCertIcon, KrInsignias, KrModal],
+  imports: [FormsModule, RouterLink, KrAvatar, KrBadge, KrCertIcon, KrInsignias, KrModal],
   template: `
     <div class="max-w-3xl mx-auto flex flex-col gap-6">
       @if (error(); as err) {
@@ -76,6 +76,13 @@ const CERT_STATUS_TONE: Record<string, BadgeTone> = {
               </p>
             }
           </div>
+          <!-- #49 · UC-19 A3: corregir los datos que el cuidador declaró (identidad + perfil). -->
+          <a
+            [routerLink]="['/admin/caregivers', d.id, 'edit']"
+            class="rounded-pill border border-ink-300 text-ink-700 font-medium py-2 px-5 hover:bg-primary-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          >
+            Editar
+          </a>
         </div>
 
         @if (d.rejectionReason) {
